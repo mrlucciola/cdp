@@ -23,5 +23,5 @@ pub struct UserTrove {
     token_a_balance: u64,
     token_b_balance: u64,
     token_lp_balance: u64,
-    debt_lp: u64
+    debt: u64
 }
