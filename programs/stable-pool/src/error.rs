@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 
 #[error]
-pub enum RatioError {
+pub enum StablePoolError {
     #[msg("You are not authorized to perform this action.")]
     Unauthorized,
     #[msg("AlreadyInUse")]

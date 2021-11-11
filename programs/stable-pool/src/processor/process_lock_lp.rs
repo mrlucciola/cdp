@@ -7,7 +7,7 @@ use crate::{
     instructions::*
 };
 
-pub fn process_create_program_state(ctx: Context<CreateProgramState>) -> ProgramResult {
+pub fn process_lock_lp(ctx: &Context<LockLp>) -> ProgramResult {
     
     Ok(())
 }
