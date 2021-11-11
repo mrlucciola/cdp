@@ -1,1 +1,1 @@
-# cdp-contracts
+# stable-pool contracts
