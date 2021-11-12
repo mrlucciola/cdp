@@ -3,25 +3,21 @@ use anchor_lang::prelude::*;
 #[account]
 #[derive(Default)]
 pub struct GlobalState {
-    owner: Pubkey,
+    pub super_owner: Pubkey,
 }
 
 #[account]
 #[derive(Default)]
 pub struct TokenVault {
-    owner: Pubkey,
-    token_a: Pubkey,
-    token_b: Pubkey,
-    token_lp: Pubkey,
+    pub vault_owner: Pubkey,
+    pub token_coll: Pubkey,
 }
 
 #[account]
 #[derive(Default)]
 pub struct UserTrove {
-    owner: Pubkey,
-    vault: Pubkey,
-    token_a_balance: u64,
-    token_b_balance: u64,
-    token_lp_balance: u64,
-    debt: u64
+    pub trove_owner: Pubkey,
+    pub token_vault: Pubkey,
+    pub locked_coll_balance: u64,
+    pub debt: u64
 }

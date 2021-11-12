@@ -1,5 +1,5 @@
-pub mod process_lock_lp;
-pub use process_lock_lp::*;
+pub mod process_deposit_collateral;
+pub use process_deposit_collateral::*;
 
 pub mod process_create_global_state;
 pub use process_create_global_state::*;
