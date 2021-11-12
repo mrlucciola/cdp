@@ -32,5 +32,6 @@ pub mod stable_pool {
     pub fn create_token_vault(ctx: Context<CreateTokenVault>, nonce: u8) -> ProgramResult { process_create_token_vault(ctx, nonce)}
     pub fn create_user_trove(ctx: Context<CreateUserTrove>, nonce: u8) -> ProgramResult { process_create_user_trove(ctx, nonce) }
     pub fn deposit_collateral(ctx: Context<DepositCollateral>, amount: u64) -> ProgramResult { process_deposit_collateral(ctx, amount) }
+    pub fn mint_usdx(ctx: Context<MintUSDx>, amount: u64) -> ProgramResult { process_mint_usdx(ctx, amount) }
 
 }
