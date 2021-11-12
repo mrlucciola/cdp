@@ -76,3 +76,23 @@ pub struct DepositCollateral<'info> {
     pub user_token_coll:Account<'info, TokenAccount>,
     pub token_program:AccountInfo<'info>,
 }
+
+#[derive(Accounts)]
+#[instruction(amount: u64)]
+pub struct MintUSDx<'info> {
+    
+    #[account(signer)]
+    pub owner:  AccountInfo<'info>,
+    
+    #[account(mut)]
+    pub usdx_mint:Account<'info, Mint>,
+    
+    #[account(mut)]
+    pub pool_authority:Account<'info>,
+    
+    #[account(mut)]
+    pub user_usdx_token:Account<'info, TokenAccount>,
+
+    pub token_program:AccountInfo<'info>,
+}
+
