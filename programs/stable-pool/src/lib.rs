@@ -33,7 +33,6 @@ pub mod stable_pool {
 
     pub fn deposit_collateral(ctx: Context<DepositCollateral>, amount: u64) -> ProgramResult { process_deposit_collateral(ctx, amount) }
     pub fn withdraw_collateral(ctx: Context<WithdrawCollateral>, amount: u64) -> ProgramResult { process_withdraw_collateral(ctx, amount) }
-    pub fn repay_collateral(ctx: Context<RepayCollateral>, amount: u64) -> ProgramResult { process_repay_collateral(ctx, amount) }
 
     pub fn borrow_usd(ctx: Context<BorrowUsd>, amount: u64) -> ProgramResult { process_borrow_usd(ctx, amount) }
     pub fn repay_usd(ctx: Context<RepayUsd>, amount: u64) -> ProgramResult { process_repay_usd(ctx, amount) }
