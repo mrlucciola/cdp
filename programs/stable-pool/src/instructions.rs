@@ -100,20 +100,40 @@ pub struct WithdrawCollateral<'info> {
 
 #[derive(Accounts)]
 #[instruction(amount: u64)]
-pub struct MintUSDx<'info> {
-    
+pub struct BorrowUsd<'info> {
     #[account(signer)]
     pub owner:  AccountInfo<'info>,
-    
     #[account(mut)]
-    pub usdx_mint:Account<'info, Mint>,
-    
+    pub user_trove:ProgramAccount<'info, UserTrove>,
     #[account(mut)]
-    pub pool_authority:Account<'info>,
-    
+    pub token_vault:ProgramAccount<'info, TokenVault>,
     #[account(mut)]
-    pub user_usdx_token:Account<'info, TokenAccount>,
+    pub global_state:ProgramAccount<'info, GlobalState>,
+    #[account(mut)]
+    pub pool_token_coll:Account<'info, TokenAccount>,
+    #[account(mut)]
+    pub mint_usd:AccountInfo<'info>,
+    #[account(mut)]
+    pub user_token_usd:AccountInfo<'info>,
 
     pub token_program:AccountInfo<'info>,
 }
 
+#[derive(Accounts)]
+#[instruction(amount: u64)]
+pub struct RepayUsd<'info> {
+    #[account(signer)]
+    pub owner:  AccountInfo<'info>,
+    #[account(mut)]
+    pub user_trove:ProgramAccount<'info, UserTrove>,
+    #[account(mut)]
+    pub token_vault:ProgramAccount<'info, TokenVault>,
+    #[account(mut)]
+    pub global_state:ProgramAccount<'info, GlobalState>,
+    #[account(mut)]
+    pub mint_usd:AccountInfo<'info>,
+    #[account(mut)]
+    pub user_token_usd:AccountInfo<'info>,
+
+    pub token_program:AccountInfo<'info>,
+}
