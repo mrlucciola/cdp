@@ -1,13 +1,13 @@
 import * as anchor from '@project-serum/anchor';
 import { Program } from '@project-serum/anchor';
-import { CDP } from '../target/types/ratio';
+import { StablePool } from '../target/types/stable_pool';
 
 describe('ratio', () => {
 
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.Provider.env());
 
-  const program = anchor.workspace.CDP as Program<Ratio>;
+  const program = anchor.workspace.StablePool as Program<StablePool>;
 
   it('Is initialized!', async () => {
     // Add your test here.

@@ -12,4 +12,6 @@ pub enum StablePoolError {
     InvalidState,
     #[msg("InvalidOwner")]
     InvalidOwner,
+    #[msg("InvalidDebt")]
+    InvalidDebt,
 }
