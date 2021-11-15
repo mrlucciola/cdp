@@ -1,5 +1,5 @@
 [programs.devnet]
-stable_pool = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+stable_pool = "3WCEhzKPenLsWELCmofTSTw1UoV1cgHKCEzCHbA71srV"
 
 [registry]
 url = "https://anchor.projectserum.com"
