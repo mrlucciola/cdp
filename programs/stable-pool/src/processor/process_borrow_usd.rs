@@ -11,6 +11,10 @@ use crate::{
 
 pub fn process_borrow_usd(ctx: Context<BorrowUsd>, amount: u64) -> ProgramResult {
 
+    let cur_timestamp = ctx.accounts.clock.unix_timestamp as u64;
+    if cur_timestamp - ctx.accounts.minted_time < LIMIT_MINT_USD_TIME {
+        return Err(StablePoolError::NotAllowed.into())
+    }
     //assert_debt_allowed(ctx.accounts.user_trove.locked_coll_balance, ctx.accounts.user_trove.debt, amount)?;
     // mint to user
     let cpi_accounts = MintTo {
@@ -36,6 +40,7 @@ pub fn process_borrow_usd(ctx: Context<BorrowUsd>, amount: u64) -> ProgramResult
 
     ctx.accounts.token_vault.total_debt += amount;
     ctx.accounts.user_trove.debt += amount;
+    ctx.accounts.minted_time = ctx.accounts.clock.unix_timestamp as u64;
 
     Ok(())
 }

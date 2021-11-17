@@ -117,6 +117,7 @@ pub struct BorrowUsd<'info> {
     pub user_token_usd:AccountInfo<'info>,
 
     pub token_program:AccountInfo<'info>,
+    pub clock:Account<'info, Clock>,
 }
 
 #[derive(Accounts)]
