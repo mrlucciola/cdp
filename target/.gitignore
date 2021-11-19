@@ -1,7 +1,0 @@
-bpfel-unknown-unknown/
-debug/
-deploy/
-release/
-rls/
-.rustc_info.json
-CACHEDIR.TAG
