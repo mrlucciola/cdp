@@ -12,8 +12,12 @@ pub enum StablePoolError {
     InvalidState,
     #[msg("InvalidOwner")]
     InvalidOwner,
-    #[msg("InvalidDebt")]
-    InvalidDebt,
     #[msg("NotAllowed")]
     NotAllowed,
+    #[msg("Math operation overflow")]
+    MathOverflow,
+    #[msg("InvalidOracleConfig")]
+    InvalidOracleConfig,
+    #[msg("InvalidAccountInput")]
+    InvalidAccountInput,
 }

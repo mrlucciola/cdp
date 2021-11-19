@@ -1,6 +1,0 @@
-===========================================================================
-pubkey: CewVTikaNVdZcaqh8v2tWit2DXMV7appT1Mpv6Q5LBWD
-===========================================================================
-Save this seed phrase and your BIP39 passphrase to recover your new keypair:
-pottery budget earn asset away nasty already main retire ethics rain render
-===========================================================================

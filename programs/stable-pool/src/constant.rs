@@ -1,12 +1,7 @@
-///INITIAL_OWNER
-pub const INITIAL_OWNER:&str = "";
-
-
 pub const GLOBAL_STATE_TAG:&[u8] = b"golbal-state-seed";
 pub const TOKEN_VAULT_TAG:&[u8] = b"token-vault-seed";
 pub const USER_TROVE_TAG:&[u8] = b"user-trove-seed";
+pub const SOLUSD_MINT_TAG:&[u8] = b"solusd-mint";
+pub const TOKEN_VAULT_POOL_TAG:&[u8] = b"token-vauld-pool";
 
-use std::env;
-const CLUSTER: &str = env!("CLUSTER");
-
-const LIMIT_MINT_USD_TIME:u64 = if CLUSTER == "devnet" {3600} else {0};
+pub const SOLUSD_DECIMALS: u8 = 6;

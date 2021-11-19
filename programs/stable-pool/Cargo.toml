@@ -1,12 +1,11 @@
 [package]
-name = "stable_pool"
+name = "stable_pool_v1"
 version = "0.1.0"
 description = "Created with Anchor"
 edition = "2018"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "stable_pool"
 
 [features]
 no-entrypoint = []
@@ -15,5 +14,7 @@ cpi = ["no-entrypoint"]
 default = []
 
 [dependencies]
-anchor-lang = "0.18.0"
-anchor-spl = "0.18.0"
+anchor-lang = "0.18.2"
+anchor-spl = "0.18.2"
+bytemuck = "1.7.2"
+spl-math = { version = "0.1.0",features = [ "no-entrypoint" ] }
