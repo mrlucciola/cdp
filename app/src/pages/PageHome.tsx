@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import * as anchor from '@project-serum/anchor';
 import { useWallet, WalletContextState } from '@solana/wallet-adapter-react';
-import { borrowUSDx, createGlobalState, createTokenVault, createUserTrove, depositCollateral,  repayUSDx, withdrawCollateral } from '../actions';
+import { borrowUSDx, createGlobalState, createTokenVault, createUserTrove, depositCollateral,  repayUSDx, TEST_LP_TOKEN_MINT, withdrawCollateral } from '../actions';
 import { Button } from '@material-ui/core';
 const connection = new anchor.web3.Connection('https://api.devnet.solana.com');
 
@@ -18,42 +18,42 @@ const PageHome : React.FC = () => {
   }
   async function createTokenVaultUI() {
     if(wallet.connected){
-      const demoLog = await createTokenVault(connection, wallet);
+      const demoLog = await createTokenVault(connection, wallet, TEST_LP_TOKEN_MINT);
       setDispInfo(demoLog);
     }
     else{     setDispInfo("connect your wallet");    }
   }
   async function createUserTroveUI() {
     if(wallet.connected){
-      const demoLog = await createUserTrove(connection, wallet);
+      const demoLog = await createUserTrove(connection, wallet, TEST_LP_TOKEN_MINT);
       setDispInfo(demoLog);
     }
     else{     setDispInfo("connect your wallet");    }
   }
   async function depositCollateralUI() {
     if(wallet.connected){
-      const demoLog = await depositCollateral(connection, wallet, 1 * 1000000000);
+      const demoLog = await depositCollateral(connection, wallet, 10 * 1000000000, "2gKRSzmavuU9qg5FoHX69uFxZVuN1xVSEVZnKCTjP2ko", TEST_LP_TOKEN_MINT);
       setDispInfo(demoLog);
     }
     else{     setDispInfo("connect your wallet");    }
   }
   async function withdrawCollateralUI() {
     if(wallet.connected){
-      const demoLog = await withdrawCollateral(connection, wallet, 1 * 1000000000);
+      const demoLog = await withdrawCollateral(connection, wallet, 3 * 1000000000, "2gKRSzmavuU9qg5FoHX69uFxZVuN1xVSEVZnKCTjP2ko", TEST_LP_TOKEN_MINT);
       setDispInfo(demoLog);
     }
     else{     setDispInfo("connect your wallet");    }
   }
   async function borrowUSDxUI() {
     if(wallet.connected){
-      const demoLog = await borrowUSDx(connection, wallet, 50 * 1000000);
+      const demoLog = await borrowUSDx(connection, wallet, 50 * 1000000, TEST_LP_TOKEN_MINT);
       setDispInfo(demoLog);
     }
     else{     setDispInfo("connect your wallet");    }
   }
   async function repayUSDxUI() {
     if(wallet.connected){
-      const demoLog = await repayUSDx(connection, wallet,  20 * 1000000);
+      const demoLog = await repayUSDx(connection, wallet,  20 * 1000000, TEST_LP_TOKEN_MINT);
       setDispInfo(demoLog);
     }
     else{     setDispInfo("connect your wallet");    }
@@ -91,7 +91,7 @@ const PageHome : React.FC = () => {
     </Button>
     <br />
     <br />
-    {dispInfo}
+    <textarea value={dispInfo}></textarea>
     </div>
 
   );
