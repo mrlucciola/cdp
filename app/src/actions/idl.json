@@ -273,64 +273,6 @@
       ]
     },
     {
-      "name": "repayCollateral",
-      "accounts": [
-        {
-          "name": "owner",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "userTrove",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "poolTokenColl",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userTokenColl",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mintColl",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "amount",
-          "type": "u64"
-        },
-        {
-          "name": "tokenVaultNonce",
-          "type": "u8"
-        },
-        {
-          "name": "userTroveNonce",
-          "type": "u8"
-        },
-        {
-          "name": "tokenCollNonce",
-          "type": "u8"
-        }
-      ]
-    },
-    {
       "name": "borrowUsd",
       "accounts": [
         {
@@ -370,6 +312,11 @@
         },
         {
           "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
           "isMut": false,
           "isSigner": false
         }
@@ -518,6 +465,10 @@
           {
             "name": "debt",
             "type": "u64"
+          },
+          {
+            "name": "lastMintTime",
+            "type": "u64"
           }
         ]
       }
@@ -553,6 +504,21 @@
       "code": 305,
       "name": "NotAllowed",
       "msg": "NotAllowed"
+    },
+    {
+      "code": 306,
+      "name": "MathOverflow",
+      "msg": "Math operation overflow"
+    },
+    {
+      "code": 307,
+      "name": "InvalidOracleConfig",
+      "msg": "InvalidOracleConfig"
+    },
+    {
+      "code": 308,
+      "name": "InvalidAccountInput",
+      "msg": "InvalidAccountInput"
     }
   ]
 }

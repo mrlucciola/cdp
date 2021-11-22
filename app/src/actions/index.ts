@@ -2,7 +2,7 @@ import idl from './idl.json';
 
 import { AccountLayout, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import * as anchor from '@project-serum/anchor';
-import { Connection, Keypair, PublicKey, SystemProgram,  SYSVAR_RENT_PUBKEY,  Transaction,  TransactionInstruction } from '@solana/web3.js';
+import { Connection, Keypair, PublicKey, SystemProgram,  SYSVAR_CLOCK_PUBKEY,  SYSVAR_RENT_PUBKEY,  Transaction,  TransactionInstruction } from '@solana/web3.js';
 import { WalletNotConnectedError } from '@solana/wallet-adapter-base';
 import { checkWalletATA, createTokenAccountIfNotExist, sendTransaction } from './web3';
 import { closeAccount } from '@project-serum/serum/lib/token-instructions';
@@ -11,15 +11,14 @@ export const WSOL_MINT_KEY = new PublicKey(
     'So11111111111111111111111111111111111111112',
   );
 
-export const GLOBAL_STATE_TAG = "golbal-state-seed"
-export const TOKEN_VAULT_TAG = "token-vault-seed"
-export const USER_TROVE_TAG = "user-trove-seed"
-
+export const GLOBAL_STATE_TAG = "golbal-state-seed";
+export const TOKEN_VAULT_TAG = "token-vault-seed";
+export const USER_TROVE_TAG = "user-trove-seed";
 export const USD_MINT_TAG = "usd-mint";
-export const TOKEN_VAULT_POOL_TAG = "token-vauld-pool";
+export const TOKEN_VAULT_POOL_TAG = "token-vault-pool";
 
 export const STABLE_POOL_PROGRAM_ID = new PublicKey(
-  '2FvLCUXbzz8trfuUSWXVXJWdfw7KLawrP2PQfDQewBaU',
+  'AVEpebTAVUwhYVyF32w6tBdvFbE5A6jv2q4DCzLoprKA',
 );
 export const STABLE_POOL_IDL = idl;
 export const USD_DECIMALS = 6; 
@@ -63,11 +62,13 @@ export async function createGlobalState(
       [Buffer.from(GLOBAL_STATE_TAG)],
       program.programId,
     );
+    console.log("globalStateKey",globalStateKey.toBase58());
   const [mintUsdKey, mintUsdNonce] =
     await anchor.web3.PublicKey.findProgramAddress(
       [Buffer.from(USD_MINT_TAG)],
       program.programId,
     );
+  console.log("mintUsdKey",mintUsdKey.toBase58());
   try{
     const globalState = await program.account.globalState.fetch(globalStateKey);
     console.log("already created")
@@ -171,6 +172,7 @@ export async function borrowUSDx(
           userTokenUsd: userUsdTokenKey,
           mintColl: mintCollKey,
           tokenProgram: TOKEN_PROGRAM_ID,
+          clock: SYSVAR_CLOCK_PUBKEY,
         },
       }
     );
@@ -183,7 +185,7 @@ export async function borrowUSDx(
     let tx = await sendTransaction(connection, wallet, transaction, signers);
     console.log("tx id->",tx);
   
-    return "User borrowed "+(amount / Math.pow(10, USD_DECIMALS))+" SOLUSD , transaction id = "+tx;
+    return "User borrowed "+(amount / Math.pow(10, USD_DECIMALS))+" USD , transaction id = "+tx;
   
   }
   
@@ -202,6 +204,7 @@ export async function createTokenVault(
       [Buffer.from(GLOBAL_STATE_TAG)],
       program.programId,
     );
+    console.log("globalStateKey", globalStateKey.toBase58());
   const globalState = await program.account.globalState.fetch(globalStateKey);
   console.log("fetched globalState", globalState);
 
@@ -210,11 +213,13 @@ export async function createTokenVault(
       [Buffer.from(TOKEN_VAULT_TAG), mintCollKey.toBuffer()],
       program.programId,
     );
+  console.log("tokenVaultKey",tokenVaultKey.toBase58());
   const [tokenCollKey, tokenCollNonce] =
     await anchor.web3.PublicKey.findProgramAddress(
       [Buffer.from(TOKEN_VAULT_POOL_TAG), tokenVaultKey.toBuffer()],
       program.programId,
     );
+    console.log("tokenCollKey",tokenCollKey.toBase58());
   try {
     const tokenVault = await program.account.tokenVault.fetch(tokenVaultKey);
     console.log("fetched tokenVault", tokenVault);
@@ -402,107 +407,6 @@ export async function depositCollateral(
   return "User deposited "+(amount / Math.pow(10, 9))+" SOL, transaction id = "+tx;
 }
 
-
-export async function repayCollateral(
-  connection: Connection,
-  wallet: any,
-  amount:number,
-  userCollAddress: string | null = null,
-  mintCollKey:PublicKey = WSOL_MINT_KEY,
-) {
-  if (!wallet.publicKey) throw new WalletNotConnectedError();
-
-  const program = getProgramInstance(connection, wallet);
-
-  const [globalStateKey] =
-    await anchor.web3.PublicKey.findProgramAddress(
-      [Buffer.from(GLOBAL_STATE_TAG)],
-      program.programId,
-    );
-  const globalState = await program.account.globalState.fetch(globalStateKey);
-  console.log("fetched globalState", globalState);
-
-  const [tokenVaultKey, tokenVaultNonce] =
-    await anchor.web3.PublicKey.findProgramAddress(
-      [Buffer.from(TOKEN_VAULT_TAG), mintCollKey.toBuffer()],
-      program.programId,
-    );
-  const [tokenCollKey, tokenCollNonce] =
-    await anchor.web3.PublicKey.findProgramAddress(
-      [Buffer.from(TOKEN_VAULT_POOL_TAG), tokenVaultKey.toBuffer()],
-      program.programId,
-    );
-  const [userTroveKey, userTroveNonce] =
-  await anchor.web3.PublicKey.findProgramAddress(
-    [Buffer.from(USER_TROVE_TAG), tokenVaultKey.toBuffer(),wallet.publicKey.toBuffer()],
-    program.programId,
-  );
-
-  const transaction = new Transaction()
-  let instructions:TransactionInstruction[] = [];
-  const signers:Keypair[] = [];
-
-  let userCollKey = null;
-
-  if (mintCollKey.toBase58() === WSOL_MINT_KEY.toBase58()) {
-    let accountRentExempt = await connection.getMinimumBalanceForRentExemption(
-      AccountLayout.span
-      );
-    userCollKey = await createTokenAccountIfNotExist(
-      program.provider.connection, 
-      null, 
-      wallet.publicKey, 
-      mintCollKey.toBase58(),
-      accountRentExempt + amount,
-      transaction,
-      signers
-      )
-  }
-  else if(userCollAddress == null){
-    console.log("user doesn't have any collateral");
-    return "user doesn't have any collateral";
-  }
-  
-  const depositInstruction = await program.instruction.repayCollateral(
-    new anchor.BN(amount), 
-    tokenVaultNonce,
-    userTroveNonce,
-    tokenCollNonce,
-    {
-      accounts: {
-        owner: wallet.publicKey,
-        userTrove: userTroveKey,
-        tokenVault: tokenVaultKey,
-        poolTokenColl: tokenCollKey,
-        userTokenColl: userCollKey,
-        mintColl: mintCollKey,
-        tokenProgram: TOKEN_PROGRAM_ID,
-      },
-    }
-  );
-  instructions.push(depositInstruction);
-
-  
-
-  if (mintCollKey.toBase58() === WSOL_MINT_KEY.toBase58()) {
-    instructions.push(
-      closeAccount({
-        source: userCollKey,
-        destination: wallet.publicKey,
-        owner:wallet.publicKey
-      })
-    )
-  }
-  instructions.forEach((instruction)=>{
-    transaction.add(instruction);
-  })
-  
-  let tx = await sendTransaction(connection, wallet, transaction, signers);
-  console.log("tx id->",tx);
-
-  return "User repaid "+(amount / Math.pow(10, 9))+" SOL, transaction id = "+tx;
-}
-
 export async function repayUSDx(
   connection: Connection,
   wallet: any,
@@ -581,7 +485,7 @@ export async function repayUSDx(
   let tx = await sendTransaction(connection, wallet, transaction, signers);
   console.log("tx id->",tx);
 
-  return "User repaid "+(amount / Math.pow(10, USD_DECIMALS))+" SOLUSD , transaction id = "+tx;
+  return "User repaid "+(amount / Math.pow(10, USD_DECIMALS))+" USD , transaction id = "+tx;
 
 }
 

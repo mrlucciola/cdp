@@ -21,5 +21,6 @@ pub struct TokenVault {
 #[derive(Default)]
 pub struct UserTrove {
     pub locked_coll_balance: u64,
-    pub debt: u64
+    pub debt: u64,
+    pub last_mint_time: u64
 }
