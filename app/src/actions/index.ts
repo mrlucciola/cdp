@@ -12,7 +12,7 @@ export const WSOL_MINT_KEY = new PublicKey(
   );
 
 export const LP1_MINT_KEY = new PublicKey(
-    '6LVzyv6jnPTjWHmZni6rMScVfUf6GAZeNoxQz9PNyccX',
+    'H5KgSeBcwZ6EJCAcArYKkJpBNFmaUHESskXybX7XwB3F',
   );
 
 export const GLOBAL_STATE_TAG = "golbal-state-seed";
