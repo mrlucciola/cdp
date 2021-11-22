@@ -520,5 +520,8 @@
       "name": "InvalidAccountInput",
       "msg": "InvalidAccountInput"
     }
-  ]
+  ],
+  "metadata": {
+    "address": "9CvnMPcTfbao7xp6cGtfJZH9dwVjHBvmXX4jRatnznkQ"
+  }
 }

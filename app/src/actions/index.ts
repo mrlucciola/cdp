@@ -12,7 +12,7 @@ export const WSOL_MINT_KEY = new PublicKey(
   );
 
 export const LP1_MINT_KEY = new PublicKey(
-    'H5KgSeBcwZ6EJCAcArYKkJpBNFmaUHESskXybX7XwB3F',
+    '6LVzyv6jnPTjWHmZni6rMScVfUf6GAZeNoxQz9PNyccX',
   );
 
 export const GLOBAL_STATE_TAG = "golbal-state-seed";
@@ -22,7 +22,7 @@ export const USD_MINT_TAG = "usd-mint";
 export const TOKEN_VAULT_POOL_TAG = "token-vault-pool";
 
 export const STABLE_POOL_PROGRAM_ID = new PublicKey(
-  'HosPUKvR8EWVpGkaZ2Q2DAAowAuPxpxaQjaxCLhnCerw',
+  '6vbu3MEcap8VR9NFmrMkJxwQYPLvmXs8xV9EVhT8NDHm',
 );
 export const STABLE_POOL_IDL = idl;
 export const USD_DECIMALS = 6; 
@@ -223,7 +223,7 @@ export async function createTokenVault(
       [Buffer.from(TOKEN_VAULT_POOL_TAG), tokenVaultKey.toBuffer()],
       program.programId,
     );
-    console.log("tokenCollKey",tokenCollKey.toBase58());
+  console.log("tokenCollKey",tokenCollKey.toBase58());
   try {
     const tokenVault = await program.account.tokenVault.fetch(tokenVaultKey);
     console.log("fetched tokenVault", tokenVault);
