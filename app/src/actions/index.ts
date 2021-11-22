@@ -6,11 +6,14 @@ import { Connection, Keypair, PublicKey, SystemProgram,  SYSVAR_CLOCK_PUBKEY,  S
 import { WalletNotConnectedError } from '@solana/wallet-adapter-base';
 import { checkWalletATA, createTokenAccountIfNotExist, sendTransaction } from './web3';
 import { closeAccount } from '@project-serum/serum/lib/token-instructions';
+import { MINT_LAYOUT } from '@project-serum/common/dist/lib/token';
 
-export const WSOL_MINT_KEY = new PublicKey(
+export const TEST_LP_TOKEN_MINT = new PublicKey(
+    '6La9ryWrDPByZViuQCizmo6aW98cK8DSL7angqmTFf9i',
+  );
+  export const WSOL_MINT_KEY = new PublicKey(
     'So11111111111111111111111111111111111111112',
   );
-
 export const GLOBAL_STATE_TAG = "golbal-state-seed";
 export const TOKEN_VAULT_TAG = "token-vault-seed";
 export const USER_TROVE_TAG = "user-trove-seed";
@@ -73,7 +76,9 @@ export async function createGlobalState(
     const globalState = await program.account.globalState.fetch(globalStateKey);
     console.log("already created")
     console.log("globalState",globalState);
-    return "already created";
+    return "Global state is already created : \n" +
+      " Global State account: " + globalStateKey.toString() + 
+      " USDx mint address: " + globalState.mintUsd.toString();
   }
   catch(e){
     console.log(e)
@@ -142,6 +147,8 @@ export async function borrowUSDx(
   
     const paramUserUsdTokenKey = await checkWalletATA(connection, wallet.publicKey,globalState.mintUsd.toBase58());
   
+    console.log(paramUserUsdTokenKey)
+
     const transaction = new Transaction()
     let instructions:TransactionInstruction[] = [];
     const signers:Keypair[] = [];
@@ -155,7 +162,17 @@ export async function borrowUSDx(
       transaction,
       signers
     )
-    
+    console.log({
+      owner: wallet.publicKey.toString(),
+      tokenVault: tokenVaultKey.toString(),
+      userTrove: userTroveKey.toString(),
+      globalState: globalStateKey.toString(),
+      mintUsd: mintUsdKey.toString(),
+      userTokenUsd: userUsdTokenKey.toString(),
+      mintColl: mintCollKey.toString(),
+      tokenProgram: TOKEN_PROGRAM_ID.toString(),
+      clock: SYSVAR_CLOCK_PUBKEY.toString(),
+    })
     const borrowInstruction = await program.instruction.borrowUsd(
       new anchor.BN(amount), 
       tokenVaultNonce,
@@ -213,7 +230,7 @@ export async function createTokenVault(
       [Buffer.from(TOKEN_VAULT_TAG), mintCollKey.toBuffer()],
       program.programId,
     );
-  console.log("tokenVaultKey",tokenVaultKey.toBase58());
+  console.log("TokenVaultKey",tokenVaultKey.toBase58());
   const [tokenCollKey, tokenCollNonce] =
     await anchor.web3.PublicKey.findProgramAddress(
       [Buffer.from(TOKEN_VAULT_POOL_TAG), tokenVaultKey.toBuffer()],
@@ -224,7 +241,9 @@ export async function createTokenVault(
     const tokenVault = await program.account.tokenVault.fetch(tokenVaultKey);
     console.log("fetched tokenVault", tokenVault);
     console.log("This token vault was already created!")
-    return "already created";
+    return "Token Vault Account: " + tokenVaultKey.toString() + 
+          "\nCollateral Mint: " + tokenVault.mintColl.toString() + 
+          "\nCollateral Vault: " + tokenVault.tokenColl.toString();
   }
   catch (e) {
   }
@@ -274,11 +293,14 @@ export async function createUserTrove(
     [Buffer.from(USER_TROVE_TAG), tokenVaultKey.toBuffer(),wallet.publicKey.toBuffer()],
     program.programId,
   );
+  console.log("User account", userTroveKey.toString())
   try{
     const userTrove = await program.account.userTrove.fetch(userTroveKey);
     console.log("fetched userTrove", userTrove);
     console.log("This user trove was already created!")
-    return "already created!"; 
+    return "User account: " + userTroveKey.toString() + "\n already created!" +
+      "\nLocked LP amount: " + userTrove.lockedCollBalance+
+      "\nUSDx Debt: " + userTrove.debt; 
   }
   catch(e){
   }
@@ -316,6 +338,10 @@ export async function depositCollateral(
 ) {
   if (!wallet.publicKey) throw new WalletNotConnectedError();
 
+  const mint_account = await connection.getAccountInfo(mintCollKey);
+  const {decimals} = MINT_LAYOUT.decode(mint_account?.data)
+
+
   const program = getProgramInstance(connection, wallet);
 
   const [globalStateKey] =
@@ -346,7 +372,7 @@ export async function depositCollateral(
   let instructions:TransactionInstruction[] = [];
   const signers:Keypair[] = [];
 
-  let userCollKey = null;
+  let userCollKey = new PublicKey(userCollAddress as string);
 
   if (mintCollKey.toBase58() === WSOL_MINT_KEY.toBase58()) {
     let accountRentExempt = await connection.getMinimumBalanceForRentExemption(
@@ -366,7 +392,18 @@ export async function depositCollateral(
     console.log("user doesn't have any collateral");
     return "user doesn't have any collateral";
   }
-  
+  console.log(userCollKey)
+
+  console.log({
+    owner: wallet.publicKey.toString(),
+    userTrove: userTroveKey.toString(),
+    tokenVault: tokenVaultKey.toString(),
+    poolTokenColl: tokenCollKey.toString(),
+    userTokenColl: userCollKey.toString(),
+    mintColl: mintCollKey.toString(),
+    tokenProgram: TOKEN_PROGRAM_ID.toString(),
+  })
+
   const depositInstruction = await program.instruction.depositCollateral(
     new anchor.BN(amount), 
     tokenVaultNonce,
@@ -386,8 +423,6 @@ export async function depositCollateral(
   );
   instructions.push(depositInstruction);
 
-  
-
   if (mintCollKey.toBase58() === WSOL_MINT_KEY.toBase58()) {
     instructions.push(
       closeAccount({
@@ -404,7 +439,7 @@ export async function depositCollateral(
   let tx = await sendTransaction(connection, wallet, transaction, signers);
   console.log("tx id->",tx);
 
-  return "User deposited "+(amount / Math.pow(10, 9))+" SOL, transaction id = "+tx;
+  return "User deposited " + (amount / Math.pow(10, decimals))+" SOL, transaction id = "+tx;
 }
 
 export async function repayUSDx(
@@ -457,6 +492,17 @@ export async function repayUSDx(
     signers
   )
   
+  console.log({
+    owner: wallet.publicKey.toString(),
+    tokenVault: tokenVaultKey.toString(),
+    userTrove: userTroveKey.toString(),
+    globalState: globalStateKey.toString(),
+    mintUsd: mintUsdKey.toString(),
+    userTokenUsd: userUsdTokenKey.toString(),
+    mintColl: mintCollKey.toString(),
+    tokenProgram: TOKEN_PROGRAM_ID.toString(),
+  })
+
   const repayInstruction = await program.instruction.repayUsd(
     new anchor.BN(amount), 
     tokenVaultNonce,
@@ -528,7 +574,7 @@ export async function withdrawCollateral(
   let instructions:TransactionInstruction[] = [];
   const signers:Keypair[] = [];
 
-  let userCollKey = null;
+  let userCollKey = new PublicKey(userCollAddress as string);
 
   if (mintCollKey.toBase58() === WSOL_MINT_KEY.toBase58()) {
     userCollKey = await createTokenAccountIfNotExist(
@@ -546,6 +592,16 @@ export async function withdrawCollateral(
     return "user doesn't have any collateral";
   }
   
+  console.log({
+    owner: wallet.publicKey,
+    userTrove: userTroveKey,
+    tokenVault: tokenVaultKey,
+    poolTokenColl: tokenCollKey,
+    userTokenColl: userCollKey,
+    mintColl: mintCollKey,
+    tokenProgram: TOKEN_PROGRAM_ID,
+  })
+
   const withdrawInstruction = await program.instruction.withdrawCollateral(
     new anchor.BN(amount), 
     tokenVaultNonce,
