@@ -18,7 +18,7 @@ export const USD_MINT_TAG = "usd-mint";
 export const TOKEN_VAULT_POOL_TAG = "token-vault-pool";
 
 export const STABLE_POOL_PROGRAM_ID = new PublicKey(
-  'AVEpebTAVUwhYVyF32w6tBdvFbE5A6jv2q4DCzLoprKA',
+  '2fKrFXvovtkbykQZDLtxeffNBvUt1osnG6d9mWGT9tE1',
 );
 export const STABLE_POOL_IDL = idl;
 export const USD_DECIMALS = 6; 
