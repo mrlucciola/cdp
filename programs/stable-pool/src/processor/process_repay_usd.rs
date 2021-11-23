@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self,  Burn, ID};
+use anchor_spl_token::token::{self,  Burn, ID};
 
 use crate::{
     constant::*,

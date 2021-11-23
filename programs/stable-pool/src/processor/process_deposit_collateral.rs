@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self,  Transfer, ID};
+use anchor_spl_token::token::{self,  Transfer, ID};
 
 use crate::{
     instructions::*

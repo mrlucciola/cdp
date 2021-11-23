@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self,  MintTo, ID};
+use anchor_spl_token::token::{self,  MintTo, ID};
 
 use crate::{
     error::*,

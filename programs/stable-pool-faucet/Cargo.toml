@@ -1,5 +1,5 @@
 [package]
-name = "stable_pool_v1"
+name = "stable_pool_faucet_v1"
 version = "0.1.0"
 description = "Created with Anchor"
 edition = "2018"
