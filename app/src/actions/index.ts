@@ -221,7 +221,7 @@ export async function createTokenVault(
       [Buffer.from(GLOBAL_STATE_TAG)],
       program.programId,
     );
-    console.log("globalStateKey", globalStateKey.toBase58());
+    console.log("GlobalStateKey", globalStateKey.toBase58());
   const globalState = await program.account.globalState.fetch(globalStateKey);
   console.log("fetched globalState", globalState);
 
@@ -373,7 +373,7 @@ export async function depositCollateral(
   const signers:Keypair[] = [];
 
   let userCollKey = new PublicKey(userCollAddress as string);
-
+  // const userCollKey = await checkWalletATA(connection, wallet.publicKey, mintCollKey.toBase58());
   if (mintCollKey.toBase58() === WSOL_MINT_KEY.toBase58()) {
     let accountRentExempt = await connection.getMinimumBalanceForRentExemption(
       AccountLayout.span
@@ -392,7 +392,7 @@ export async function depositCollateral(
     console.log("user doesn't have any collateral");
     return "user doesn't have any collateral";
   }
-  console.log(userCollKey)
+  console.log("Assoc", userCollKey)
 
   console.log({
     owner: wallet.publicKey.toString(),
