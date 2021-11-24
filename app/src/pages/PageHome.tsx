@@ -3,6 +3,7 @@ import * as anchor from '@project-serum/anchor';
 import { useWallet, WalletContextState } from '@solana/wallet-adapter-react';
 import { borrowUSDx, createGlobalState, createTokenVault, createUserTrove, depositCollateral,  repayUSDx, LP1_MINT_KEY, withdrawCollateral } from '../actions';
 import { Button } from '@material-ui/core';
+import { checkWalletATA } from '../actions/web3';
 const connection = new anchor.web3.Connection('https://api.devnet.solana.com');
 
 const PageHome : React.FC = () => {
@@ -32,14 +33,16 @@ const PageHome : React.FC = () => {
   }
   async function depositCollateralUI() {
     if(wallet.connected){
-      const demoLog = await depositCollateral(connection, wallet, 10 * 1000000000, "26D286dDWqMubB1XPedmUwWz7P7CdqtYzLhLWv37edKR", LP1_MINT_KEY);
+      const userMintTokenAccount = await checkWalletATA(connection, wallet.publicKey as any,LP1_MINT_KEY.toBase58());
+      const demoLog = await depositCollateral(connection, wallet, 10 * 1000000000, userMintTokenAccount, LP1_MINT_KEY);
       setDispInfo(demoLog);
     }
     else{     setDispInfo("connect your wallet");    }
   }
   async function withdrawCollateralUI() {
     if(wallet.connected){
-      const demoLog = await withdrawCollateral(connection, wallet, 3 * 1000000000, "26D286dDWqMubB1XPedmUwWz7P7CdqtYzLhLWv37edKR", LP1_MINT_KEY);
+      const userMintTokenAccount = await checkWalletATA(connection, wallet.publicKey as any,LP1_MINT_KEY.toBase58());
+      const demoLog = await withdrawCollateral(connection, wallet, 3 * 1000000000, userMintTokenAccount, LP1_MINT_KEY);
       setDispInfo(demoLog);
     }
     else{     setDispInfo("connect your wallet");    }
