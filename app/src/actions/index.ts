@@ -208,7 +208,7 @@ export async function createTokenVault(
       [Buffer.from(GLOBAL_STATE_TAG)],
       program.programId,
     );
-    console.log("globalStateKey", globalStateKey.toBase58());
+    console.log("GlobalStateKey", globalStateKey.toBase58());
   const globalState = await program.account.globalState.fetch(globalStateKey);
   console.log("fetched globalState", globalState);
 
