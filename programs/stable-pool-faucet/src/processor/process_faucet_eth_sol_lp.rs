@@ -5,10 +5,9 @@ use crate::{
     error::*,
     constant::*,
     instructions::*,
-    utils::*,
 };
 
-pub fn process_faucet_lp(ctx: Context<FaucetLp>, amount: u64, state_nonce: u8, mint_lp_nonce: u8) -> ProgramResult {
+pub fn process_faucet_eth_sol_lp(ctx: Context<FaucetLp>,  state_nonce: u8, mint_lp_nonce: u8) -> ProgramResult {
 
     // mint to user
     let cpi_accounts = MintTo {
@@ -27,7 +26,7 @@ pub fn process_faucet_lp(ctx: Context<FaucetLp>, amount: u64, state_nonce: u8, m
 
     let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
 
-    token::mint_to(cpi_ctx, amount)?;
+    token::mint_to(cpi_ctx, LP_ETH_SOL_AMOUNT)?;
 
     Ok(())
 }

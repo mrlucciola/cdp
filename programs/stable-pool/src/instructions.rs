@@ -50,6 +50,8 @@ pub struct CreateTokenVault<'info> {
         bump = global_state_nonce)]
     pub global_state: ProgramAccount<'info, GlobalState>,
 
+    pub mint_a:Account<'info, Mint>,
+    pub mint_b:Account<'info, Mint>,
     pub mint_coll:Account<'info, Mint>,
 
     #[account(init,

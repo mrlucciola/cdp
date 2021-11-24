@@ -8,7 +8,7 @@ use crate::{
 };
 
 #[derive(Accounts)]
-#[instruction(state_nonce:u8, mint_lp_nonce:u8)]
+#[instruction(state_nonce:u8, mint_usdc_usdx_lp_nonce:u8, mint_eth_sol_lp_nonce:u8, mint_atlas_ray_lp_nonce:u8, mint_samo_ray_lp_nonce:u8)]
 pub struct CreateFaucetState <'info>{
     pub super_owner:  Signer<'info>,
 
@@ -23,10 +23,31 @@ pub struct CreateFaucetState <'info>{
     #[account(init,
         mint::decimals = LP_DECIMALS,
         mint::authority = faucet_state,
-        seeds = [LP_TAG],
-        bump = mint_lp_nonce,
+        seeds = [LP_USDC_USDX_TAG],
+        bump = mint_usdc_usdx_lp_nonce,
         payer = super_owner)]
-    pub mint_lp:Account<'info, Mint>,
+    pub mint_usdc_usdx_lp:Account<'info, Mint>,
+    #[account(init,
+        mint::decimals = LP_DECIMALS,
+        mint::authority = faucet_state,
+        seeds = [LP_ETH_SOL_TAG],
+        bump = mint_eth_sol_lp_nonce,
+        payer = super_owner)]
+    pub mint_eth_sol_lp:Account<'info, Mint>,
+    #[account(init,
+        mint::decimals = LP_DECIMALS,
+        mint::authority = faucet_state,
+        seeds = [LP_ATLAS_RAY_TAG],
+        bump = mint_atlas_ray_lp_nonce,
+        payer = super_owner)]
+    pub mint_atlas_ray_lp:Account<'info, Mint>,
+    #[account(init,
+        mint::decimals = LP_DECIMALS,
+        mint::authority = faucet_state,
+        seeds = [LP_SAMO_RAY_TAG],
+        bump = mint_samo_ray_lp_nonce,
+        payer = super_owner)]
+    pub mint_samo_ray_lp:Account<'info, Mint>,
 
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
@@ -34,8 +55,8 @@ pub struct CreateFaucetState <'info>{
 }
 
 #[derive(Accounts)]
-#[instruction(amount: u64, state_nonce: u8, mint_lp_nonce: u8)]
-pub struct FaucetLp<'info> {
+#[instruction(state_nonce: u8, mint_lp_nonce: u8)]
+pub struct FaucetUsdcUsdxLp<'info> {
     pub owner:  Signer<'info>,
     
     #[account(mut,
@@ -44,9 +65,9 @@ pub struct FaucetLp<'info> {
     pub faucet_state: ProgramAccount<'info, Faucet>,
 
     #[account(mut,
-        seeds = [LP_TAG],
+        seeds = [LP_USDC_USDX_TAG],
         bump = mint_lp_nonce,
-        constraint = mint_lp.key() == faucet_state.mint_lp
+        constraint = mint_lp.key() == faucet_state.mint_usdc_usdx_lp
     )]
     pub mint_lp:Account<'info, Mint>,
 
@@ -56,5 +77,82 @@ pub struct FaucetLp<'info> {
     pub user_token_lp:Account<'info, TokenAccount>,
 
     pub token_program:Program<'info, Token>,
-    pub clock: Sysvar<'info, Clock>,
+}
+
+
+#[derive(Accounts)]
+#[instruction(state_nonce: u8, mint_lp_nonce: u8)]
+pub struct FaucetEthSolLp<'info> {
+    pub owner:  Signer<'info>,
+    
+    #[account(mut,
+        seeds = [FAUCET_TAG],
+        bump = state_nonce)]
+    pub faucet_state: ProgramAccount<'info, Faucet>,
+
+    #[account(mut,
+        seeds = [LP_ETH_SOL_TAG],
+        bump = mint_lp_nonce,
+        constraint = mint_lp.key() == faucet_state.mint_eth_sol_lp
+    )]
+    pub mint_lp:Account<'info, Mint>,
+
+    #[account(
+        constraint = user_token_lp.owner == owner.key(),
+        constraint = user_token_lp.mint == mint_lp.key())]
+    pub user_token_lp:Account<'info, TokenAccount>,
+
+    pub token_program:Program<'info, Token>,
+}
+
+
+#[derive(Accounts)]
+#[instruction(state_nonce: u8, mint_lp_nonce: u8)]
+pub struct FaucetAtlasRayLp<'info> {
+    pub owner:  Signer<'info>,
+    
+    #[account(mut,
+        seeds = [FAUCET_TAG],
+        bump = state_nonce)]
+    pub faucet_state: ProgramAccount<'info, Faucet>,
+
+    #[account(mut,
+        seeds = [LP_ATLAS_RAY_TAG],
+        bump = mint_lp_nonce,
+        constraint = mint_lp.key() == faucet_state.mint_atlas_ray_lp
+    )]
+    pub mint_lp:Account<'info, Mint>,
+
+    #[account(
+        constraint = user_token_lp.owner == owner.key(),
+        constraint = user_token_lp.mint == mint_lp.key())]
+    pub user_token_lp:Account<'info, TokenAccount>,
+
+    pub token_program:Program<'info, Token>,
+}
+
+
+#[derive(Accounts)]
+#[instruction(state_nonce: u8, mint_lp_nonce: u8)]
+pub struct FaucetSamoRayLp<'info> {
+    pub owner:  Signer<'info>,
+    
+    #[account(mut,
+        seeds = [FAUCET_TAG],
+        bump = state_nonce)]
+    pub faucet_state: ProgramAccount<'info, Faucet>,
+
+    #[account(mut,
+        seeds = [LP_SAMO_RAY_TAG],
+        bump = mint_lp_nonce,
+        constraint = mint_lp.key() == faucet_state.mint_samo_ray_lp
+    )]
+    pub mint_lp:Account<'info, Mint>,
+
+    #[account(
+        constraint = user_token_lp.owner == owner.key(),
+        constraint = user_token_lp.mint == mint_lp.key())]
+    pub user_token_lp:Account<'info, TokenAccount>,
+
+    pub token_program:Program<'info, Token>,
 }
