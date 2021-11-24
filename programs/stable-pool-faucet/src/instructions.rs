@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl_token::token::{Token, TokenAccount,Mint};
+use anchor_spl::token::{Token, TokenAccount,Mint};
 
 
 use crate::{

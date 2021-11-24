@@ -146,10 +146,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "anchor-spl-token"
-version = "0.18.1"
+name = "anchor-spl"
+version = "0.18.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7ba0bfbb1501371354e48cc618d5a8ec7e29cb3381b2a84ae8db50f528369578"
+checksum = "a6d6c8fbc834319618581a4e19807a30e76326b9981abd069addb55acf0647db"
 dependencies = [
  "anchor-lang",
  "solana-program",
@@ -1152,7 +1152,7 @@ name = "stable_pool_faucet_v1"
 version = "0.1.0"
 dependencies = [
  "anchor-lang",
- "anchor-spl-token",
+ "anchor-spl",
  "bytemuck",
  "spl-math",
 ]
@@ -1162,7 +1162,7 @@ name = "stable_pool_v1"
 version = "0.1.0"
 dependencies = [
  "anchor-lang",
- "anchor-spl-token",
+ "anchor-spl",
  "bytemuck",
  "spl-math",
 ]
