@@ -10,12 +10,13 @@ pub struct GlobalState {
 #[account]
 #[derive(Default)]
 pub struct TokenVault {
-    pub mint_a: Pubkey,
-    pub mint_b: Pubkey,
+    // pub mint_a: Pubkey,
+    // pub mint_b: Pubkey,
     pub mint_coll: Pubkey,
     pub token_coll: Pubkey,
     pub total_coll: u64,
     pub total_debt: u64,
+    pub risk_level: u8,
 }
 
 

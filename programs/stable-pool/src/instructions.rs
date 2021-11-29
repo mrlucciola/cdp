@@ -30,11 +30,10 @@ pub struct CreateGlobalState <'info>{
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub rent: Sysvar<'info, Rent>,
-
 }
 
 #[derive(Accounts)]
-#[instruction(token_vault_nonce:u8, global_state_nonce:u8, token_coll_nonce:u8)]
+#[instruction(token_vault_nonce:u8, global_state_nonce:u8, token_coll_nonce:u8, risk_level: u8)]
 pub struct CreateTokenVault<'info> {
     pub payer:  Signer<'info>,
     #[account(
@@ -50,8 +49,8 @@ pub struct CreateTokenVault<'info> {
         bump = global_state_nonce)]
     pub global_state: ProgramAccount<'info, GlobalState>,
 
-    pub mint_a:Account<'info, Mint>,
-    pub mint_b:Account<'info, Mint>,
+    // pub token_a:Account<'info, TokenAccount>,
+    // pub token_b:Account<'info, TokenAccount>,
     pub mint_coll:Account<'info, Mint>,
 
     #[account(init,
@@ -60,7 +59,7 @@ pub struct CreateTokenVault<'info> {
         seeds = [TOKEN_VAULT_POOL_TAG, token_vault.key().as_ref()],
         bump = token_coll_nonce,
         payer = payer)]
-    pub token_coll:ProgramAccount<'info, TokenAccount>,
+    pub token_coll:Account<'info, TokenAccount>,
 
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,

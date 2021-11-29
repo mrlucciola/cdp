@@ -7,7 +7,7 @@ use crate::{
     instructions::*,
 };
 
-pub fn process_faucet_samo_ray_lp(ctx: Context<FaucetLp>, state_nonce: u8, mint_lp_nonce: u8) -> ProgramResult {
+pub fn process_faucet_samo_ray_lp(ctx: Context<FaucetSamoRayLp>, state_nonce: u8, mint_lp_nonce: u8) -> ProgramResult {
 
     // mint to user
     let cpi_accounts = MintTo {

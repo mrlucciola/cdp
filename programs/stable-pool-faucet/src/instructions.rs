@@ -27,6 +27,7 @@ pub struct CreateFaucetState <'info>{
         bump = mint_usdc_usdx_lp_nonce,
         payer = super_owner)]
     pub mint_usdc_usdx_lp:Account<'info, Mint>,
+
     #[account(init,
         mint::decimals = LP_DECIMALS,
         mint::authority = faucet_state,
@@ -34,6 +35,7 @@ pub struct CreateFaucetState <'info>{
         bump = mint_eth_sol_lp_nonce,
         payer = super_owner)]
     pub mint_eth_sol_lp:Account<'info, Mint>,
+
     #[account(init,
         mint::decimals = LP_DECIMALS,
         mint::authority = faucet_state,
@@ -41,6 +43,7 @@ pub struct CreateFaucetState <'info>{
         bump = mint_atlas_ray_lp_nonce,
         payer = super_owner)]
     pub mint_atlas_ray_lp:Account<'info, Mint>,
+    
     #[account(init,
         mint::decimals = LP_DECIMALS,
         mint::authority = faucet_state,

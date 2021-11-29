@@ -20,4 +20,6 @@ pub enum StablePoolError {
     InvalidOracleConfig,
     #[msg("InvalidAccountInput")]
     InvalidAccountInput,
+    #[msg("This function works on devnet only")]
+    InvalidCluster,
 }

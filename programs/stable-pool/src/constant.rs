@@ -7,14 +7,24 @@ pub const TOKEN_VAULT_POOL_TAG:&[u8] = b"token-vault-pool";
 pub const USD_DECIMALS: u8 = 6;
 
 
-pub const LIMIT_MINT_TIME:u64 = {
+pub const DEVNET_MODE:bool = {
     #[cfg(feature = "devnet")]
     {
-        3600
+        true
     }
     #[cfg(not(feature = "devnet"))]
     {
-        3600
+        false
     }
 };
 
+pub const LIMIT_MINT_TIME:u64 = {
+    #[cfg(feature = "devnet")]
+    {
+        1
+    }
+    #[cfg(not(feature = "devnet"))]
+    {
+        0
+    }
+};
