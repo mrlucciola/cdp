@@ -150,7 +150,7 @@ pub struct WithdrawCollateral<'info> {
 
 
 #[derive(Accounts)]
-#[instruction(amount: u64, token_vault_nonce: u8, user_trove_nonce: u8, global_state_nonce: u8, mint_usd_nonce: u8)]
+#[instruction(amount: u64, token_vault_nonce: u8, user_trove_nonce: u8, global_state_nonce: u8, mint_usd_nonce: u8, user_usd_token_nonce: u8)]
 pub struct BorrowUsd<'info> {
     pub owner:  Signer<'info>,
     #[account(mut,
@@ -173,20 +173,25 @@ pub struct BorrowUsd<'info> {
         constraint = mint_usd.key() == global_state.mint_usd
     )]
     pub mint_usd:Account<'info, Mint>,
-    #[account(mut,
-        constraint = user_token_usd.owner == owner.key(),
-        constraint = user_token_usd.mint == mint_usd.key())]
+    #[account(init_if_needed,
+        token::mint = mint_usd,
+        token::authority = owner,
+        seeds = [USER_USD_TOKEN_TAG, owner.key().as_ref(), mint_usd.key().as_ref()],
+        bump = user_usd_token_nonce,
+        payer = owner)]
     pub user_token_usd:Account<'info, TokenAccount>,
     #[account(mut,
         constraint = mint_coll.key() == token_vault.mint_coll)]
     pub mint_coll:Account<'info, Mint>,
-    pub token_program:Program<'info, Token>,
+    pub system_program: Program<'info, System>,
+    pub token_program: Program<'info, Token>,
+    pub rent: Sysvar<'info, Rent>,
     pub clock: Sysvar<'info, Clock>,
 }
 
  
 #[derive(Accounts)]
-#[instruction(amount: u64, token_vault_nonce: u8, user_trove_nonce: u8, global_state_nonce: u8, mint_usd_nonce: u8)]
+#[instruction(amount: u64, token_vault_nonce: u8, user_trove_nonce: u8, global_state_nonce: u8, mint_usd_nonce: u8, user_usd_token_nonce: u8)]
 pub struct RepayUsd<'info> {
     pub owner:  Signer<'info>,
     #[account(mut,
@@ -209,8 +214,9 @@ pub struct RepayUsd<'info> {
     )]
     pub mint_usd:Account<'info, Mint>,
     #[account(mut,
-        constraint = user_token_usd.owner == owner.key(),
-        constraint = user_token_usd.mint == mint_usd.key())]
+        seeds = [USER_USD_TOKEN_TAG, owner.key().as_ref(), mint_usd.key().as_ref()],
+        bump = user_usd_token_nonce,
+    )]
     pub user_token_usd:Account<'info, TokenAccount>,
     #[account(mut,
         constraint = mint_coll.key() == token_vault.mint_coll)]

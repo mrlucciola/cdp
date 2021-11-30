@@ -6,7 +6,7 @@ use crate::{
     instructions::*,
 };
 
-pub fn process_repay_usd(ctx: Context<RepayUsd>, amount: u64, token_vault_nonce: u8, user_trove_nonce: u8, global_state_nonce: u8, mint_usd_nonce: u8) -> ProgramResult {
+pub fn process_repay_usd(ctx: Context<RepayUsd>, amount: u64, token_vault_nonce: u8, user_trove_nonce: u8, global_state_nonce: u8, mint_usd_nonce: u8, user_usd_token_nonce: u8) -> ProgramResult {
 
     let mut _amount = amount;
     if ctx.accounts.user_trove.debt < amount {
