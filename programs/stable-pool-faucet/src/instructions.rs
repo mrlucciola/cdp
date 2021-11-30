@@ -82,7 +82,9 @@ pub struct FaucetUsdcUsdxLp<'info> {
         payer = owner)]
     pub user_token_lp:Account<'info, TokenAccount>,
 
-    pub token_program:Program<'info, Token>,
+    pub system_program: Program<'info, System>,
+    pub token_program: Program<'info, Token>,
+    pub rent: Sysvar<'info, Rent>,
 }
 
 
