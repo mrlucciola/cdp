@@ -89,7 +89,7 @@ pub struct FaucetUsdcUsdxLp<'info> {
 
 
 #[derive(Accounts)]
-#[instruction(state_nonce: u8, mint_lp_nonce: u8)]
+#[instruction(state_nonce: u8, mint_lp_nonce: u8, user_token_lp_nonce: u8)]
 pub struct FaucetEthSolLp<'info> {
     pub owner:  Signer<'info>,
     
@@ -105,9 +105,12 @@ pub struct FaucetEthSolLp<'info> {
     )]
     pub mint_lp:Account<'info, Mint>,
 
-    #[account(mut,
-        constraint = user_token_lp.owner == owner.key(),
-        constraint = user_token_lp.mint == mint_lp.key())]
+    #[account(init_if_needed,
+        token::mint = mint_lp,
+        token::authority = owner,
+        seeds = [USER_ETH_SOL_TAG, owner.key().as_ref(), mint_lp.key().as_ref()],
+        bump = user_token_lp_nonce,
+        payer = owner)]
     pub user_token_lp:Account<'info, TokenAccount>,
 
     pub token_program:Program<'info, Token>,
@@ -115,7 +118,7 @@ pub struct FaucetEthSolLp<'info> {
 
 
 #[derive(Accounts)]
-#[instruction(state_nonce: u8, mint_lp_nonce: u8)]
+#[instruction(state_nonce: u8, mint_lp_nonce: u8, user_token_lp_nonce: u8)]
 pub struct FaucetAtlasRayLp<'info> {
     pub owner:  Signer<'info>,
     
@@ -131,9 +134,12 @@ pub struct FaucetAtlasRayLp<'info> {
     )]
     pub mint_lp:Account<'info, Mint>,
 
-    #[account(mut,
-        constraint = user_token_lp.owner == owner.key(),
-        constraint = user_token_lp.mint == mint_lp.key())]
+    #[account(init_if_needed,
+        token::mint = mint_lp,
+        token::authority = owner,
+        seeds = [USER_ATLAS_RAY_TAG, owner.key().as_ref(), mint_lp.key().as_ref()],
+        bump = user_token_lp_nonce,
+        payer = owner)]
     pub user_token_lp:Account<'info, TokenAccount>,
 
     pub token_program:Program<'info, Token>,
@@ -141,7 +147,7 @@ pub struct FaucetAtlasRayLp<'info> {
 
 
 #[derive(Accounts)]
-#[instruction(state_nonce: u8, mint_lp_nonce: u8)]
+#[instruction(state_nonce: u8, mint_lp_nonce: u8, user_token_lp_nonce: u8)]
 pub struct FaucetSamoRayLp<'info> {
     pub owner:  Signer<'info>,
     
@@ -157,9 +163,12 @@ pub struct FaucetSamoRayLp<'info> {
     )]
     pub mint_lp:Account<'info, Mint>,
 
-    #[account(mut,
-        constraint = user_token_lp.owner == owner.key(),
-        constraint = user_token_lp.mint == mint_lp.key())]
+    #[account(init_if_needed,
+        token::mint = mint_lp,
+        token::authority = owner,
+        seeds = [USER_SAMO_RAY_TAG, owner.key().as_ref(), mint_lp.key().as_ref()],
+        bump = user_token_lp_nonce,
+        payer = owner)]
     pub user_token_lp:Account<'info, TokenAccount>,
 
     pub token_program:Program<'info, Token>,
