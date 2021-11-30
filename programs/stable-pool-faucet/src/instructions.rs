@@ -74,7 +74,7 @@ pub struct FaucetUsdcUsdxLp<'info> {
     )]
     pub mint_lp:Account<'info, Mint>,
 
-    #[account(
+    #[account(mut,
         constraint = user_token_lp.owner == owner.key(),
         constraint = user_token_lp.mint == mint_lp.key())]
     pub user_token_lp:Account<'info, TokenAccount>,
@@ -100,7 +100,7 @@ pub struct FaucetEthSolLp<'info> {
     )]
     pub mint_lp:Account<'info, Mint>,
 
-    #[account(
+    #[account(mut,
         constraint = user_token_lp.owner == owner.key(),
         constraint = user_token_lp.mint == mint_lp.key())]
     pub user_token_lp:Account<'info, TokenAccount>,
@@ -126,7 +126,7 @@ pub struct FaucetAtlasRayLp<'info> {
     )]
     pub mint_lp:Account<'info, Mint>,
 
-    #[account(
+    #[account(mut,
         constraint = user_token_lp.owner == owner.key(),
         constraint = user_token_lp.mint == mint_lp.key())]
     pub user_token_lp:Account<'info, TokenAccount>,
@@ -152,7 +152,7 @@ pub struct FaucetSamoRayLp<'info> {
     )]
     pub mint_lp:Account<'info, Mint>,
 
-    #[account(
+    #[account(mut,
         constraint = user_token_lp.owner == owner.key(),
         constraint = user_token_lp.mint == mint_lp.key())]
     pub user_token_lp:Account<'info, TokenAccount>,
