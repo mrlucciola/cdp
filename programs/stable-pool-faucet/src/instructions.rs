@@ -79,7 +79,7 @@ pub struct FaucetUsdcUsdxLp<'info> {
         token::authority = owner,
         seeds = [USER_USDC_USDX_TAG, owner.key().as_ref(), mint_lp.key().as_ref()],
         bump = user_token_lp_nonce,
-        payer = payer)]
+        payer = owner)]
     pub user_token_lp:Account<'info, TokenAccount>,
 
     pub token_program:Program<'info, Token>,
