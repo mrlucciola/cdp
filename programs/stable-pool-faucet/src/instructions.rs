@@ -58,7 +58,7 @@ pub struct CreateFaucetState <'info>{
 }
 
 #[derive(Accounts)]
-#[instruction(state_nonce: u8, mint_lp_nonce: u8)]
+#[instruction(state_nonce: u8, mint_lp_nonce: u8, user_token_lp_nonce: u8)]
 pub struct FaucetUsdcUsdxLp<'info> {
     pub owner:  Signer<'info>,
     
@@ -74,9 +74,12 @@ pub struct FaucetUsdcUsdxLp<'info> {
     )]
     pub mint_lp:Account<'info, Mint>,
 
-    #[account(mut,
-        constraint = user_token_lp.owner == owner.key(),
-        constraint = user_token_lp.mint == mint_lp.key())]
+    #[account(init_if_needed,
+        token::mint = mint_lp,
+        token::authority = owner,
+        seeds = [USER_USDC_USDX_TAG, owner.key().as_ref(), mint_lp.key().as_ref()],
+        bump = user_token_lp_nonce,
+        payer = payer)]
     pub user_token_lp:Account<'info, TokenAccount>,
 
     pub token_program:Program<'info, Token>,

@@ -45,7 +45,8 @@ pub struct CreateTokenVault<'info> {
     )]
     pub token_vault: ProgramAccount<'info, TokenVault>,
 
-    #[account(seeds = [GLOBAL_STATE_TAG],
+    #[account(mut,
+        seeds = [GLOBAL_STATE_TAG],
         bump = global_state_nonce)]
     pub global_state: ProgramAccount<'info, GlobalState>,
 
@@ -172,11 +173,11 @@ pub struct BorrowUsd<'info> {
         constraint = mint_usd.key() == global_state.mint_usd
     )]
     pub mint_usd:Account<'info, Mint>,
-    #[account(
+    #[account(mut,
         constraint = user_token_usd.owner == owner.key(),
         constraint = user_token_usd.mint == mint_usd.key())]
     pub user_token_usd:Account<'info, TokenAccount>,
-    #[account(
+    #[account(mut,
         constraint = mint_coll.key() == token_vault.mint_coll)]
     pub mint_coll:Account<'info, Mint>,
     pub token_program:Program<'info, Token>,
