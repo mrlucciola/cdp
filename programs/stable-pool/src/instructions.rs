@@ -213,10 +213,7 @@ pub struct RepayUsd<'info> {
         constraint = mint_usd.key() == global_state.mint_usd
     )]
     pub mint_usd:Account<'info, Mint>,
-    #[account(mut,
-        seeds = [USER_USD_TOKEN_TAG, owner.key().as_ref(), mint_usd.key().as_ref()],
-        bump = user_usd_token_nonce,
-    )]
+    
     pub user_token_usd:Account<'info, TokenAccount>,
     #[account(mut,
         constraint = mint_coll.key() == token_vault.mint_coll)]

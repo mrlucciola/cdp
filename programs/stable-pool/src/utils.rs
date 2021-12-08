@@ -11,29 +11,11 @@ use spl_math::{precise_number::PreciseNumber};
 
 
 pub fn get_market_price_devnet(risk_level: u8) -> u64 {
-    let mut result = 0;
-    match risk_level {
-        0 => {
-            result = 10 * 1000000000 * 1000000 / 143_000_000;
-        }
-        1 => {
-            result = 10 * 1000000000 * 1000000 / 2_610_000;
-        }
-        2 => {
-            result = 10 * 1000000000 * 1000000 / 317_000_000;
-        }
-        3 => {
-            result = 10 * 1000000000 * 1000000 / 3_278_000_000;
-        }
-        _ => {
-            result = 10 * 1000000000 * 1000000 / 143_000_000;
-        }
-    }
-    result
+    return 10_000_000_000;
 }
 pub fn assert_debt_allowed(locked_coll_balance: u64, user_debt: u64, amount: u64, risk_level: u8)-> ProgramResult{
     let market_price = get_market_price_devnet(risk_level);
-    let debt_limit = market_price * locked_coll_balance;
+    let debt_limit = market_price * locked_coll_balance / 100_000_000_000;
     if debt_limit < user_debt + amount {
         return Err(StablePoolError::NotAllowed.into())
     }

@@ -12,7 +12,7 @@ pub const USER_SAMO_RAY_TAG:&[u8] = b"user-samo-ray-seed";
 
 pub const LP_DECIMALS: u8 = 9;
 
-pub const LP_USDC_USDX_AMOUNT:u64 = 143_000_000;
-pub const LP_ETH_SOL_AMOUNT:u64 = 2_610_000;
-pub const LP_ATLAS_RAY_AMOUNT:u64 = 317_000_000;
-pub const LP_SAMO_RAY_AMOUNT:u64 = 3_278_000_000;
+pub const LP_USDC_USDX_AMOUNT:u64 = 100_000_000;
+pub const LP_ETH_SOL_AMOUNT:u64 = 100_000_000;
+pub const LP_ATLAS_RAY_AMOUNT:u64 = 100_000_000;
+pub const LP_SAMO_RAY_AMOUNT:u64 = 100_000_000;
