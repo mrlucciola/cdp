@@ -1,5 +1,6 @@
 [programs.devnet]
-stable_pool = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+stable_pool = "7o5xPLcdUb9qGPZHHeGWqpxgkaiCisJmRWSs3f7pmmDW"
+stable_pool_faucet = "7YVa3g284KuyHYNNHnbR9nRkXQFKpFtrhUym7X7My6UR"
 
 [registry]
 url = "https://anchor.projectserum.com"
