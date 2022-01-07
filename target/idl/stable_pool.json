@@ -618,5 +618,8 @@
       "name": "InvalidCluster",
       "msg": "This function works on devnet only"
     }
-  ]
+  ],
+  "metadata": {
+    "address": "ERbfq15MzC4EHzGAPK85PpvvMFfFjEzijqnuUzkTghmd"
+  }
 }

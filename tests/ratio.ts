@@ -32,7 +32,7 @@ describe('ratio', () => {
   let userUsdxTokenAccount = null;
 
   let lpMint = null;
-  const depositAmount = 100_000_000;
+  const depositAmount = 100_000_000; // 0.1 LPT
   const USD_DECIMAL = 6;
 
   console.log("superOwner =", superOwner.publicKey.toBase58());
@@ -62,7 +62,7 @@ describe('ratio', () => {
       userCollKey,
       superOwner,
       [],
-      200_000_000
+      200_000_000 /* 0.2 LPT */
     );
   });
 
