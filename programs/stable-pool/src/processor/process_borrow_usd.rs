@@ -9,14 +9,10 @@ use crate::{
 };
 
 pub fn process_borrow_usd(ctx: Context<BorrowUsd>, amount: u64, token_vault_nonce: u8, user_trove_nonce: u8, global_state_nonce: u8, mint_usd_nonce: u8, user_usd_token_nonce: u8) -> ProgramResult {
-
-    msg!("borrow!!!!!!!!!!!");
-
     assert_debt_allowed(ctx.accounts.user_trove.locked_coll_balance, ctx.accounts.user_trove.debt, amount, ctx.accounts.token_vault.risk_level)?;
-
-    msg!("borrow1");
+    
     let cur_timestamp = ctx.accounts.clock.unix_timestamp as u64;
-
+    
     assert_limit_mint(cur_timestamp, ctx.accounts.user_trove.last_mint_time)?;
     // mint to user
     let cpi_accounts = MintTo {
@@ -25,7 +21,6 @@ pub fn process_borrow_usd(ctx: Context<BorrowUsd>, amount: u64, token_vault_nonc
         authority: ctx.accounts.global_state.to_account_info().clone(),
     };
 
-    msg!("borrow2");
     let cpi_program = ctx.accounts.token_program.to_account_info().clone();
     
     let signer_seeds = &[
@@ -35,7 +30,6 @@ pub fn process_borrow_usd(ctx: Context<BorrowUsd>, amount: u64, token_vault_nonc
     let signer = &[&signer_seeds[..]];
 
     let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
-    msg!("borrow3");
     token::mint_to(cpi_ctx, amount)?;
 
     ctx.accounts.token_vault.total_debt += amount;

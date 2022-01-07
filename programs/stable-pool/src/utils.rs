@@ -17,12 +17,6 @@ pub fn assert_debt_allowed(locked_coll_balance: u64, user_debt: u64, amount: u64
     let market_price = get_market_price_devnet(risk_level);
     let debt_limit = market_price * locked_coll_balance / 100_000_000_000;
 
-    msg!("market_price is {:?}", market_price);
-    msg!("debt_limit is {:?}", debt_limit);
-    msg!("locked_coll_balance is {:?}", locked_coll_balance);
-    msg!("user_debt is {:?}", user_debt);
-    msg!("amount is {:?}", amount);
-
     if debt_limit < user_debt + amount {
         return Err(StablePoolError::NotAllowed.into())
     }
