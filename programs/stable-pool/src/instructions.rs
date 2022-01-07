@@ -9,23 +9,24 @@ use crate::{
 #[derive(Accounts)]
 #[instruction(global_state_nonce:u8, mint_usd_nonce:u8)]
 pub struct CreateGlobalState <'info>{
+    #[account(mut)]
     pub super_owner:  Signer<'info>,
 
     #[account(
-    init,
+    init_if_needed,
     seeds = [GLOBAL_STATE_TAG],
     bump = global_state_nonce,
     payer = super_owner,
     )]
-    pub global_state:ProgramAccount<'info, GlobalState>,
+    pub global_state: Account<'info, GlobalState>,
 
-    #[account(init,
+    #[account(init_if_needed,
         mint::decimals = USD_DECIMALS,
         mint::authority = global_state,
         seeds = [USD_MINT_TAG],
         bump = mint_usd_nonce,
         payer = super_owner)]
-    pub mint_usd:Account<'info, Mint>,
+    pub mint_usd: Account<'info, Mint>,
 
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
@@ -35,7 +36,9 @@ pub struct CreateGlobalState <'info>{
 #[derive(Accounts)]
 #[instruction(token_vault_nonce:u8, global_state_nonce:u8, token_coll_nonce:u8, risk_level: u8)]
 pub struct CreateTokenVault<'info> {
+    #[account(mut)]
     pub payer:  Signer<'info>,
+
     #[account(
         init,
         seeds = [TOKEN_VAULT_TAG,mint_coll.key().as_ref()],
@@ -70,7 +73,9 @@ pub struct CreateTokenVault<'info> {
 #[derive(Accounts)]
 #[instruction(user_trove_nonce:u8, token_vault_nonce:u8)]
 pub struct CreateUserTrove<'info> {
+    #[account(mut)]
     pub trove_owner:  Signer<'info>,
+
     #[account(
     init,
     seeds = [USER_TROVE_TAG,token_vault.key().as_ref(), trove_owner.key().as_ref()],
@@ -152,7 +157,9 @@ pub struct WithdrawCollateral<'info> {
 #[derive(Accounts)]
 #[instruction(amount: u64, token_vault_nonce: u8, user_trove_nonce: u8, global_state_nonce: u8, mint_usd_nonce: u8, user_usd_token_nonce: u8)]
 pub struct BorrowUsd<'info> {
+    #[account(mut)]
     pub owner:  Signer<'info>,
+    
     #[account(mut,
         seeds = [TOKEN_VAULT_TAG,mint_coll.key().as_ref()],
         bump = token_vault_nonce,
@@ -214,7 +221,9 @@ pub struct RepayUsd<'info> {
     )]
     pub mint_usd:Account<'info, Mint>,
     
+    #[account(mut)]
     pub user_token_usd:Account<'info, TokenAccount>,
+    
     #[account(mut,
         constraint = mint_coll.key() == token_vault.mint_coll)]
     pub mint_coll:Account<'info, Mint>,

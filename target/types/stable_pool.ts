@@ -1,5 +1,5 @@
 export type StablePool = {
-  "version": "0.0.0",
+  "version": "0.1.0",
   "name": "stable_pool",
   "instructions": [
     {
@@ -7,7 +7,7 @@ export type StablePool = {
       "accounts": [
         {
           "name": "superOwner",
-          "isMut": false,
+          "isMut": true,
           "isSigner": true
         },
         {
@@ -52,7 +52,7 @@ export type StablePool = {
       "accounts": [
         {
           "name": "payer",
-          "isMut": false,
+          "isMut": true,
           "isSigner": true
         },
         {
@@ -115,7 +115,7 @@ export type StablePool = {
       "accounts": [
         {
           "name": "troveOwner",
-          "isMut": false,
+          "isMut": true,
           "isSigner": true
         },
         {
@@ -281,7 +281,7 @@ export type StablePool = {
       "accounts": [
         {
           "name": "owner",
-          "isMut": false,
+          "isMut": true,
           "isSigner": true
         },
         {
@@ -569,52 +569,52 @@ export type StablePool = {
   ],
   "errors": [
     {
-      "code": 300,
+      "code": 6000,
       "name": "Unauthorized",
       "msg": "You are not authorized to perform this action."
     },
     {
-      "code": 301,
+      "code": 6001,
       "name": "AlreadyInUse",
       "msg": "AlreadyInUse"
     },
     {
-      "code": 302,
+      "code": 6002,
       "name": "InvalidProgramAddress",
       "msg": "InvalidProgramAddress"
     },
     {
-      "code": 303,
+      "code": 6003,
       "name": "InvalidState",
       "msg": "InvalidState"
     },
     {
-      "code": 304,
+      "code": 6004,
       "name": "InvalidOwner",
       "msg": "InvalidOwner"
     },
     {
-      "code": 305,
+      "code": 6005,
       "name": "NotAllowed",
       "msg": "NotAllowed"
     },
     {
-      "code": 306,
+      "code": 6006,
       "name": "MathOverflow",
       "msg": "Math operation overflow"
     },
     {
-      "code": 307,
+      "code": 6007,
       "name": "InvalidOracleConfig",
       "msg": "InvalidOracleConfig"
     },
     {
-      "code": 308,
+      "code": 6008,
       "name": "InvalidAccountInput",
       "msg": "InvalidAccountInput"
     },
     {
-      "code": 309,
+      "code": 6009,
       "name": "InvalidCluster",
       "msg": "This function works on devnet only"
     }
@@ -622,7 +622,7 @@ export type StablePool = {
 };
 
 export const IDL: StablePool = {
-  "version": "0.0.0",
+  "version": "0.1.0",
   "name": "stable_pool",
   "instructions": [
     {
@@ -630,7 +630,7 @@ export const IDL: StablePool = {
       "accounts": [
         {
           "name": "superOwner",
-          "isMut": false,
+          "isMut": true,
           "isSigner": true
         },
         {
@@ -675,7 +675,7 @@ export const IDL: StablePool = {
       "accounts": [
         {
           "name": "payer",
-          "isMut": false,
+          "isMut": true,
           "isSigner": true
         },
         {
@@ -738,7 +738,7 @@ export const IDL: StablePool = {
       "accounts": [
         {
           "name": "troveOwner",
-          "isMut": false,
+          "isMut": true,
           "isSigner": true
         },
         {
@@ -904,7 +904,7 @@ export const IDL: StablePool = {
       "accounts": [
         {
           "name": "owner",
-          "isMut": false,
+          "isMut": true,
           "isSigner": true
         },
         {
@@ -1192,52 +1192,52 @@ export const IDL: StablePool = {
   ],
   "errors": [
     {
-      "code": 300,
+      "code": 6000,
       "name": "Unauthorized",
       "msg": "You are not authorized to perform this action."
     },
     {
-      "code": 301,
+      "code": 6001,
       "name": "AlreadyInUse",
       "msg": "AlreadyInUse"
     },
     {
-      "code": 302,
+      "code": 6002,
       "name": "InvalidProgramAddress",
       "msg": "InvalidProgramAddress"
     },
     {
-      "code": 303,
+      "code": 6003,
       "name": "InvalidState",
       "msg": "InvalidState"
     },
     {
-      "code": 304,
+      "code": 6004,
       "name": "InvalidOwner",
       "msg": "InvalidOwner"
     },
     {
-      "code": 305,
+      "code": 6005,
       "name": "NotAllowed",
       "msg": "NotAllowed"
     },
     {
-      "code": 306,
+      "code": 6006,
       "name": "MathOverflow",
       "msg": "Math operation overflow"
     },
     {
-      "code": 307,
+      "code": 6007,
       "name": "InvalidOracleConfig",
       "msg": "InvalidOracleConfig"
     },
     {
-      "code": 308,
+      "code": 6008,
       "name": "InvalidAccountInput",
       "msg": "InvalidAccountInput"
     },
     {
-      "code": 309,
+      "code": 6009,
       "name": "InvalidCluster",
       "msg": "This function works on devnet only"
     }
