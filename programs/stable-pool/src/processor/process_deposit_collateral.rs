@@ -5,7 +5,13 @@ use crate::{
     instructions::*
 };
 
-pub fn process_deposit_collateral(ctx: Context<DepositCollateral>, amount: u64, token_vault_nonce: u8, user_trove_nonce: u8, token_coll_nonce: u8) -> ProgramResult {
+pub fn process_deposit_collateral(
+    ctx: Context<DepositCollateral>, 
+    amount: u64, 
+    token_vault_nonce: u8, 
+    user_trove_nonce: u8, 
+    token_coll_nonce: u8
+) -> ProgramResult {
     
     // transfer from user to pool
     let cpi_accounts = Transfer {

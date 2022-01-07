@@ -6,7 +6,13 @@ use crate::{
     instructions::*
 };
 
-pub fn process_withdraw_collateral(ctx: Context<WithdrawCollateral>, amount: u64, token_vault_nonce: u8, user_trove_nonce: u8, token_coll_nonce: u8) -> ProgramResult {
+pub fn process_withdraw_collateral(
+    ctx: Context<WithdrawCollateral>, 
+    amount: u64, 
+    token_vault_nonce: u8, 
+    user_trove_nonce: u8, 
+    token_coll_nonce: u8
+) -> ProgramResult {
     msg!("withdrawing ...");
     
     let mut _amount = amount;
