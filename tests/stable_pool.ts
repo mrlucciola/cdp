@@ -11,4 +11,29 @@ describe('ratio', () => {
   it('Is initialized!', async () => {
     // Add your test here.
   });
+
+  it('Create Global State', async () => {
+
+  });
+
+  it('Create Token Vault', async () => {
+
+  });
+
+  it('Deposit Collateral', async () => {
+
+  });
+
+  it('Withdraw Collateral', async () => {
+
+  });
+
+  it('Borrow USD', async () => {
+
+  });
+
+  it('Repay USD', async () => {
+
+  });
+
 });
