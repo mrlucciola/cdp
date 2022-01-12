@@ -8,7 +8,9 @@ import {
   SYSVAR_RENT_PUBKEY
 } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID, Token, AccountLayout } from "@solana/spl-token";
-import { assert } from "chai";
+import {use as chaiUse, assert} from 'chai'    
+import chaiAsPromised from 'chai-as-promised'
+chaiUse(chaiAsPromised)
 
 describe('ratio', () => {
 
@@ -114,6 +116,53 @@ describe('ratio', () => {
     assert(globalState.mintUsd.toBase58() == mintUsdKey.toBase58());
   });
 
+  it('Only the super owner can create token vaults', async () => {
+    const [globalStateKey, globalStateNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(GLOBAL_STATE_TAG)],
+        stablePoolProgram.programId,
+      );
+
+    const [tokenVaultKey, tokenVaultNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(TOKEN_VAULT_TAG), lpMint.publicKey.toBuffer()],
+        stablePoolProgram.programId,
+      );
+
+    const [tokenCollKey, tokenCollNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(TOKEN_VAULT_POOL_TAG), tokenVaultKey.toBuffer()],
+        stablePoolProgram.programId,
+      );
+
+    const riskLevel = 0;
+    
+    const createVaultCall = async ()=>{
+      await stablePoolProgram.rpc.createTokenVault(
+        tokenVaultNonce, 
+        globalStateNonce, 
+        tokenCollNonce, 
+        riskLevel,
+        {
+          accounts: {
+            payer: user.publicKey,
+            tokenVault: tokenVaultKey,
+            globalState: globalStateKey,
+            mintColl: lpMint.publicKey,
+            tokenColl: tokenCollKey,
+            systemProgram: SystemProgram.programId,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            rent: SYSVAR_RENT_PUBKEY,
+          },
+          signers: [user]
+        });
+    };
+
+    await assert.isRejected(createVaultCall(), /A raw constraint was violated/, "No error was thrown when trying to create a vault with a user different than the super owner");
+
+    await assert.isRejected(stablePoolProgram.account.tokenVault.fetch(tokenVaultKey), /Account does not exist /, "Fetching a vault that shouldn't had been created did not throw an error");
+  });
+
   it('Create Token Vault', async () => {
 
     const [globalStateKey, globalStateNonce] =
@@ -174,6 +223,8 @@ describe('ratio', () => {
     assert(tokenVault.riskLevel == riskLevel, "riskLevel mismatch");
 
   });
+
+  
 
   it('Create User Trove', async () => {
     const [tokenVaultKey, tokenVaultNonce] =
