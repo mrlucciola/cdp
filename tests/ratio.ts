@@ -224,8 +224,6 @@ describe('ratio', () => {
 
   });
 
-  
-
   it('Create User Trove', async () => {
     const [tokenVaultKey, tokenVaultNonce] =
       await anchor.web3.PublicKey.findProgramAddress(
