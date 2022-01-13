@@ -8,7 +8,7 @@ import {
   SYSVAR_RENT_PUBKEY
 } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID, Token, AccountLayout } from "@solana/spl-token";
-import {use as chaiUse, assert} from 'chai'    
+import {use as chaiUse, assert, expect} from 'chai'    
 import chaiAsPromised from 'chai-as-promised'
 chaiUse(chaiAsPromised)
 
@@ -222,6 +222,73 @@ describe('ratio', () => {
     assert(tokenVault.totalDebt == 0, "totalDebt mismatch");
     assert(tokenVault.riskLevel == riskLevel, "riskLevel mismatch");
 
+  });
+
+  it('Create Token Vault fails if globalState is not created', async () => {
+
+    const localUser = anchor.web3.Keypair.generate();
+    await provider.connection.confirmTransaction(
+      await provider.connection.requestAirdrop(localUser.publicKey, 1000000000),
+      "confirmed"
+    );
+    const [globalStateKey, globalStateNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [localUser.publicKey.toBuffer(), Buffer.from(GLOBAL_STATE_TAG)],
+        stablePoolProgram.programId,
+      );
+
+    console.log("Checking if global state exists");
+    await assert.isRejected(stablePoolProgram.account.globalState.fetch(globalStateKey), /Account does not exist /, "The global state exists");
+    
+    const localLpMint = await Token.createMint(
+      provider.connection,
+      localUser,
+      localUser.publicKey,
+      null,
+      9,
+      TOKEN_PROGRAM_ID
+    );
+
+    const [tokenVaultKey, tokenVaultNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(TOKEN_VAULT_TAG), localLpMint.publicKey.toBuffer()],
+        stablePoolProgram.programId,
+      );
+
+    const [tokenCollKey, tokenCollNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(TOKEN_VAULT_POOL_TAG), tokenVaultKey.toBuffer()],
+        stablePoolProgram.programId,
+      );
+
+    const riskLevel = 0;
+    
+    const createVaultCall = async ()=>{
+      console.log("Calling createVault");
+      await stablePoolProgram.rpc.createTokenVault(
+        tokenVaultNonce, 
+        globalStateNonce, 
+        tokenCollNonce, 
+        riskLevel,
+        {
+          accounts: {
+            payer: localUser.publicKey,
+            tokenVault: tokenVaultKey,
+            globalState: globalStateKey,
+            mintColl: localLpMint.publicKey,
+            tokenColl: tokenCollKey,
+            systemProgram: SystemProgram.programId,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            rent: SYSVAR_RENT_PUBKEY,
+          },
+          signers: [localUser]
+        });
+    };
+
+    await expect(createVaultCall(),"No error was thrown when trying to create a vault without a global state created").is.rejected;
+
+    console.log("Confirming vault was not created");
+    await assert.isRejected(stablePoolProgram.account.tokenVault.fetch(tokenVaultKey), /Account does not exist /, "Fetching a vault that shouldn't had been created did not throw an error");
   });
 
   it('Create User Trove', async () => {
