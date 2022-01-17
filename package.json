@@ -16,5 +16,8 @@
     "scripts": {
         "get-pool-address": "solana address -k target/deploy/stable_pool_v1-keypair.json",
         "get-pool-faucet-address": "solana address -k target/deploy/stable_pool_faucet_v1-keypair.json"
+    },
+    "engines": {
+        "node": "=14"
     }
 }
