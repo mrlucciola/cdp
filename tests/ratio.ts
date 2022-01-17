@@ -15,7 +15,7 @@ chaiUse(chaiAsPromised)
 describe('ratio', () => {
 
   // Constants
-  const GLOBAL_STATE_TAG = "golbal-state-seed";
+  const GLOBAL_STATE_TAG = "global-state-seed";
   const TOKEN_VAULT_TAG = "token-vault-seed";
   const USER_TROVE_TAG = "user-trove-seed";
   const USD_MINT_TAG = "usd-mint";
