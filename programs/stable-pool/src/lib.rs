@@ -57,10 +57,11 @@ pub mod stable_pool {
         amount: u64, 
         token_vault_nonce: u8, 
         user_trove_nonce: u8, 
-        token_coll_nonce: u8
+        token_coll_nonce: u8,
+        global_state_nonce: u8
     ) -> ProgramResult { 
         process_deposit_collateral(ctx, 
-            amount, token_vault_nonce, user_trove_nonce, token_coll_nonce) 
+            amount, token_vault_nonce, user_trove_nonce, token_coll_nonce, global_state_nonce) 
     }
 
     pub fn withdraw_collateral(
@@ -68,10 +69,11 @@ pub mod stable_pool {
         amount: u64, 
         token_vault_nonce: u8, 
         user_trove_nonce: u8, 
-        token_coll_nonce: u8
+        token_coll_nonce: u8,
+        global_state_nonce: u8
     ) -> ProgramResult { 
         process_withdraw_collateral(ctx, 
-            amount, token_vault_nonce, user_trove_nonce, token_coll_nonce) 
+            amount, token_vault_nonce, user_trove_nonce, token_coll_nonce, global_state_nonce) 
     }
 
     pub fn borrow_usd(

@@ -107,7 +107,7 @@ pub struct CreateUserTrove<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(amount: u64, token_vault_nonce: u8, user_trove_nonce: u8, token_coll_nonce: u8)]
+#[instruction(amount: u64, token_vault_nonce: u8, user_trove_nonce: u8, token_coll_nonce: u8, global_state_nonce:u8)]
 pub struct DepositCollateral<'info> {
     pub owner:  Signer<'info>,
 
@@ -145,11 +145,16 @@ pub struct DepositCollateral<'info> {
         constraint = mint_coll.key() == token_vault.mint_coll)]
     pub mint_coll:Account<'info, Mint>,
 
+    #[account(mut,
+        seeds = [GLOBAL_STATE_TAG],
+        bump = global_state_nonce)]
+    pub global_state: ProgramAccount<'info, GlobalState>,
+
     pub token_program:Program<'info, Token>,
 }
 
 #[derive(Accounts)]
-#[instruction(amount: u64, token_vault_nonce: u8, user_trove_nonce: u8, token_coll_nonce: u8)]
+#[instruction(amount: u64, token_vault_nonce: u8, user_trove_nonce: u8, token_coll_nonce: u8, global_state_nonce:u8)]
 pub struct WithdrawCollateral<'info> {
     pub owner:  Signer<'info>,
 
@@ -186,6 +191,11 @@ pub struct WithdrawCollateral<'info> {
     #[account(mut,
         constraint = mint_coll.key() == token_vault.mint_coll)]
     pub mint_coll:Account<'info, Mint>,
+
+    #[account(mut,
+        seeds = [GLOBAL_STATE_TAG],
+        bump = global_state_nonce)]
+    pub global_state: ProgramAccount<'info, GlobalState>,
 
     pub token_program:Program<'info, Token>,
 }

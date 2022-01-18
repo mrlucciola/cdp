@@ -11,7 +11,8 @@ pub fn process_withdraw_collateral(
     amount: u64, 
     token_vault_nonce: u8, 
     user_trove_nonce: u8, 
-    token_coll_nonce: u8
+    token_coll_nonce: u8,
+    global_state_nonce: u8
 ) -> ProgramResult {
     msg!("withdrawing ...");
     
@@ -43,6 +44,7 @@ pub fn process_withdraw_collateral(
     msg!("updating ...");
     ctx.accounts.token_vault.total_coll -= amount;
     ctx.accounts.user_trove.locked_coll_balance -= _amount;
+    ctx.accounts.global_state.tvl -= amount;
 
     Ok(())
 }
