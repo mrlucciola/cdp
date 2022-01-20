@@ -7,7 +7,7 @@ use crate::{
 };
 
 #[derive(Accounts)]
-#[instruction(global_state_nonce:u8, mint_usd_nonce:u8)]
+#[instruction(global_state_nonce:u8, mint_usd_nonce:u8, tvl_limit:u64)]
 pub struct CreateGlobalState <'info>{
     #[account(mut)]
     pub super_owner:  Signer<'info>,
