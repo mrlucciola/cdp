@@ -35,6 +35,7 @@ describe('ratio', () => {
 
   let lpMint = null;
   const depositAmount = 100_000_000; // 0.1 LPT
+  const tvlLimit = 1_000_000_000;
   const USD_DECIMAL = 6;
 
   console.log("superOwner =", superOwner.publicKey.toBase58());
@@ -93,7 +94,8 @@ describe('ratio', () => {
 
     let txHash = await stablePoolProgram.rpc.createGlobalState(
       globalStateNonce, 
-      mintUsdNonce, 
+      mintUsdNonce,
+      new anchor.BN(tvlLimit),
       {
         accounts: {
           superOwner: superOwner.publicKey,
@@ -114,6 +116,8 @@ describe('ratio', () => {
 
     assert(globalState.superOwner.toBase58() == superOwner.publicKey.toBase58());
     assert(globalState.mintUsd.toBase58() == mintUsdKey.toBase58());
+    assert(globalState.tvlLimit == tvlLimit, "GlobalState TVL Limit: " + globalState.tvlLimit + " TVL Limit: " + tvlLimit);
+    assert(globalState.tvl == 0);
   });
 
   it('Only the super owner can create token vaults', async () => {
@@ -331,12 +335,12 @@ describe('ratio', () => {
 
   it('Deposit Collateral', async () => {
 
-    const [globalStateKey] =
+    const [globalStateKey, globalStateNonce] =
       await anchor.web3.PublicKey.findProgramAddress(
         [Buffer.from(GLOBAL_STATE_TAG)],
         stablePoolProgram.programId,
       );
-    const globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
+    let globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
     console.log("fetched globalState", globalState);
 
     const [tokenVaultKey, tokenVaultNonce] =
@@ -366,6 +370,7 @@ describe('ratio', () => {
       tokenVaultNonce,
       userTroveNonce,
       tokenCollNonce,
+      globalStateNonce,
       {
         accounts: {
           owner: user.publicKey,
@@ -375,6 +380,7 @@ describe('ratio', () => {
           userTokenColl: userCollKey,
           mintColl: lpMint.publicKey,
           tokenProgram: TOKEN_PROGRAM_ID,
+          globalState: globalStateKey,
         },
         signers: [user]
       }
@@ -384,12 +390,16 @@ describe('ratio', () => {
 
     let userTrove = await stablePoolProgram.account.userTrove.fetch(userTroveKey);
     let tokenVault = await stablePoolProgram.account.tokenVault.fetch(tokenVaultKey);
+    globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
 
     console.log("depositAmount =", depositAmount);
     assert(tokenVault.totalColl == depositAmount,
        "depositAmount mismatch: totalColl = " + tokenVault.totalColl);
     assert(userTrove.lockedCollBalance == depositAmount, 
         "lockedCollBalance mismatch: lockedCollBalance = " + userTrove.lockedCollBalance);
+    console.log("tvl = ", globalState.tvl);
+    assert(globalState.tvl == depositAmount,
+        "tvl mistmatchL: tvl = " + globalState.tvl);
     
     let poolLpTokenAccount = await lpMint.getAccountInfo(tokenCollKey);
     let userLpTokenAccount = await lpMint.getAccountInfo(userCollKey);
@@ -525,12 +535,12 @@ describe('ratio', () => {
   });
 
   it('Withdraw Collateral', async () => {
-    const [globalStateKey] =
+    const [globalStateKey, globalStateNonce] =
       await anchor.web3.PublicKey.findProgramAddress(
         [Buffer.from(GLOBAL_STATE_TAG)],
         stablePoolProgram.programId,
       );
-    const globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
+    let globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
     console.log("fetched globalState", globalState);
 
     const [tokenVaultKey, tokenVaultNonce] =
@@ -556,6 +566,7 @@ describe('ratio', () => {
       tokenVaultNonce,
       userTroveNonce,
       tokenCollNonce,
+      globalStateNonce,
       {
         accounts: {
           owner: user.publicKey,
@@ -565,6 +576,7 @@ describe('ratio', () => {
           userTokenColl: userCollKey,
           mintColl: lpMint.publicKey,
           tokenProgram: TOKEN_PROGRAM_ID,
+          globalState: globalStateKey,
         },
         signers: [user]
       }
@@ -574,11 +586,14 @@ describe('ratio', () => {
 
     let userTrove = await stablePoolProgram.account.userTrove.fetch(userTroveKey);
     let tokenVault = await stablePoolProgram.account.tokenVault.fetch(tokenVaultKey);
+    globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
 
     assert(tokenVault.totalColl == 0,
        "depositAmount mismatch: totalColl = " + tokenVault.totalColl);
     assert(userTrove.lockedCollBalance == 0, 
         "lockedCollBalance mismatch: lockedCollBalance = " + userTrove.lockedCollBalance);
+    assert(globalState.tvl == 0,
+        "tvl mistmatchL: tvl = " + globalState.tvl);
 
     let poolLpTokenAccount = await lpMint.getAccountInfo(tokenCollKey);
     let userLpTokenAccount = await lpMint.getAccountInfo(userCollKey);
