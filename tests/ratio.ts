@@ -399,7 +399,7 @@ describe('ratio', () => {
         "lockedCollBalance mismatch: lockedCollBalance = " + userTrove.lockedCollBalance);
     console.log("tvl = ", globalState.tvl);
     assert(globalState.tvl == depositAmount,
-        "tvl mistmatchL: tvl = " + globalState.tvl);
+        "tvl mistmatch: tvl = " + globalState.tvl);
     
     let poolLpTokenAccount = await lpMint.getAccountInfo(tokenCollKey);
     let userLpTokenAccount = await lpMint.getAccountInfo(userCollKey);
@@ -593,7 +593,7 @@ describe('ratio', () => {
     assert(userTrove.lockedCollBalance == 0, 
         "lockedCollBalance mismatch: lockedCollBalance = " + userTrove.lockedCollBalance);
     assert(globalState.tvl == 0,
-        "tvl mistmatchL: tvl = " + globalState.tvl);
+        "tvl mistmatch: tvl = " + globalState.tvl);
 
     let poolLpTokenAccount = await lpMint.getAccountInfo(tokenCollKey);
     let userLpTokenAccount = await lpMint.getAccountInfo(userCollKey);
@@ -676,6 +676,6 @@ describe('ratio', () => {
     assert(userTrove.lockedCollBalance == 0, 
        "lockedCollBalance mismatch: lockedCollBalance = " + userTrove.lockedCollBalance);
      assert(globalState.tvl == 0,
-       "tvl mistmatchL: tvl = " + globalState.tvl);
+       "tvl mistmatch: tvl = " + globalState.tvl);
   });
 });

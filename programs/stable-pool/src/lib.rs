@@ -19,7 +19,7 @@ use crate::{
     processor::*,
 };
 
-declare_id!("EFVvkEesxXZzNAXTqRNN2ddYjQ5yncWWAmtaU7RCLhxZ");
+declare_id!("ERbfq15MzC4EHzGAPK85PpvvMFfFjEzijqnuUzkTghmd");
 
 #[program]
 pub mod stable_pool {
