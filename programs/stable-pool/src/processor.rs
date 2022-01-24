@@ -20,3 +20,6 @@ pub use process_borrow_usd::*;
 
 pub mod process_repay_usd;
 pub use process_repay_usd::*;
+
+pub mod process_raydium_deposit_collateral;
+pub use process_raydium_deposit_collateral::*;

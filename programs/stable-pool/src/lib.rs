@@ -48,4 +48,7 @@ pub mod stable_pool {
     pub fn repay_usd(ctx: Context<RepayUsd>, amount: u64) -> ProgramResult { 
         process_repay_usd(ctx, amount) 
     }
+    pub fn deposit_raydium_collateral(ctx: Context<DepositRaydiumCollateral>, amount: u64) -> ProgramResult { 
+        process_raydium_deposit_collateral(ctx, amount) 
+    }
 }

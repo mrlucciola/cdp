@@ -220,3 +220,32 @@ pub struct RepayUsd<'info> {
     pub mint_coll:Account<'info, Mint>,
     pub token_program:Program<'info, Token>,
 }
+
+
+#[derive(Accounts)]
+#[instruction(amount: u64)]
+pub struct DepositRaydiumCollateral<'info> {
+    pub owner:  Signer<'info>,
+    #[account(mut,
+        seeds = [USER_TROVE_TAG,token_vault.key().as_ref(), owner.key().as_ref()],
+        bump = user_trove.user_trove_nonce)]
+    pub user_trove:ProgramAccount<'info, UserTrove>,
+    #[account(mut,
+        seeds = [TOKEN_VAULT_TAG,mint_coll.key().as_ref()],
+        bump = token_vault.token_vault_nonce,
+    )]
+    pub token_vault:ProgramAccount<'info, TokenVault>,
+    #[account(mut,
+        seeds = [USER_TROVE_POOL_TAG,user_trove.key().as_ref()],
+        bump = user_trove.token_coll_nonce,
+    )]
+    pub pool_token_coll:Account<'info, TokenAccount>,
+    #[account(mut,
+        constraint = user_token_coll.owner == owner.key(),
+        constraint = user_token_coll.mint == token_vault.mint_coll)]
+    pub user_token_coll:Account<'info, TokenAccount>,
+    #[account(mut,
+        constraint = mint_coll.key() == token_vault.mint_coll)]
+    pub mint_coll:Account<'info, Mint>,
+    pub token_program:Program<'info, Token>,
+}
