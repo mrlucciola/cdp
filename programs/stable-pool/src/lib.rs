@@ -14,6 +14,8 @@ pub mod instructions;
 pub mod utils;
 /// pyth
 pub mod pyth;
+/// raydium
+pub mod raydium;
 use crate::{
     instructions::*,
     processor::*,
@@ -47,5 +49,11 @@ pub mod stable_pool {
     }
     pub fn repay_usd(ctx: Context<RepayUsd>, amount: u64) -> ProgramResult { 
         process_repay_usd(ctx, amount) 
+    }
+    pub fn deposit_raydium_collateral(ctx: Context<DepositRaydiumCollateral>, amount: u64) -> ProgramResult { 
+        process_deposit_raydium_collateral(ctx, amount) 
+    }
+    pub fn withdraw_raydium_collateral(ctx: Context<WithdrawRaydiumCollateral>, amount: u64) -> ProgramResult { 
+        process_withdraw_raydium_collateral(ctx, amount) 
     }
 }

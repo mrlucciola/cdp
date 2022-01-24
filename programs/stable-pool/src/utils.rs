@@ -8,7 +8,7 @@ use crate::{
 use std::convert::TryInto;
 use std::convert::TryFrom;
 use spl_math::{precise_number::PreciseNumber};
-
+use arrayref::{array_mut_ref, mut_array_refs, array_ref};
 
 pub fn get_market_price_devnet(risk_level: u8) -> u64 {
     return 10_000_000_000;
@@ -35,6 +35,12 @@ pub fn assert_tvl_allowed(tvl_limit: u64, tvl: u64, amount: u64) -> ProgramResul
         return Err(StablePoolError::TVLExceeded.into())
     }
     Ok(())
+}
+pub fn get_token_balance(token_account: &AccountInfo) -> Result<u64> {
+    let data = token_account.try_borrow_data()?;
+    let amount = array_ref![data, 64, 8];
+
+    Ok(u64::from_le_bytes(*amount))
 }
 
 // pub fn get_pyth_product_quote_currency(pyth_product: &pyth::Product) -> Result<[u8; 32]> {

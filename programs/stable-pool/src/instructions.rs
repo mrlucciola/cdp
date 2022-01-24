@@ -54,17 +54,6 @@ pub struct CreateTokenVault<'info> {
 
     pub mint_coll:Account<'info, Mint>,
 
-    #[account(init,
-        token::mint = mint_coll,
-        token::authority = token_vault,
-        seeds = [
-            TOKEN_VAULT_POOL_TAG, 
-            token_vault.key().as_ref()
-        ],
-        bump = token_coll_nonce,
-        payer = payer)]
-    pub token_coll:Account<'info, TokenAccount>,
-
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub rent: Sysvar<'info, Rent>,
@@ -77,24 +66,26 @@ pub struct CreateUserTrove<'info> {
     pub trove_owner: Signer<'info>,
 
     #[account(
-        init,
-        seeds = [
-            USER_TROVE_TAG,
-            token_vault.key().as_ref(), 
-            trove_owner.key().as_ref()
-        ],
-        bump = user_trove_nonce,
-        payer = trove_owner,)]
-    pub user_trove: ProgramAccount<'info, UserTrove>,
+    init,
+    seeds = [USER_TROVE_TAG,token_vault.key().as_ref(), trove_owner.key().as_ref()],
+    bump = user_trove_nonce,
+    payer = trove_owner,
+    )]
+    pub user_trove:ProgramAccount<'info, UserTrove>,
+
+    #[account(init,
+        token::mint = mint_coll,
+        token::authority = user_trove,
+        seeds = [USER_TROVE_POOL_TAG, user_trove.key().as_ref()],
+        bump = token_coll_nonce,
+        payer = trove_owner)]
+    pub token_coll:Account<'info, TokenAccount>,
 
     #[account(mut,
-        seeds = [
-            TOKEN_VAULT_TAG,
-            mint_coll.key().as_ref()
-        ],
-        bump = token_vault_nonce)]
-    pub token_vault: ProgramAccount<'info, TokenVault>,
-
+        seeds = [TOKEN_VAULT_TAG,mint_coll.key().as_ref()],
+        bump = token_vault.token_vault_nonce,
+    )]
+    pub token_vault:ProgramAccount<'info, TokenVault>,
     #[account(mut,
         constraint = mint_coll.key() == token_vault.mint_coll)]
     pub mint_coll: Account<'info, Mint>,
@@ -271,4 +262,90 @@ pub struct RepayUsd<'info> {
     pub mint_coll:Account<'info, Mint>,
     
     pub token_program:Program<'info, Token>,
+}
+
+
+#[derive(Accounts)]
+#[instruction(amount: u64)]
+pub struct DepositRaydiumCollateral<'info> {
+    pub owner:  Signer<'info>,
+    #[account(mut,
+        seeds = [USER_TROVE_TAG,token_vault.key().as_ref(), owner.key().as_ref()],
+        bump = user_trove.user_trove_nonce)]
+    pub user_trove:ProgramAccount<'info, UserTrove>,
+    #[account(mut,
+        seeds = [TOKEN_VAULT_TAG,mint_coll.key().as_ref()],
+        bump = token_vault.token_vault_nonce,
+    )]
+    pub token_vault:ProgramAccount<'info, TokenVault>,
+    #[account(mut,
+        seeds = [USER_TROVE_POOL_TAG,user_trove.key().as_ref()],
+        bump = user_trove.token_coll_nonce,
+    )]
+    pub pool_token_coll:Account<'info, TokenAccount>,
+    #[account(mut,
+        constraint = user_token_coll.owner == owner.key(),
+        constraint = user_token_coll.mint == token_vault.mint_coll)]
+    pub user_token_coll:Account<'info, TokenAccount>,
+    #[account(mut,
+        constraint = mint_coll.key() == token_vault.mint_coll)]
+    pub mint_coll:Account<'info, Mint>,
+    pub token_program:Program<'info, Token>,
+    pub clock: Sysvar<'info, Clock>,
+
+    pub raydium_program_id: AccountInfo<'info>,
+    pub raydium_pool_id: AccountInfo<'info>,
+    pub raydium_pool_authority: AccountInfo<'info>,
+    pub user_trove_associated_info_account: AccountInfo<'info>,
+    pub raydium_pool_lp_account: AccountInfo<'info>,
+    pub user_trove_reward_token_a_account: AccountInfo<'info>,
+    pub raydium_pool_reward_token_a_account: AccountInfo<'info>,
+    pub user_trove_reward_token_b_account: AccountInfo<'info>,
+    pub raydium_pool_reward_token_b_account: AccountInfo<'info>,
+
+    pub user_reward_token_a_account: AccountInfo<'info>,
+    pub user_reward_token_b_account: AccountInfo<'info>,
+}
+
+
+#[derive(Accounts)]
+#[instruction(amount: u64)]
+pub struct WithdrawRaydiumCollateral<'info> {
+    pub owner:  Signer<'info>,
+    #[account(mut,
+        seeds = [USER_TROVE_TAG,token_vault.key().as_ref(), owner.key().as_ref()],
+        bump = user_trove.user_trove_nonce)]
+    pub user_trove:ProgramAccount<'info, UserTrove>,
+    #[account(mut,
+        seeds = [TOKEN_VAULT_TAG,mint_coll.key().as_ref()],
+        bump = token_vault.token_vault_nonce,
+    )]
+    pub token_vault:ProgramAccount<'info, TokenVault>,
+    #[account(mut,
+        seeds = [USER_TROVE_POOL_TAG,user_trove.key().as_ref()],
+        bump = user_trove.token_coll_nonce,
+    )]
+    pub pool_token_coll:Account<'info, TokenAccount>,
+    #[account(mut,
+        constraint = user_token_coll.owner == owner.key(),
+        constraint = user_token_coll.mint == token_vault.mint_coll)]
+    pub user_token_coll:Account<'info, TokenAccount>,
+    #[account(mut,
+        constraint = mint_coll.key() == token_vault.mint_coll)]
+    pub mint_coll:Account<'info, Mint>,
+    pub token_program:Program<'info, Token>,
+    pub clock: Sysvar<'info, Clock>,
+
+    pub raydium_program_id: AccountInfo<'info>,
+    pub raydium_pool_id: AccountInfo<'info>,
+    pub raydium_pool_authority: AccountInfo<'info>,
+    pub user_trove_associated_info_account: AccountInfo<'info>,
+    pub raydium_pool_lp_account: AccountInfo<'info>,
+    pub user_trove_reward_token_a_account: AccountInfo<'info>,
+    pub raydium_pool_reward_token_a_account: AccountInfo<'info>,
+    pub user_trove_reward_token_b_account: AccountInfo<'info>,
+    pub raydium_pool_reward_token_b_account: AccountInfo<'info>,
+
+    pub user_reward_token_a_account: AccountInfo<'info>,
+    pub user_reward_token_b_account: AccountInfo<'info>,
 }

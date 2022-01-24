@@ -1,5 +1,5 @@
 export type StablePool = {
-  "version": "0.1.0",
+  "version": "0.0.0",
   "name": "stable_pool",
   "instructions": [
     {
@@ -364,6 +364,218 @@ export type StablePool = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "depositRaydiumCollateral",
+      "accounts": [
+        {
+          "name": "owner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "userTrove",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "poolTokenColl",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userTokenColl",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mintColl",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "raydiumProgramId",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "raydiumPoolId",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "raydiumPoolAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userTroveAssociatedInfoAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "raydiumPoolLpAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userTroveRewardTokenAAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "raydiumPoolRewardTokenAAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userTroveRewardTokenBAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "raydiumPoolRewardTokenBAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userRewardTokenAAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userRewardTokenBAccount",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "withdrawRaydiumCollateral",
+      "accounts": [
+        {
+          "name": "owner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "userTrove",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "poolTokenColl",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userTokenColl",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mintColl",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "raydiumProgramId",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "raydiumPoolId",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "raydiumPoolAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userTroveAssociatedInfoAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "raydiumPoolLpAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userTroveRewardTokenAAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "raydiumPoolRewardTokenAAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userTroveRewardTokenBAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "raydiumPoolRewardTokenBAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userRewardTokenAAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userRewardTokenBAccount",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -426,6 +638,14 @@ export type StablePool = {
         "fields": [
           {
             "name": "tokenColl",
+            "type": "publicKey"
+          },
+          {
+            "name": "rewardTokenA",
+            "type": "publicKey"
+          },
+          {
+            "name": "rewardTokenB",
             "type": "publicKey"
           },
           {
@@ -525,52 +745,52 @@ export type StablePool = {
   ],
   "errors": [
     {
-      "code": 6000,
+      "code": 300,
       "name": "Unauthorized",
       "msg": "You are not authorized to perform this action."
     },
     {
-      "code": 6001,
+      "code": 301,
       "name": "AlreadyInUse",
       "msg": "AlreadyInUse"
     },
     {
-      "code": 6002,
+      "code": 302,
       "name": "InvalidProgramAddress",
       "msg": "InvalidProgramAddress"
     },
     {
-      "code": 6003,
+      "code": 303,
       "name": "InvalidState",
       "msg": "InvalidState"
     },
     {
-      "code": 6004,
+      "code": 304,
       "name": "InvalidOwner",
       "msg": "InvalidOwner"
     },
     {
-      "code": 6005,
+      "code": 305,
       "name": "NotAllowed",
       "msg": "NotAllowed"
     },
     {
-      "code": 6006,
+      "code": 306,
       "name": "MathOverflow",
       "msg": "Math operation overflow"
     },
     {
-      "code": 6007,
+      "code": 307,
       "name": "InvalidOracleConfig",
       "msg": "InvalidOracleConfig"
     },
     {
-      "code": 6008,
+      "code": 308,
       "name": "InvalidAccountInput",
       "msg": "InvalidAccountInput"
     },
     {
-      "code": 6009,
+      "code": 309,
       "name": "InvalidCluster",
       "msg": "This function works on devnet only"
     }
@@ -578,7 +798,7 @@ export type StablePool = {
 };
 
 export const IDL: StablePool = {
-  "version": "0.1.0",
+  "version": "0.0.0",
   "name": "stable_pool",
   "instructions": [
     {
@@ -943,6 +1163,218 @@ export const IDL: StablePool = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "depositRaydiumCollateral",
+      "accounts": [
+        {
+          "name": "owner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "userTrove",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "poolTokenColl",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userTokenColl",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mintColl",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "raydiumProgramId",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "raydiumPoolId",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "raydiumPoolAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userTroveAssociatedInfoAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "raydiumPoolLpAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userTroveRewardTokenAAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "raydiumPoolRewardTokenAAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userTroveRewardTokenBAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "raydiumPoolRewardTokenBAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userRewardTokenAAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userRewardTokenBAccount",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "withdrawRaydiumCollateral",
+      "accounts": [
+        {
+          "name": "owner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "userTrove",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "poolTokenColl",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userTokenColl",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mintColl",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "raydiumProgramId",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "raydiumPoolId",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "raydiumPoolAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userTroveAssociatedInfoAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "raydiumPoolLpAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userTroveRewardTokenAAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "raydiumPoolRewardTokenAAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userTroveRewardTokenBAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "raydiumPoolRewardTokenBAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userRewardTokenAAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userRewardTokenBAccount",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -1005,6 +1437,14 @@ export const IDL: StablePool = {
         "fields": [
           {
             "name": "tokenColl",
+            "type": "publicKey"
+          },
+          {
+            "name": "rewardTokenA",
+            "type": "publicKey"
+          },
+          {
+            "name": "rewardTokenB",
             "type": "publicKey"
           },
           {
@@ -1104,52 +1544,52 @@ export const IDL: StablePool = {
   ],
   "errors": [
     {
-      "code": 6000,
+      "code": 300,
       "name": "Unauthorized",
       "msg": "You are not authorized to perform this action."
     },
     {
-      "code": 6001,
+      "code": 301,
       "name": "AlreadyInUse",
       "msg": "AlreadyInUse"
     },
     {
-      "code": 6002,
+      "code": 302,
       "name": "InvalidProgramAddress",
       "msg": "InvalidProgramAddress"
     },
     {
-      "code": 6003,
+      "code": 303,
       "name": "InvalidState",
       "msg": "InvalidState"
     },
     {
-      "code": 6004,
+      "code": 304,
       "name": "InvalidOwner",
       "msg": "InvalidOwner"
     },
     {
-      "code": 6005,
+      "code": 305,
       "name": "NotAllowed",
       "msg": "NotAllowed"
     },
     {
-      "code": 6006,
+      "code": 306,
       "name": "MathOverflow",
       "msg": "Math operation overflow"
     },
     {
-      "code": 6007,
+      "code": 307,
       "name": "InvalidOracleConfig",
       "msg": "InvalidOracleConfig"
     },
     {
-      "code": 6008,
+      "code": 308,
       "name": "InvalidAccountInput",
       "msg": "InvalidAccountInput"
     },
     {
-      "code": 6009,
+      "code": 309,
       "name": "InvalidCluster",
       "msg": "This function works on devnet only"
     }
