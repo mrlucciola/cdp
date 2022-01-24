@@ -248,4 +248,59 @@ pub struct DepositRaydiumCollateral<'info> {
         constraint = mint_coll.key() == token_vault.mint_coll)]
     pub mint_coll:Account<'info, Mint>,
     pub token_program:Program<'info, Token>,
+    pub clock: Sysvar<'info, Clock>,
+
+    pub raydium_program_id: AccountInfo<'info>,
+    pub raydium_pool_id: AccountInfo<'info>,
+    pub raydium_pool_authority: AccountInfo<'info>,
+    pub raydium_pool_lp_account: AccountInfo<'info>,
+    pub user_trove_reward_token_a_account: AccountInfo<'info>,
+    pub raydium_pool_reward_token_a_account: AccountInfo<'info>,
+    pub user_trove_reward_token_b_account?: AccountInfo<'info>,
+    pub raydium_pool_reward_token_b_account?: AccountInfo<'info>,
+
+    pub user_reward_token_a_account: AccountInfo<'info>,
+    pub user_reward_token_b_account?: AccountInfo<'info>,
+}
+
+
+#[derive(Accounts)]
+#[instruction(amount: u64)]
+pub struct WithdrawRaydiumCollateral<'info> {
+    pub owner:  Signer<'info>,
+    #[account(mut,
+        seeds = [USER_TROVE_TAG,token_vault.key().as_ref(), owner.key().as_ref()],
+        bump = user_trove.user_trove_nonce)]
+    pub user_trove:ProgramAccount<'info, UserTrove>,
+    #[account(mut,
+        seeds = [TOKEN_VAULT_TAG,mint_coll.key().as_ref()],
+        bump = token_vault.token_vault_nonce,
+    )]
+    pub token_vault:ProgramAccount<'info, TokenVault>,
+    #[account(mut,
+        seeds = [USER_TROVE_POOL_TAG,user_trove.key().as_ref()],
+        bump = user_trove.token_coll_nonce,
+    )]
+    pub pool_token_coll:Account<'info, TokenAccount>,
+    #[account(mut,
+        constraint = user_token_coll.owner == owner.key(),
+        constraint = user_token_coll.mint == token_vault.mint_coll)]
+    pub user_token_coll:Account<'info, TokenAccount>,
+    #[account(mut,
+        constraint = mint_coll.key() == token_vault.mint_coll)]
+    pub mint_coll:Account<'info, Mint>,
+    pub token_program:Program<'info, Token>,
+    pub clock: Sysvar<'info, Clock>,
+
+    pub raydium_program_id: AccountInfo<'info>,
+    pub raydium_pool_id: AccountInfo<'info>,
+    pub raydium_pool_authority: AccountInfo<'info>,
+    pub raydium_pool_lp_account: AccountInfo<'info>,
+    pub user_trove_reward_token_a_account: AccountInfo<'info>,
+    pub raydium_pool_reward_token_a_account: AccountInfo<'info>,
+    pub user_trove_reward_token_b_account?: AccountInfo<'info>,
+    pub raydium_pool_reward_token_b_account?: AccountInfo<'info>,
+
+    pub user_reward_token_a_account: AccountInfo<'info>,
+    pub user_reward_token_b_account?: AccountInfo<'info>,
 }
