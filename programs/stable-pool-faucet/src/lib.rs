@@ -16,7 +16,7 @@ use crate::{
     processor::*,
 };
 
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+declare_id!("8cWxdanpMMudwFexcZmmmZEZBBx2FzQFE2RjPNu7VgMB");
 
 #[program]
 pub mod stable_pool_faucet {

@@ -11,3 +11,4 @@ target/release
 target/rls
 target/.rustc_info.json
 target/CACHEDIR.TAG
+test-ledger

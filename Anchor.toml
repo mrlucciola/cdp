@@ -1,14 +1,14 @@
-[programs.devnet]
-stable_pool = "7o5xPLcdUb9qGPZHHeGWqpxgkaiCisJmRWSs3f7pmmDW"
-stable_pool_faucet = "7YVa3g284KuyHYNNHnbR9nRkXQFKpFtrhUym7X7My6UR"
+[programs.localnet]
+stable_pool = "ERbfq15MzC4EHzGAPK85PpvvMFfFjEzijqnuUzkTghmd"
+stable_pool_faucet = "8cWxdanpMMudwFexcZmmmZEZBBx2FzQFE2RjPNu7VgMB"
 
 [registry]
 url = "https://anchor.projectserum.com"
 
 [provider]
-cluster = "devnet"
+cluster = "http://127.0.0.1:8899"
 wallet = "./test-keypair.json"
 
 [scripts]
-test = "ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
-analyze = "ts-mocha -p ./tsconfig.json -t 1000000 analyze/analyze.ts"
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+#analyze = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 analyze/analyze.ts"
