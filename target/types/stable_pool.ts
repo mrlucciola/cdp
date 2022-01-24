@@ -44,6 +44,10 @@ export type StablePool = {
         {
           "name": "mintUsdNonce",
           "type": "u8"
+        },
+        {
+          "name": "tvlLimit",
+          "type": "u64"
         }
       ]
     },
@@ -186,6 +190,11 @@ export type StablePool = {
           "isSigner": false
         },
         {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
@@ -228,6 +237,11 @@ export type StablePool = {
         },
         {
           "name": "mintColl",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "globalState",
           "isMut": true,
           "isSigner": false
         },
@@ -344,7 +358,7 @@ export type StablePool = {
         },
         {
           "name": "userTokenUsd",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -599,6 +613,14 @@ export type StablePool = {
           {
             "name": "mintUsdNonce",
             "type": "u8"
+          },
+          {
+            "name": "tvlLimit",
+            "type": "u64"
+          },
+          {
+            "name": "tvl",
+            "type": "u64"
           }
         ]
       }
@@ -793,6 +815,11 @@ export type StablePool = {
       "code": 309,
       "name": "InvalidCluster",
       "msg": "This function works on devnet only"
+    },
+    {
+      "code": 310,
+      "name": "TVLExceeded",
+      "msg": "TVL Exceeded"
     }
   ]
 };
@@ -843,6 +870,10 @@ export const IDL: StablePool = {
         {
           "name": "mintUsdNonce",
           "type": "u8"
+        },
+        {
+          "name": "tvlLimit",
+          "type": "u64"
         }
       ]
     },
@@ -985,6 +1016,11 @@ export const IDL: StablePool = {
           "isSigner": false
         },
         {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
@@ -1027,6 +1063,11 @@ export const IDL: StablePool = {
         },
         {
           "name": "mintColl",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "globalState",
           "isMut": true,
           "isSigner": false
         },
@@ -1143,7 +1184,7 @@ export const IDL: StablePool = {
         },
         {
           "name": "userTokenUsd",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1398,6 +1439,14 @@ export const IDL: StablePool = {
           {
             "name": "mintUsdNonce",
             "type": "u8"
+          },
+          {
+            "name": "tvlLimit",
+            "type": "u64"
+          },
+          {
+            "name": "tvl",
+            "type": "u64"
           }
         ]
       }
@@ -1592,6 +1641,11 @@ export const IDL: StablePool = {
       "code": 309,
       "name": "InvalidCluster",
       "msg": "This function works on devnet only"
+    },
+    {
+      "code": 310,
+      "name": "TVLExceeded",
+      "msg": "TVL Exceeded"
     }
   ]
 };

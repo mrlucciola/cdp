@@ -128,7 +128,7 @@ pub struct DepositCollateral<'info> {
 
     #[account(mut,
         seeds = [GLOBAL_STATE_TAG],
-        bump = global_state_nonce)]
+        bump = global_state.global_state_nonce)]
     pub global_state: ProgramAccount<'info, GlobalState>,
 
     pub token_program:Program<'info, Token>,
@@ -167,7 +167,7 @@ pub struct WithdrawCollateral<'info> {
 
     #[account(mut,
         seeds = [GLOBAL_STATE_TAG],
-        bump = global_state_nonce)]
+        bump = global_state.global_state_nonce)]
     pub global_state: ProgramAccount<'info, GlobalState>,
 
     pub token_program:Program<'info, Token>,

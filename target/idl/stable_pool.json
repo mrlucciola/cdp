@@ -44,6 +44,10 @@
         {
           "name": "mintUsdNonce",
           "type": "u8"
+        },
+        {
+          "name": "tvlLimit",
+          "type": "u64"
         }
       ]
     },
@@ -186,6 +190,11 @@
           "isSigner": false
         },
         {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
@@ -228,6 +237,11 @@
         },
         {
           "name": "mintColl",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "globalState",
           "isMut": true,
           "isSigner": false
         },
@@ -344,7 +358,7 @@
         },
         {
           "name": "userTokenUsd",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -599,6 +613,14 @@
           {
             "name": "mintUsdNonce",
             "type": "u8"
+          },
+          {
+            "name": "tvlLimit",
+            "type": "u64"
+          },
+          {
+            "name": "tvl",
+            "type": "u64"
           }
         ]
       }
@@ -641,8 +663,6 @@
             "type": "publicKey"
           },
           {
-<<<<<<< HEAD
-=======
             "name": "rewardTokenA",
             "type": "publicKey"
           },
@@ -651,7 +671,6 @@
             "type": "publicKey"
           },
           {
->>>>>>> bcd85505281de96623672f35be91c92e8225d18a
             "name": "lockedCollBalance",
             "type": "u64"
           },
@@ -796,6 +815,11 @@
       "code": 309,
       "name": "InvalidCluster",
       "msg": "This function works on devnet only"
+    },
+    {
+      "code": 310,
+      "name": "TVLExceeded",
+      "msg": "TVL Exceeded"
     }
   ]
 }
