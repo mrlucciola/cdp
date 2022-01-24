@@ -1,4 +1,10 @@
-use anchor_lang::prelude::*;
+use anchor_lang::{
+    prelude::*,
+    solana_program::{
+        program::{invoke_signed},
+        instruction::{AccountMeta, Instruction},
+    }
+};
 use anchor_spl::token::{self,  Transfer, ID};
 
 use crate::{
@@ -22,8 +28,8 @@ pub fn process_withdraw_raydium_collateral(ctx: Context<WithdrawRaydiumCollatera
     raydium_accounts.push(AccountMeta::new(*ctx.accounts.raydium_pool_id.key, false));
     raydium_accounts.push(AccountMeta::new_readonly(*ctx.accounts.raydium_pool_authority.key, false));
     raydium_accounts.push(AccountMeta::new(*ctx.accounts.user_trove_associated_info_account.key, false));
-    raydium_accounts.push(AccountMeta::new_readonly(*ctx.accounts.user_trove.key, true));
-    raydium_accounts.push(AccountMeta::new(*ctx.accounts.pool_token_coll.key, false));
+    raydium_accounts.push(AccountMeta::new_readonly(ctx.accounts.user_trove.key(), true));
+    raydium_accounts.push(AccountMeta::new(ctx.accounts.pool_token_coll.key(), false));
     raydium_accounts.push(AccountMeta::new(*ctx.accounts.raydium_pool_lp_account.key, false));
     raydium_accounts.push(AccountMeta::new(*ctx.accounts.user_trove_reward_token_a_account.key, false));
     raydium_accounts.push(AccountMeta::new(*ctx.accounts.raydium_pool_reward_token_a_account.key, false));
@@ -42,14 +48,14 @@ pub fn process_withdraw_raydium_collateral(ctx: Context<WithdrawRaydiumCollatera
         ctx.accounts.raydium_pool_id.clone(),
         ctx.accounts.raydium_pool_authority.clone(),
         ctx.accounts.user_trove_associated_info_account.clone(),
-        ctx.accounts.user_trove.clone(),
-        ctx.accounts.pool_token_coll.clone(),
+        ctx.accounts.user_trove.to_account_info(),
+        ctx.accounts.pool_token_coll.to_account_info(),
         ctx.accounts.raydium_pool_lp_account.clone(),
         ctx.accounts.user_trove_reward_token_a_account.clone(),
         ctx.accounts.raydium_pool_reward_token_a_account.clone(),
         ctx.accounts.clock.to_account_info().clone(),
         ctx.accounts.token_program.to_account_info().clone(),
-        ctx.accounts.pool_reward_token_b_account.clone(),
+        ctx.accounts.user_trove_reward_token_b_account.clone(),
         ctx.accounts.raydium_pool_reward_token_b_account.clone(),
         // ctx.accounts.pool_info_account_one.clone(),
         // ctx.accounts.pool_info_account_two.clone(),
@@ -75,8 +81,8 @@ pub fn process_withdraw_raydium_collateral(ctx: Context<WithdrawRaydiumCollatera
     // seed of token_vault account to sign the transaction
     let signer_seeds = &[
         USER_TROVE_TAG,
-        ctx.accounts.token_vault.key().as_ref(),
-        ctx.accounts.owner.key().as_ref(),
+        ctx.accounts.token_vault.to_account_info().key.as_ref(),
+        ctx.accounts.owner.to_account_info().key.as_ref(),
         &[ctx.accounts.user_trove.user_trove_nonce]
     ];
     let signer = &[&signer_seeds[..]];

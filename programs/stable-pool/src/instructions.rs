@@ -286,14 +286,15 @@ pub struct DepositRaydiumCollateral<'info> {
     pub raydium_program_id: AccountInfo<'info>,
     pub raydium_pool_id: AccountInfo<'info>,
     pub raydium_pool_authority: AccountInfo<'info>,
+    pub user_trove_associated_info_account: AccountInfo<'info>,
     pub raydium_pool_lp_account: AccountInfo<'info>,
     pub user_trove_reward_token_a_account: AccountInfo<'info>,
     pub raydium_pool_reward_token_a_account: AccountInfo<'info>,
-    pub user_trove_reward_token_b_account?: AccountInfo<'info>,
-    pub raydium_pool_reward_token_b_account?: AccountInfo<'info>,
+    pub user_trove_reward_token_b_account: AccountInfo<'info>,
+    pub raydium_pool_reward_token_b_account: AccountInfo<'info>,
 
     pub user_reward_token_a_account: AccountInfo<'info>,
-    pub user_reward_token_b_account?: AccountInfo<'info>,
+    pub user_reward_token_b_account: AccountInfo<'info>,
 }
 
 
@@ -328,12 +329,13 @@ pub struct WithdrawRaydiumCollateral<'info> {
     pub raydium_program_id: AccountInfo<'info>,
     pub raydium_pool_id: AccountInfo<'info>,
     pub raydium_pool_authority: AccountInfo<'info>,
+    pub user_trove_associated_info_account: AccountInfo<'info>,
     pub raydium_pool_lp_account: AccountInfo<'info>,
     pub user_trove_reward_token_a_account: AccountInfo<'info>,
     pub raydium_pool_reward_token_a_account: AccountInfo<'info>,
-    pub user_trove_reward_token_b_account?: AccountInfo<'info>,
-    pub raydium_pool_reward_token_b_account?: AccountInfo<'info>,
+    pub user_trove_reward_token_b_account: AccountInfo<'info>,
+    pub raydium_pool_reward_token_b_account: AccountInfo<'info>,
 
     pub user_reward_token_a_account: AccountInfo<'info>,
-    pub user_reward_token_b_account?: AccountInfo<'info>,
+    pub user_reward_token_b_account: AccountInfo<'info>,
 }

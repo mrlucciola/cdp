@@ -1,6 +1,11 @@
-use anchor_lang::prelude::*;
+use anchor_lang::{
+    prelude::*,
+    solana_program::{
+        program::{invoke_signed},
+        instruction::{AccountMeta, Instruction},
+    }
+};
 use anchor_spl::token::{self,  Transfer, ID};
-
 use crate::{
     instructions::*,
     constant::*,
@@ -53,8 +58,8 @@ pub fn process_deposit_raydium_collateral(ctx: Context<DepositRaydiumCollateral>
         ctx.accounts.raydium_pool_id.clone(),
         ctx.accounts.raydium_pool_authority.clone(),
         ctx.accounts.user_trove_associated_info_account.clone(),
-        ctx.accounts.user_trove.to_account_info().clone(),
-        ctx.accounts.pool_token_coll.to_account_info().clone(),
+        ctx.accounts.user_trove.to_account_info(),
+        ctx.accounts.pool_token_coll.to_account_info(),
         ctx.accounts.raydium_pool_lp_account.clone(),
         ctx.accounts.user_trove_reward_token_a_account.clone(),
         ctx.accounts.raydium_pool_reward_token_a_account.clone(),
@@ -86,8 +91,8 @@ pub fn process_deposit_raydium_collateral(ctx: Context<DepositRaydiumCollateral>
     // seed of token_vault account to sign the transaction
     let signer_seeds = &[
         USER_TROVE_TAG,
-        ctx.accounts.token_vault.key().as_ref(),
-        ctx.accounts.owner.key().as_ref(),
+        ctx.accounts.token_vault.to_account_info().key.as_ref(),
+        ctx.accounts.owner.to_account_info().key.as_ref(),
         &[ctx.accounts.user_trove.user_trove_nonce]
     ];
     let signer = &[&signer_seeds[..]];

@@ -8,7 +8,7 @@ use crate::{
 use std::convert::TryInto;
 use std::convert::TryFrom;
 use spl_math::{precise_number::PreciseNumber};
-
+use arrayref::{array_mut_ref, mut_array_refs, array_ref};
 
 pub fn get_market_price_devnet(risk_level: u8) -> u64 {
     return 10_000_000_000;
@@ -30,7 +30,7 @@ pub fn assert_limit_mint(cur_timestamp: u64, last_mint_time: u64)-> ProgramResul
     Ok(())
 }
 
-fn get_token_balance(token_account: &AccountInfo) -> Result<u64, ProgramError> {
+pub fn get_token_balance(token_account: &AccountInfo) -> Result<u64> {
     let data = token_account.try_borrow_data()?;
     let amount = array_ref![data, 64, 8];
 
