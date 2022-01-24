@@ -71,11 +71,6 @@ export type StablePool = {
           "isSigner": false
         },
         {
-          "name": "tokenColl",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -97,14 +92,6 @@ export type StablePool = {
           "type": "u8"
         },
         {
-          "name": "globalStateNonce",
-          "type": "u8"
-        },
-        {
-          "name": "tokenCollNonce",
-          "type": "u8"
-        },
-        {
           "name": "riskLevel",
           "type": "u8"
         }
@@ -120,6 +107,11 @@ export type StablePool = {
         },
         {
           "name": "userTrove",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenColl",
           "isMut": true,
           "isSigner": false
         },
@@ -155,7 +147,7 @@ export type StablePool = {
           "type": "u8"
         },
         {
-          "name": "tokenVaultNonce",
+          "name": "tokenCollNonce",
           "type": "u8"
         }
       ]
@@ -203,18 +195,6 @@ export type StablePool = {
         {
           "name": "amount",
           "type": "u64"
-        },
-        {
-          "name": "tokenVaultNonce",
-          "type": "u8"
-        },
-        {
-          "name": "userTroveNonce",
-          "type": "u8"
-        },
-        {
-          "name": "tokenCollNonce",
-          "type": "u8"
         }
       ]
     },
@@ -261,18 +241,6 @@ export type StablePool = {
         {
           "name": "amount",
           "type": "u64"
-        },
-        {
-          "name": "tokenVaultNonce",
-          "type": "u8"
-        },
-        {
-          "name": "userTroveNonce",
-          "type": "u8"
-        },
-        {
-          "name": "tokenCollNonce",
-          "type": "u8"
         }
       ]
     },
@@ -341,22 +309,6 @@ export type StablePool = {
           "type": "u64"
         },
         {
-          "name": "tokenVaultNonce",
-          "type": "u8"
-        },
-        {
-          "name": "userTroveNonce",
-          "type": "u8"
-        },
-        {
-          "name": "globalStateNonce",
-          "type": "u8"
-        },
-        {
-          "name": "mintUsdNonce",
-          "type": "u8"
-        },
-        {
           "name": "userUsdTokenNonce",
           "type": "u8"
         }
@@ -392,7 +344,7 @@ export type StablePool = {
         },
         {
           "name": "userTokenUsd",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -410,26 +362,6 @@ export type StablePool = {
         {
           "name": "amount",
           "type": "u64"
-        },
-        {
-          "name": "tokenVaultNonce",
-          "type": "u8"
-        },
-        {
-          "name": "userTroveNonce",
-          "type": "u8"
-        },
-        {
-          "name": "globalStateNonce",
-          "type": "u8"
-        },
-        {
-          "name": "mintUsdNonce",
-          "type": "u8"
-        },
-        {
-          "name": "userUsdTokenNonce",
-          "type": "u8"
         }
       ]
     }
@@ -447,6 +379,14 @@ export type StablePool = {
           {
             "name": "mintUsd",
             "type": "publicKey"
+          },
+          {
+            "name": "globalStateNonce",
+            "type": "u8"
+          },
+          {
+            "name": "mintUsdNonce",
+            "type": "u8"
           }
         ]
       }
@@ -461,10 +401,6 @@ export type StablePool = {
             "type": "publicKey"
           },
           {
-            "name": "tokenColl",
-            "type": "publicKey"
-          },
-          {
             "name": "totalColl",
             "type": "u64"
           },
@@ -474,6 +410,10 @@ export type StablePool = {
           },
           {
             "name": "riskLevel",
+            "type": "u8"
+          },
+          {
+            "name": "tokenVaultNonce",
             "type": "u8"
           }
         ]
@@ -485,6 +425,10 @@ export type StablePool = {
         "kind": "struct",
         "fields": [
           {
+            "name": "tokenColl",
+            "type": "publicKey"
+          },
+          {
             "name": "lockedCollBalance",
             "type": "u64"
           },
@@ -495,6 +439,18 @@ export type StablePool = {
           {
             "name": "lastMintTime",
             "type": "u64"
+          },
+          {
+            "name": "userTroveNonce",
+            "type": "u8"
+          },
+          {
+            "name": "tokenCollNonce",
+            "type": "u8"
+          },
+          {
+            "name": "userUsdNonce",
+            "type": "u8"
           }
         ]
       }
@@ -694,11 +650,6 @@ export const IDL: StablePool = {
           "isSigner": false
         },
         {
-          "name": "tokenColl",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -720,14 +671,6 @@ export const IDL: StablePool = {
           "type": "u8"
         },
         {
-          "name": "globalStateNonce",
-          "type": "u8"
-        },
-        {
-          "name": "tokenCollNonce",
-          "type": "u8"
-        },
-        {
           "name": "riskLevel",
           "type": "u8"
         }
@@ -743,6 +686,11 @@ export const IDL: StablePool = {
         },
         {
           "name": "userTrove",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenColl",
           "isMut": true,
           "isSigner": false
         },
@@ -778,7 +726,7 @@ export const IDL: StablePool = {
           "type": "u8"
         },
         {
-          "name": "tokenVaultNonce",
+          "name": "tokenCollNonce",
           "type": "u8"
         }
       ]
@@ -826,18 +774,6 @@ export const IDL: StablePool = {
         {
           "name": "amount",
           "type": "u64"
-        },
-        {
-          "name": "tokenVaultNonce",
-          "type": "u8"
-        },
-        {
-          "name": "userTroveNonce",
-          "type": "u8"
-        },
-        {
-          "name": "tokenCollNonce",
-          "type": "u8"
         }
       ]
     },
@@ -884,18 +820,6 @@ export const IDL: StablePool = {
         {
           "name": "amount",
           "type": "u64"
-        },
-        {
-          "name": "tokenVaultNonce",
-          "type": "u8"
-        },
-        {
-          "name": "userTroveNonce",
-          "type": "u8"
-        },
-        {
-          "name": "tokenCollNonce",
-          "type": "u8"
         }
       ]
     },
@@ -964,22 +888,6 @@ export const IDL: StablePool = {
           "type": "u64"
         },
         {
-          "name": "tokenVaultNonce",
-          "type": "u8"
-        },
-        {
-          "name": "userTroveNonce",
-          "type": "u8"
-        },
-        {
-          "name": "globalStateNonce",
-          "type": "u8"
-        },
-        {
-          "name": "mintUsdNonce",
-          "type": "u8"
-        },
-        {
           "name": "userUsdTokenNonce",
           "type": "u8"
         }
@@ -1015,7 +923,7 @@ export const IDL: StablePool = {
         },
         {
           "name": "userTokenUsd",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -1033,26 +941,6 @@ export const IDL: StablePool = {
         {
           "name": "amount",
           "type": "u64"
-        },
-        {
-          "name": "tokenVaultNonce",
-          "type": "u8"
-        },
-        {
-          "name": "userTroveNonce",
-          "type": "u8"
-        },
-        {
-          "name": "globalStateNonce",
-          "type": "u8"
-        },
-        {
-          "name": "mintUsdNonce",
-          "type": "u8"
-        },
-        {
-          "name": "userUsdTokenNonce",
-          "type": "u8"
         }
       ]
     }
@@ -1070,6 +958,14 @@ export const IDL: StablePool = {
           {
             "name": "mintUsd",
             "type": "publicKey"
+          },
+          {
+            "name": "globalStateNonce",
+            "type": "u8"
+          },
+          {
+            "name": "mintUsdNonce",
+            "type": "u8"
           }
         ]
       }
@@ -1084,10 +980,6 @@ export const IDL: StablePool = {
             "type": "publicKey"
           },
           {
-            "name": "tokenColl",
-            "type": "publicKey"
-          },
-          {
             "name": "totalColl",
             "type": "u64"
           },
@@ -1097,6 +989,10 @@ export const IDL: StablePool = {
           },
           {
             "name": "riskLevel",
+            "type": "u8"
+          },
+          {
+            "name": "tokenVaultNonce",
             "type": "u8"
           }
         ]
@@ -1108,6 +1004,10 @@ export const IDL: StablePool = {
         "kind": "struct",
         "fields": [
           {
+            "name": "tokenColl",
+            "type": "publicKey"
+          },
+          {
             "name": "lockedCollBalance",
             "type": "u64"
           },
@@ -1118,6 +1018,18 @@ export const IDL: StablePool = {
           {
             "name": "lastMintTime",
             "type": "u64"
+          },
+          {
+            "name": "userTroveNonce",
+            "type": "u8"
+          },
+          {
+            "name": "tokenCollNonce",
+            "type": "u8"
+          },
+          {
+            "name": "userUsdNonce",
+            "type": "u8"
           }
         ]
       }
