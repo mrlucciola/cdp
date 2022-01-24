@@ -2,7 +2,8 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{self,  Transfer, ID};
 
 use crate::{
-    instructions::*
+    instructions::*,
+    utils::*,
 };
 
 pub fn process_deposit_collateral(
@@ -10,9 +11,12 @@ pub fn process_deposit_collateral(
     amount: u64, 
     token_vault_nonce: u8, 
     user_trove_nonce: u8, 
-    token_coll_nonce: u8
+    token_coll_nonce: u8,
+    global_state_nonce: u8
 ) -> ProgramResult {
-    
+
+    assert_tvl_allowed(ctx.accounts.global_state.tvl_limit, ctx.accounts.global_state.tvl, amount)?;
+
     // transfer from user to pool
     let cpi_accounts = Transfer {
         from: ctx.accounts.user_token_coll.to_account_info().clone(),
@@ -28,6 +32,7 @@ pub fn process_deposit_collateral(
 
     ctx.accounts.token_vault.total_coll += amount;
     ctx.accounts.user_trove.locked_coll_balance += amount;
+    ctx.accounts.global_state.tvl += amount;
 
     Ok(())
 }

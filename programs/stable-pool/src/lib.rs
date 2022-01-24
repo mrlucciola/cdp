@@ -28,9 +28,10 @@ pub mod stable_pool {
     pub fn create_global_state(
         ctx: Context<CreateGlobalState>, 
         global_state_nonce:u8, 
-        mint_usd_nonce:u8
+        mint_usd_nonce:u8,
+        tvl_limit:u64
     ) -> ProgramResult { 
-        process_create_global_state(ctx, global_state_nonce, mint_usd_nonce) 
+        process_create_global_state(ctx, global_state_nonce, mint_usd_nonce, tvl_limit) 
     }
     
     pub fn create_token_vault(
@@ -57,10 +58,11 @@ pub mod stable_pool {
         amount: u64, 
         token_vault_nonce: u8, 
         user_trove_nonce: u8, 
-        token_coll_nonce: u8
+        token_coll_nonce: u8,
+        global_state_nonce: u8
     ) -> ProgramResult { 
         process_deposit_collateral(ctx, 
-            amount, token_vault_nonce, user_trove_nonce, token_coll_nonce) 
+            amount, token_vault_nonce, user_trove_nonce, token_coll_nonce, global_state_nonce) 
     }
 
     pub fn withdraw_collateral(
@@ -68,10 +70,11 @@ pub mod stable_pool {
         amount: u64, 
         token_vault_nonce: u8, 
         user_trove_nonce: u8, 
-        token_coll_nonce: u8
+        token_coll_nonce: u8,
+        global_state_nonce: u8
     ) -> ProgramResult { 
         process_withdraw_collateral(ctx, 
-            amount, token_vault_nonce, user_trove_nonce, token_coll_nonce) 
+            amount, token_vault_nonce, user_trove_nonce, token_coll_nonce, global_state_nonce) 
     }
 
     pub fn borrow_usd(

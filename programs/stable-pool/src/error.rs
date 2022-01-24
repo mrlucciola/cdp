@@ -22,4 +22,6 @@ pub enum StablePoolError {
     InvalidAccountInput,
     #[msg("This function works on devnet only")]
     InvalidCluster,
+    #[msg("TVL Exceeded")]
+    TVLExceeded,
 }

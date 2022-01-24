@@ -5,6 +5,8 @@ use anchor_lang::prelude::*;
 pub struct GlobalState {
     pub super_owner: Pubkey,
     pub mint_usd: Pubkey,
+    pub tvl_limit: u64,
+    pub tvl: u64,
 }
 
 #[account]

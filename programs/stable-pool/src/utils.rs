@@ -30,6 +30,13 @@ pub fn assert_limit_mint(cur_timestamp: u64, last_mint_time: u64)-> ProgramResul
     Ok(())
 }
 
+pub fn assert_tvl_allowed(tvl_limit: u64, tvl: u64, amount: u64) -> ProgramResult {
+    if tvl_limit < tvl + amount {
+        return Err(StablePoolError::TVLExceeded.into())
+    }
+    Ok(())
+}
+
 // pub fn get_pyth_product_quote_currency(pyth_product: &pyth::Product) -> Result<[u8; 32]> {
 //     const LEN: usize = 14;
 //     const KEY: &[u8; LEN] = b"quote_currency";
