@@ -29,6 +29,14 @@ pub fn assert_limit_mint(cur_timestamp: u64, last_mint_time: u64)-> ProgramResul
     Ok(())
 }
 
+fn get_token_balance(token_account: &AccountInfo) -> Result<u64, ProgramError> {
+    let data = token_account.try_borrow_data()?;
+    let amount = array_ref![data, 64, 8];
+
+    Ok(u64::from_le_bytes(*amount))
+}
+
+
 // pub fn get_pyth_product_quote_currency(pyth_product: &pyth::Product) -> Result<[u8; 32]> {
 //     const LEN: usize = 14;
 //     const KEY: &[u8; LEN] = b"quote_currency";
