@@ -1,12 +1,12 @@
 [programs.localnet]
-stable_pool = "ERbfq15MzC4EHzGAPK85PpvvMFfFjEzijqnuUzkTghmd"
+stable_pool = "cW8hHb9Azuk99GihhsuFHvAmqSivfjzAFyZ1LjiXsAp"
 stable_pool_faucet = "8cWxdanpMMudwFexcZmmmZEZBBx2FzQFE2RjPNu7VgMB"
 
 [registry]
 url = "https://anchor.projectserum.com"
 
 [provider]
-cluster = "http://127.0.0.1:8899"
+cluster = "localnet"
 wallet = "./test-keypair.json"
 
 [scripts]
