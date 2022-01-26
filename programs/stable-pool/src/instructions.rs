@@ -18,7 +18,7 @@ pub struct CreateGlobalState <'info>{
         bump = global_state_nonce,
         payer = super_owner,
         )]
-    pub global_state: Account<'info, GlobalState>,
+    pub global_state: ProgramAccount<'info, GlobalState>,
 
     #[account(init_if_needed,
         mint::decimals = USD_DECIMALS,

@@ -367,8 +367,5 @@
       "name": "InvalidAccountInput",
       "msg": "InvalidAccountInput"
     }
-  ],
-  "metadata": {
-    "address": "7ctjgQxh54GAqeQ1MKa8iAopRsy3sLqopQ6utZLWUPj1"
-  }
+  ]
 }

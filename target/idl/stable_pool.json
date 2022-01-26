@@ -821,8 +821,5 @@
       "name": "TVLExceeded",
       "msg": "TVL Exceeded"
     }
-  ],
-  "metadata": {
-    "address": "cW8hHb9Azuk99GihhsuFHvAmqSivfjzAFyZ1LjiXsAp"
-  }
+  ]
 }
