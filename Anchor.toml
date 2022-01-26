@@ -2,11 +2,19 @@
 stable_pool = "cW8hHb9Azuk99GihhsuFHvAmqSivfjzAFyZ1LjiXsAp"
 stable_pool_faucet = "8cWxdanpMMudwFexcZmmmZEZBBx2FzQFE2RjPNu7VgMB"
 
+[programs.devnet]
+stable_pool = "cW8hHb9Azuk99GihhsuFHvAmqSivfjzAFyZ1LjiXsAp"
+stable_pool_faucet = "8cWxdanpMMudwFexcZmmmZEZBBx2FzQFE2RjPNu7VgMB"
+
+[programs.mainnet]
+stable_pool = "cW8hHb9Azuk99GihhsuFHvAmqSivfjzAFyZ1LjiXsAp"
+stable_pool_faucet = "8cWxdanpMMudwFexcZmmmZEZBBx2FzQFE2RjPNu7VgMB"
+
 [registry]
 url = "https://anchor.projectserum.com"
 
 [provider]
-cluster = "localnet"
+cluster = "devnet"
 wallet = "./test-keypair.json"
 
 [scripts]
