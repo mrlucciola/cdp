@@ -43,14 +43,8 @@ describe('ratio', () => {
 
   it('Is initialized!', async () => {
     // Request Airdrop for superOwner & user
-    await provider.connection.confirmTransaction(
-      await provider.connection.requestAirdrop(superOwner.publicKey, 1000000000),
-      "confirmed"
-    );
-    await provider.connection.confirmTransaction(
-      await provider.connection.requestAirdrop(user.publicKey, 1000000000),
-      "confirmed"
-    );
+    await provider.connection.requestAirdrop(superOwner.publicKey, 1000000000);
+    await provider.connection.requestAirdrop(user.publicKey, 1000000000);
 
     lpMint = await Token.createMint(
       provider.connection,
@@ -231,10 +225,8 @@ describe('ratio', () => {
   it('Create Token Vault fails if globalState is not created', async () => {
 
     const localUser = anchor.web3.Keypair.generate();
-    await provider.connection.confirmTransaction(
-      await provider.connection.requestAirdrop(localUser.publicKey, 1000000000),
-      "confirmed"
-    );
+    await provider.connection.requestAirdrop(localUser.publicKey, 1000000000);
+    
     const [globalStateKey, globalStateNonce] =
       await anchor.web3.PublicKey.findProgramAddress(
         [localUser.publicKey.toBuffer(), Buffer.from(GLOBAL_STATE_TAG)],
