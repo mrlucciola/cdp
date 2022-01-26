@@ -6,14 +6,7 @@ use crate::{
     instructions::*
 };
 
-pub fn process_withdraw_collateral(
-    ctx: Context<WithdrawCollateral>, 
-    amount: u64, 
-    token_vault_nonce: u8, 
-    user_trove_nonce: u8, 
-    token_coll_nonce: u8,
-    global_state_nonce: u8
-) -> ProgramResult {
+pub fn process_withdraw_collateral(ctx: Context<WithdrawCollateral>, amount: u64) -> ProgramResult {
     msg!("withdrawing ...");
     
     let mut _amount = amount;
@@ -25,15 +18,16 @@ pub fn process_withdraw_collateral(
     let cpi_accounts = Transfer {
         from: ctx.accounts.pool_token_coll.to_account_info(),
         to: ctx.accounts.user_token_coll.to_account_info(),
-        authority: ctx.accounts.token_vault.to_account_info(),
+        authority: ctx.accounts.user_trove.to_account_info(),
     };
 
     let cpi_program = ctx.accounts.token_program.to_account_info();
 
     let signer_seeds = &[
-        TOKEN_VAULT_TAG,
-        ctx.accounts.token_vault.mint_coll.as_ref(),
-        &[token_vault_nonce]
+        USER_TROVE_TAG,
+        ctx.accounts.token_vault.to_account_info().key.as_ref(), 
+        ctx.accounts.owner.to_account_info().key.as_ref(),
+        &[ctx.accounts.user_trove.user_trove_nonce],
     ];
     let signer = &[&signer_seeds[..]];
 

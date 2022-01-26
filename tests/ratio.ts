@@ -12,6 +12,10 @@ import {use as chaiUse, assert, expect} from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 chaiUse(chaiAsPromised)
 
+async function delay(ms: number) {
+  return new Promise( resolve => setTimeout(resolve, ms) );
+}
+
 describe('ratio', () => {
 
   // Constants
@@ -20,7 +24,7 @@ describe('ratio', () => {
   const USER_TROVE_TAG = "user-trove-seed";
   const USD_MINT_TAG = "usd-mint";
   const USD_TOKEN_TAG = "usd-token";
-  const TOKEN_VAULT_POOL_TAG = "token-vault-pool";
+  const USER_TROVE_POOL_TAG = "user-trove-pool";
 
   // Configure the client to use the local cluster.
   const provider = anchor.Provider.env();
@@ -42,16 +46,25 @@ describe('ratio', () => {
   console.log("user =", user.publicKey.toBase58());
 
   it('Is initialized!', async () => {
-    // Request Airdrop for superOwner & user
-    await provider.connection.confirmTransaction(
-      await provider.connection.requestAirdrop(superOwner.publicKey, 1000000000),
-      "confirmed"
-    );
-    await provider.connection.confirmTransaction(
-      await provider.connection.requestAirdrop(user.publicKey, 1000000000),
-      "confirmed"
-    );
-
+    while (await provider.connection.getBalance(superOwner.publicKey) == 0){
+      try{
+        // Request Airdrop for user
+        await provider.connection.confirmTransaction(
+          await provider.connection.requestAirdrop(superOwner.publicKey, 1000000000),
+          "confirmed"
+        );
+      }catch{}
+      
+    };
+    while (await provider.connection.getBalance(user.publicKey) == 0){
+      try{
+        // Request Airdrop for user
+        await provider.connection.confirmTransaction(
+          await provider.connection.requestAirdrop(user.publicKey, 1000000000),
+          "confirmed"
+        );
+      }catch{}
+    };
     lpMint = await Token.createMint(
       provider.connection,
       superOwner,
@@ -61,6 +74,8 @@ describe('ratio', () => {
       TOKEN_PROGRAM_ID
     );
     userCollKey = await lpMint.createAccount(user.publicKey);
+    console.log("lpMint =", lpMint.publicKey.toBase58());
+    console.log("userCollKey =", userCollKey.toBase58());
     await lpMint.mintTo(
       userCollKey,
       superOwner,
@@ -89,8 +104,8 @@ describe('ratio', () => {
 
     console.log("mintUsdKey =", mintUsdKey.toBase58());
 
-    let data = await provider.connection.getAccountInfo(stablePoolProgram.programId);
-    console.log("data =", data);
+    // let data = await provider.connection.getAccountInfo(stablePoolProgram.programId);
+    // console.log("data =", data);
 
     let txHash = await stablePoolProgram.rpc.createGlobalState(
       globalStateNonce, 
@@ -99,8 +114,8 @@ describe('ratio', () => {
       {
         accounts: {
           superOwner: superOwner.publicKey,
-          mintUsd: mintUsdKey,
           globalState: globalStateKey,
+          mintUsd: mintUsdKey, 
           systemProgram: SystemProgram.programId,
           tokenProgram: TOKEN_PROGRAM_ID,
           rent: SYSVAR_RENT_PUBKEY,
@@ -116,11 +131,15 @@ describe('ratio', () => {
 
     assert(globalState.superOwner.toBase58() == superOwner.publicKey.toBase58());
     assert(globalState.mintUsd.toBase58() == mintUsdKey.toBase58());
-    assert(globalState.tvlLimit == tvlLimit, "GlobalState TVL Limit: " + globalState.tvlLimit + " TVL Limit: " + tvlLimit);
-    assert(globalState.tvl == 0);
+    assert(globalState.tvlLimit.toNumber() == tvlLimit, "GlobalState TVL Limit: " + globalState.tvlLimit + " TVL Limit: " + tvlLimit);
+    assert(globalState.tvl.toNumber() == 0);
   });
-
+ 
   it('Only the super owner can create token vaults', async () => {
+    try{
+      // Request Airdrop for superOwner & user
+    }
+    catch{}
     const [globalStateKey, globalStateNonce] =
       await anchor.web3.PublicKey.findProgramAddress(
         [Buffer.from(GLOBAL_STATE_TAG)],
@@ -133,19 +152,11 @@ describe('ratio', () => {
         stablePoolProgram.programId,
       );
 
-    const [tokenCollKey, tokenCollNonce] =
-      await anchor.web3.PublicKey.findProgramAddress(
-        [Buffer.from(TOKEN_VAULT_POOL_TAG), tokenVaultKey.toBuffer()],
-        stablePoolProgram.programId,
-      );
-
     const riskLevel = 0;
     
     const createVaultCall = async ()=>{
       await stablePoolProgram.rpc.createTokenVault(
         tokenVaultNonce, 
-        globalStateNonce, 
-        tokenCollNonce, 
         riskLevel,
         {
           accounts: {
@@ -153,7 +164,6 @@ describe('ratio', () => {
             tokenVault: tokenVaultKey,
             globalState: globalStateKey,
             mintColl: lpMint.publicKey,
-            tokenColl: tokenCollKey,
             systemProgram: SystemProgram.programId,
             tokenProgram: TOKEN_PROGRAM_ID,
             rent: SYSVAR_RENT_PUBKEY,
@@ -186,18 +196,9 @@ describe('ratio', () => {
       );
     console.log("tokenVaultKey",tokenVaultKey.toBase58());
 
-    const [tokenCollKey, tokenCollNonce] =
-      await anchor.web3.PublicKey.findProgramAddress(
-        [Buffer.from(TOKEN_VAULT_POOL_TAG), tokenVaultKey.toBuffer()],
-        stablePoolProgram.programId,
-      );
-      console.log("tokenCollKey",tokenCollKey.toBase58());
-
     const riskLevel = 0;
     let txHash = await stablePoolProgram.rpc.createTokenVault(
         tokenVaultNonce, 
-        globalStateNonce, 
-        tokenCollNonce, 
         riskLevel,
         {
           accounts: {
@@ -205,7 +206,6 @@ describe('ratio', () => {
             tokenVault: tokenVaultKey,
             globalState: globalStateKey,
             mintColl: lpMint.publicKey,
-            tokenColl: tokenCollKey,
             systemProgram: SystemProgram.programId,
             tokenProgram: TOKEN_PROGRAM_ID,
             rent: SYSVAR_RENT_PUBKEY,
@@ -221,9 +221,6 @@ describe('ratio', () => {
     let tokenVault = await stablePoolProgram.account.tokenVault.fetch(tokenVaultKey);
 
     assert(tokenVault.mintColl.toBase58() == lpMint.publicKey.toBase58(), "mintColl mismatch");
-    assert(tokenVault.tokenColl.toBase58() == tokenCollKey.toBase58(), "tokenCollKey mismatch");
-    assert(tokenVault.totalColl == 0, "totalColl mismatch");
-    assert(tokenVault.totalDebt == 0, "totalDebt mismatch");
     assert(tokenVault.riskLevel == riskLevel, "riskLevel mismatch");
 
   });
@@ -231,10 +228,17 @@ describe('ratio', () => {
   it('Create Token Vault fails if globalState is not created', async () => {
 
     const localUser = anchor.web3.Keypair.generate();
-    await provider.connection.confirmTransaction(
-      await provider.connection.requestAirdrop(localUser.publicKey, 1000000000),
-      "confirmed"
-    );
+    while (await provider.connection.getBalance(localUser.publicKey) == 0){
+      try{
+        // Request Airdrop for user
+        await provider.connection.confirmTransaction(
+          await provider.connection.requestAirdrop(localUser.publicKey, 1000000000),
+          "confirmed"
+        );
+      }catch{}
+      
+    };
+    
     const [globalStateKey, globalStateNonce] =
       await anchor.web3.PublicKey.findProgramAddress(
         [localUser.publicKey.toBuffer(), Buffer.from(GLOBAL_STATE_TAG)],
@@ -259,20 +263,12 @@ describe('ratio', () => {
         stablePoolProgram.programId,
       );
 
-    const [tokenCollKey, tokenCollNonce] =
-      await anchor.web3.PublicKey.findProgramAddress(
-        [Buffer.from(TOKEN_VAULT_POOL_TAG), tokenVaultKey.toBuffer()],
-        stablePoolProgram.programId,
-      );
-
     const riskLevel = 0;
     
     const createVaultCall = async ()=>{
       console.log("Calling createVault");
       await stablePoolProgram.rpc.createTokenVault(
         tokenVaultNonce, 
-        globalStateNonce, 
-        tokenCollNonce, 
         riskLevel,
         {
           accounts: {
@@ -280,7 +276,6 @@ describe('ratio', () => {
             tokenVault: tokenVaultKey,
             globalState: globalStateKey,
             mintColl: localLpMint.publicKey,
-            tokenColl: tokenCollKey,
             systemProgram: SystemProgram.programId,
             tokenProgram: TOKEN_PROGRAM_ID,
             rent: SYSVAR_RENT_PUBKEY,
@@ -308,13 +303,20 @@ describe('ratio', () => {
       stablePoolProgram.programId,
     );
 
+    const [tokenCollKey, tokenCollNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(USER_TROVE_POOL_TAG), userTroveKey.toBuffer()],
+        stablePoolProgram.programId,
+      );
+
     await stablePoolProgram.rpc.createUserTrove(
       userTroveNonce, 
-      tokenVaultNonce, 
+      tokenCollNonce, 
       {
         accounts: {
           troveOwner: user.publicKey,
           userTrove: userTroveKey,
+          tokenColl: tokenCollKey,
           tokenVault: tokenVaultKey,
           mintColl: lpMint.publicKey,
           systemProgram: SystemProgram.programId,
@@ -329,8 +331,8 @@ describe('ratio', () => {
 
     let userTrove = await stablePoolProgram.account.userTrove.fetch(userTroveKey);
 
-    assert(userTrove.lockedCollBalance == 0, "lockedCollBalance mismatch");
-    assert(userTrove.debt == 0, "debt mismatch");
+    assert(userTrove.lockedCollBalance.toNumber() == 0, "lockedCollBalance mismatch");
+    assert(userTrove.debt.toNumber() == 0, "debt mismatch");
   });
 
   it('Deposit Collateral', async () => {
@@ -349,28 +351,21 @@ describe('ratio', () => {
         stablePoolProgram.programId,
       );
 
-    const [tokenCollKey, tokenCollNonce] =
-      await anchor.web3.PublicKey.findProgramAddress(
-        [Buffer.from(TOKEN_VAULT_POOL_TAG), tokenVaultKey.toBuffer()],
-        stablePoolProgram.programId,
-      );
-
+    
     const [userTroveKey, userTroveNonce] =
       await anchor.web3.PublicKey.findProgramAddress(
         [Buffer.from(USER_TROVE_TAG), tokenVaultKey.toBuffer(), user.publicKey.toBuffer()],
         stablePoolProgram.programId,
       );
-    
-    const transaction = new Transaction()
-    let instructions:TransactionInstruction[] = [];
-    const signers:Keypair[] = [];
+    const [tokenCollKey, tokenCollNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(USER_TROVE_POOL_TAG), userTroveKey.toBuffer()],
+        stablePoolProgram.programId,
+      );
 
+    
     await stablePoolProgram.rpc.depositCollateral(
       new anchor.BN(depositAmount),
-      tokenVaultNonce,
-      userTroveNonce,
-      tokenCollNonce,
-      globalStateNonce,
       {
         accounts: {
           owner: user.publicKey,
@@ -392,13 +387,11 @@ describe('ratio', () => {
     let tokenVault = await stablePoolProgram.account.tokenVault.fetch(tokenVaultKey);
     globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
 
-    console.log("depositAmount =", depositAmount);
-    assert(tokenVault.totalColl == depositAmount,
+    assert(tokenVault.totalColl.toNumber() == depositAmount,
        "depositAmount mismatch: totalColl = " + tokenVault.totalColl);
-    assert(userTrove.lockedCollBalance == depositAmount, 
+    assert(userTrove.lockedCollBalance.toNumber() == depositAmount, 
         "lockedCollBalance mismatch: lockedCollBalance = " + userTrove.lockedCollBalance);
-    console.log("tvl = ", globalState.tvl);
-    assert(globalState.tvl == depositAmount,
+    assert(globalState.tvl.toNumber() == depositAmount,
         "tvl mistmatch: tvl = " + globalState.tvl);
     
     let poolLpTokenAccount = await lpMint.getAccountInfo(tokenCollKey);
@@ -445,10 +438,6 @@ describe('ratio', () => {
 
     const txHash = await stablePoolProgram.rpc.borrowUsd(
       new anchor.BN(amount), 
-      tokenVaultNonce,
-      userTroveNonce,
-      globalStateNonce,
-      mintUsdNonce,
       userUsdNonce,
       {
         accounts: {
@@ -511,11 +500,6 @@ describe('ratio', () => {
     let amount = 10_000_000; // 10 USDx
     const txHash = await stablePoolProgram.rpc.repayUsd(
       new anchor.BN(amount), 
-      tokenVaultNonce,
-      userTroveNonce,
-      globalStateNonce,
-      mintUsdNonce,
-      userUsdNonce,
       {
         accounts: {
           owner: user.publicKey,
@@ -549,24 +533,19 @@ describe('ratio', () => {
         stablePoolProgram.programId,
       );
 
-    const [tokenCollKey, tokenCollNonce] =
-      await anchor.web3.PublicKey.findProgramAddress(
-        [Buffer.from(TOKEN_VAULT_POOL_TAG), tokenVaultKey.toBuffer()],
-        stablePoolProgram.programId,
-      );
-
     const [userTroveKey, userTroveNonce] =
       await anchor.web3.PublicKey.findProgramAddress(
         [Buffer.from(USER_TROVE_TAG), tokenVaultKey.toBuffer(), user.publicKey.toBuffer()],
         stablePoolProgram.programId,
       );
+    const [tokenCollKey, tokenCollNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(USER_TROVE_POOL_TAG), userTroveKey.toBuffer()],
+        stablePoolProgram.programId,
+      );
 
     const txHash = await stablePoolProgram.rpc.withdrawCollateral(
       new anchor.BN(depositAmount), 
-      tokenVaultNonce,
-      userTroveNonce,
-      tokenCollNonce,
-      globalStateNonce,
       {
         accounts: {
           owner: user.publicKey,
@@ -588,11 +567,11 @@ describe('ratio', () => {
     let tokenVault = await stablePoolProgram.account.tokenVault.fetch(tokenVaultKey);
     globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
 
-    assert(tokenVault.totalColl == 0,
+    assert(tokenVault.totalColl.toNumber() == 0,
        "depositAmount mismatch: totalColl = " + tokenVault.totalColl);
-    assert(userTrove.lockedCollBalance == 0, 
+    assert(userTrove.lockedCollBalance.toNumber() == 0, 
         "lockedCollBalance mismatch: lockedCollBalance = " + userTrove.lockedCollBalance);
-    assert(globalState.tvl == 0,
+    assert(globalState.tvl.toNumber() == 0,
         "tvl mistmatch: tvl = " + globalState.tvl);
 
     let poolLpTokenAccount = await lpMint.getAccountInfo(tokenCollKey);
@@ -626,29 +605,22 @@ describe('ratio', () => {
         stablePoolProgram.programId,
       );
 
-    const [tokenCollKey, tokenCollNonce] =
-      await anchor.web3.PublicKey.findProgramAddress(
-        [Buffer.from(TOKEN_VAULT_POOL_TAG), tokenVaultKey.toBuffer()],
-        stablePoolProgram.programId,
-      );
+    
 
     const [userTroveKey, userTroveNonce] =
       await anchor.web3.PublicKey.findProgramAddress(
         [Buffer.from(USER_TROVE_TAG), tokenVaultKey.toBuffer(), user.publicKey.toBuffer()],
         stablePoolProgram.programId,
       );
+    const [tokenCollKey, tokenCollNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(USER_TROVE_POOL_TAG), userTroveKey.toBuffer()],
+        stablePoolProgram.programId,
+      );
     
-    const transaction = new Transaction()
-    let instructions:TransactionInstruction[] = [];
-    const signers:Keypair[] = [];
-
     const depositCollateral = async ()=>{
       await stablePoolProgram.rpc.depositCollateral(
         new anchor.BN(amount),
-        tokenVaultNonce,
-        userTroveNonce,
-        tokenCollNonce,
-        globalStateNonce,
         {
           accounts: {
             owner: user.publicKey,
@@ -671,11 +643,11 @@ describe('ratio', () => {
     let tokenVault = await stablePoolProgram.account.tokenVault.fetch(tokenVaultKey);
     globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
 
-    assert(tokenVault.totalColl == 0,
+    assert(tokenVault.totalColl.toNumber() == 0,
       "depositAmount mismatch: totalColl = " + tokenVault.totalColl);
-    assert(userTrove.lockedCollBalance == 0, 
+    assert(userTrove.lockedCollBalance.toNumber() == 0, 
        "lockedCollBalance mismatch: lockedCollBalance = " + userTrove.lockedCollBalance);
-     assert(globalState.tvl == 0,
+     assert(globalState.tvl.toNumber() == 0,
        "tvl mistmatch: tvl = " + globalState.tvl);
   });
 });
