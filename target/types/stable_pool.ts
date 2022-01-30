@@ -1,5 +1,5 @@
 export type StablePool = {
-  "version": "0.0.0",
+  "version": "0.1.0",
   "name": "stable_pool",
   "instructions": [
     {
@@ -590,6 +590,368 @@ export type StablePool = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "createOrcaVault",
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "orcaVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "baseMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lpMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "ddMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "isDd",
+          "type": "u8"
+        },
+        {
+          "name": "orcaVaultNonce",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "initOrcaFarm",
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalFarm",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "ratioUserFarm",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "ratioOrcaAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "orcaFarmProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "ratioAuthorityBump",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "depositOrcaLp",
+      "accounts": [
+        {
+          "name": "owner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "ratioAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userTrove",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenVault",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "ratioOrcaVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "ratioBaseTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "ratioPoolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "poolTokenMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "ratioRewardTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "globalFarm",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "ratioUserFarm",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "orcaRewardVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "orcaBaseVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "orcaFarmProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "ratioAuthorityBump",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "withdrawOrcaLp",
+      "accounts": [
+        {
+          "name": "owner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "ratioAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userTrove",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenVault",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "ratioOrcaVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userBaseTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "ratioPoolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "poolTokenMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userRewardTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "globalFarm",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "ratioUserFarm",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "orcaRewardVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "orcaBaseVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "orcaFarmProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "ratioAuthorityBump",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "harvestReward",
+      "accounts": [
+        {
+          "name": "owner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "ratioAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userRewardTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "globalFarm",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "ratioUserFarm",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "orcaRewardVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "orcaBaseVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "orcaFarmProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "ratioAuthorityBump",
+          "type": "u8"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -621,6 +983,10 @@ export type StablePool = {
           {
             "name": "tvl",
             "type": "u64"
+          },
+          {
+            "name": "paused",
+            "type": "u8"
           }
         ]
       }
@@ -696,9 +1062,62 @@ export type StablePool = {
           }
         ]
       }
+    },
+    {
+      "name": "ratioOrcaVault",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "baseMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "lpMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "ddMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "isDd",
+            "type": "u8"
+          }
+        ]
+      }
     }
   ],
   "types": [
+    {
+      "name": "ORCA_INSTRUCTIONS",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "InitGlobalFarm"
+          },
+          {
+            "name": "InitUserFarm"
+          },
+          {
+            "name": "ConvertTokens"
+          },
+          {
+            "name": "RevertTokens"
+          },
+          {
+            "name": "Harvest"
+          },
+          {
+            "name": "RemoveRewards"
+          },
+          {
+            "name": "SetEmissionsPerSecond"
+          }
+        ]
+      }
+    },
     {
       "name": "AccountType",
       "type": {
@@ -767,57 +1186,57 @@ export type StablePool = {
   ],
   "errors": [
     {
-      "code": 300,
+      "code": 6000,
       "name": "Unauthorized",
       "msg": "You are not authorized to perform this action."
     },
     {
-      "code": 301,
+      "code": 6001,
       "name": "AlreadyInUse",
       "msg": "AlreadyInUse"
     },
     {
-      "code": 302,
+      "code": 6002,
       "name": "InvalidProgramAddress",
       "msg": "InvalidProgramAddress"
     },
     {
-      "code": 303,
+      "code": 6003,
       "name": "InvalidState",
       "msg": "InvalidState"
     },
     {
-      "code": 304,
+      "code": 6004,
       "name": "InvalidOwner",
       "msg": "InvalidOwner"
     },
     {
-      "code": 305,
+      "code": 6005,
       "name": "NotAllowed",
       "msg": "NotAllowed"
     },
     {
-      "code": 306,
+      "code": 6006,
       "name": "MathOverflow",
       "msg": "Math operation overflow"
     },
     {
-      "code": 307,
+      "code": 6007,
       "name": "InvalidOracleConfig",
       "msg": "InvalidOracleConfig"
     },
     {
-      "code": 308,
+      "code": 6008,
       "name": "InvalidAccountInput",
       "msg": "InvalidAccountInput"
     },
     {
-      "code": 309,
+      "code": 6009,
       "name": "InvalidCluster",
       "msg": "This function works on devnet only"
     },
     {
-      "code": 310,
+      "code": 6010,
       "name": "TVLExceeded",
       "msg": "TVL Exceeded"
     }
@@ -825,7 +1244,7 @@ export type StablePool = {
 };
 
 export const IDL: StablePool = {
-  "version": "0.0.0",
+  "version": "0.1.0",
   "name": "stable_pool",
   "instructions": [
     {
@@ -1416,6 +1835,368 @@ export const IDL: StablePool = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "createOrcaVault",
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "orcaVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "baseMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lpMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "ddMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "isDd",
+          "type": "u8"
+        },
+        {
+          "name": "orcaVaultNonce",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "initOrcaFarm",
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalFarm",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "ratioUserFarm",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "ratioOrcaAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "orcaFarmProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "ratioAuthorityBump",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "depositOrcaLp",
+      "accounts": [
+        {
+          "name": "owner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "ratioAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userTrove",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenVault",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "ratioOrcaVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "ratioBaseTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "ratioPoolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "poolTokenMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "ratioRewardTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "globalFarm",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "ratioUserFarm",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "orcaRewardVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "orcaBaseVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "orcaFarmProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "ratioAuthorityBump",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "withdrawOrcaLp",
+      "accounts": [
+        {
+          "name": "owner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "ratioAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userTrove",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenVault",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "ratioOrcaVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userBaseTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "ratioPoolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "poolTokenMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userRewardTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "globalFarm",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "ratioUserFarm",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "orcaRewardVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "orcaBaseVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "orcaFarmProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "ratioAuthorityBump",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "harvestReward",
+      "accounts": [
+        {
+          "name": "owner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "ratioAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userRewardTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "globalFarm",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "ratioUserFarm",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "orcaRewardVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "orcaBaseVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "orcaFarmProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "ratioAuthorityBump",
+          "type": "u8"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -1447,6 +2228,10 @@ export const IDL: StablePool = {
           {
             "name": "tvl",
             "type": "u64"
+          },
+          {
+            "name": "paused",
+            "type": "u8"
           }
         ]
       }
@@ -1522,9 +2307,62 @@ export const IDL: StablePool = {
           }
         ]
       }
+    },
+    {
+      "name": "ratioOrcaVault",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "baseMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "lpMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "ddMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "isDd",
+            "type": "u8"
+          }
+        ]
+      }
     }
   ],
   "types": [
+    {
+      "name": "ORCA_INSTRUCTIONS",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "InitGlobalFarm"
+          },
+          {
+            "name": "InitUserFarm"
+          },
+          {
+            "name": "ConvertTokens"
+          },
+          {
+            "name": "RevertTokens"
+          },
+          {
+            "name": "Harvest"
+          },
+          {
+            "name": "RemoveRewards"
+          },
+          {
+            "name": "SetEmissionsPerSecond"
+          }
+        ]
+      }
+    },
     {
       "name": "AccountType",
       "type": {
@@ -1593,57 +2431,57 @@ export const IDL: StablePool = {
   ],
   "errors": [
     {
-      "code": 300,
+      "code": 6000,
       "name": "Unauthorized",
       "msg": "You are not authorized to perform this action."
     },
     {
-      "code": 301,
+      "code": 6001,
       "name": "AlreadyInUse",
       "msg": "AlreadyInUse"
     },
     {
-      "code": 302,
+      "code": 6002,
       "name": "InvalidProgramAddress",
       "msg": "InvalidProgramAddress"
     },
     {
-      "code": 303,
+      "code": 6003,
       "name": "InvalidState",
       "msg": "InvalidState"
     },
     {
-      "code": 304,
+      "code": 6004,
       "name": "InvalidOwner",
       "msg": "InvalidOwner"
     },
     {
-      "code": 305,
+      "code": 6005,
       "name": "NotAllowed",
       "msg": "NotAllowed"
     },
     {
-      "code": 306,
+      "code": 6006,
       "name": "MathOverflow",
       "msg": "Math operation overflow"
     },
     {
-      "code": 307,
+      "code": 6007,
       "name": "InvalidOracleConfig",
       "msg": "InvalidOracleConfig"
     },
     {
-      "code": 308,
+      "code": 6008,
       "name": "InvalidAccountInput",
       "msg": "InvalidAccountInput"
     },
     {
-      "code": 309,
+      "code": 6009,
       "name": "InvalidCluster",
       "msg": "This function works on devnet only"
     },
     {
-      "code": 310,
+      "code": 6010,
       "name": "TVLExceeded",
       "msg": "TVL Exceeded"
     }

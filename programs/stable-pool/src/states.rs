@@ -9,6 +9,7 @@ pub struct GlobalState {
     pub mint_usd_nonce: u8,
     pub tvl_limit: u64,
     pub tvl: u64,
+    pub paused: u8,
 }
 
 #[account]
@@ -19,7 +20,6 @@ pub struct TokenVault {
     pub total_debt: u64,
     pub risk_level: u8,
     pub token_vault_nonce: u8,
-    
 }
 
 #[account]
@@ -34,4 +34,17 @@ pub struct UserTrove {
     pub user_trove_nonce: u8,
     pub token_coll_nonce: u8,
     pub user_usd_nonce: u8,
+}
+
+#[account]
+#[derive(Default)]
+pub struct RatioOrcaVault {
+    // base token mint
+    pub base_mint: Pubkey,
+    // staked token mint
+    pub lp_mint: Pubkey,
+    // double-dip token mint
+    pub dd_mint: Pubkey,
+    // if support double-dip
+    pub is_dd: u8,
 }

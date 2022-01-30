@@ -26,3 +26,6 @@ pub use process_deposit_raydium_collateral::*;
 
 pub mod process_withdraw_raydium_collateral;
 pub use process_withdraw_raydium_collateral::*;
+
+pub mod process_with_orca;
+pub use process_with_orca::*;

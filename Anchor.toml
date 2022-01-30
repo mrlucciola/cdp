@@ -3,7 +3,7 @@ stable_pool = "cW8hHb9Azuk99GihhsuFHvAmqSivfjzAFyZ1LjiXsAp"
 stable_pool_faucet = "8cWxdanpMMudwFexcZmmmZEZBBx2FzQFE2RjPNu7VgMB"
 
 [programs.devnet]
-stable_pool = "CY3XZvFnbw4tjRLTVQhEqUuybjh8infioQsZk2GoC99o"
+stable_pool = "2VGZsqQvLWVcqoTuW6qyGs894pjpZA6AeUoD91SZhuv7"
 stable_pool_faucet = "8cWxdanpMMudwFexcZmmmZEZBBx2FzQFE2RjPNu7VgMB"
 
 [programs.mainnet]

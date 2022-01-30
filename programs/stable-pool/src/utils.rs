@@ -2,6 +2,7 @@ use anchor_lang::prelude::*;
 use crate::{
     constant::*,
     error::*,
+    states::GlobalState,
     pyth,
     pyth::*
 };
@@ -41,6 +42,12 @@ pub fn get_token_balance(token_account: &AccountInfo) -> Result<u64> {
     let amount = array_ref![data, 64, 8];
 
     Ok(u64::from_le_bytes(*amount))
+}
+
+// modifier
+pub fn paused<'info>(global_state: &Account<GlobalState>) -> Result<()> {
+    require!(global_state.paused == 0, StablePoolError::NotAllowed);
+    Ok(())
 }
 
 // pub fn get_pyth_product_quote_currency(pyth_product: &pyth::Product) -> Result<[u8; 32]> {

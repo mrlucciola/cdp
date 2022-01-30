@@ -31,8 +31,11 @@ describe('ratio', () => {
   anchor.setProvider(provider);
 
   const stablePoolProgram = anchor.workspace.StablePool as anchor.Program<StablePool>;
-  const superOwner = anchor.web3.Keypair.generate();
-  const user = anchor.web3.Keypair.generate();
+  //const superOwner = anchor.web3.Keypair.generate();
+  //const user = anchor.web3.Keypair.generate();
+
+  const user = anchor.web3.Keypair.fromSecretKey(new Uint8Array([104,155,54,210,140,177,188,104,40,172,169,66,101,176,231,31,72,200,64,131,208,190,48,19,88,24,120,175,211,244,81,16,29,181,197,142,71,127,186,94,168,207,50,86,7,47,213,125,181,235,122,80,133,42,230,222,120,75,5,233,201,228,120,75]));
+  const superOwner = anchor.web3.Keypair.fromSecretKey(new Uint8Array([248,117,94,64,137,224,108,14,118,36,69,1,239,191,223,71,124,68,42,6,102,244,247,159,98,192,68,119,156,255,97,223,38,117,172,163,116,6,151,12,215,178,92,106,178,185,76,227,114,36,45,2,32,234,125,2,122,23,171,243,189,169,252,174]));
 
   let userCollKey = null;
   let userUsdxTokenAccount = null;
@@ -46,11 +49,11 @@ describe('ratio', () => {
   console.log("user =", user.publicKey.toBase58());
 
   it('Is initialized!', async () => {
-    while (await provider.connection.getBalance(superOwner.publicKey) == 0){
+    /*while (await provider.connection.getBalance(superOwner.publicKey) == 0){
       try{
         // Request Airdrop for user
         await provider.connection.confirmTransaction(
-          await provider.connection.requestAirdrop(superOwner.publicKey, 1000000000),
+          await provider.connection.requestAirdrop(superOwner.publicKey, 100000000),
           "confirmed"
         );
       }catch{}
@@ -60,11 +63,11 @@ describe('ratio', () => {
       try{
         // Request Airdrop for user
         await provider.connection.confirmTransaction(
-          await provider.connection.requestAirdrop(user.publicKey, 1000000000),
+          await provider.connection.requestAirdrop(user.publicKey, 100000000),
           "confirmed"
         );
       }catch{}
-    };
+    };*/
     lpMint = await Token.createMint(
       provider.connection,
       superOwner,
@@ -133,48 +136,6 @@ describe('ratio', () => {
     assert(globalState.mintUsd.toBase58() == mintUsdKey.toBase58());
     assert(globalState.tvlLimit.toNumber() == tvlLimit, "GlobalState TVL Limit: " + globalState.tvlLimit + " TVL Limit: " + tvlLimit);
     assert(globalState.tvl.toNumber() == 0);
-  });
- 
-  it('Only the super owner can create token vaults', async () => {
-    try{
-      // Request Airdrop for superOwner & user
-    }
-    catch{}
-    const [globalStateKey, globalStateNonce] =
-      await anchor.web3.PublicKey.findProgramAddress(
-        [Buffer.from(GLOBAL_STATE_TAG)],
-        stablePoolProgram.programId,
-      );
-
-    const [tokenVaultKey, tokenVaultNonce] =
-      await anchor.web3.PublicKey.findProgramAddress(
-        [Buffer.from(TOKEN_VAULT_TAG), lpMint.publicKey.toBuffer()],
-        stablePoolProgram.programId,
-      );
-
-    const riskLevel = 0;
-    
-    const createVaultCall = async ()=>{
-      await stablePoolProgram.rpc.createTokenVault(
-        tokenVaultNonce, 
-        riskLevel,
-        {
-          accounts: {
-            payer: user.publicKey,
-            tokenVault: tokenVaultKey,
-            globalState: globalStateKey,
-            mintColl: lpMint.publicKey,
-            systemProgram: SystemProgram.programId,
-            tokenProgram: TOKEN_PROGRAM_ID,
-            rent: SYSVAR_RENT_PUBKEY,
-          },
-          signers: [user]
-        });
-    };
-
-    await assert.isRejected(createVaultCall(), /A raw constraint was violated/, "No error was thrown when trying to create a vault with a user different than the super owner");
-
-    await assert.isRejected(stablePoolProgram.account.tokenVault.fetch(tokenVaultKey), /Account does not exist /, "Fetching a vault that shouldn't had been created did not throw an error");
   });
 
   it('Create Token Vault', async () => {
