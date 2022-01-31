@@ -21,7 +21,7 @@ use crate::{
     processor::*,
 };
 
-declare_id!("ERbfq15MzC4EHzGAPK85PpvvMFfFjEzijqnuUzkTghmd");
+declare_id!("2VGZsqQvLWVcqoTuW6qyGs894pjpZA6AeUoD91SZhuv7");
 
 #[program]
 pub mod stable_pool {
@@ -55,5 +55,26 @@ pub mod stable_pool {
     }
     pub fn withdraw_raydium_collateral(ctx: Context<WithdrawRaydiumCollateral>, amount: u64) -> ProgramResult { 
         process_withdraw_raydium_collateral(ctx, amount) 
+    }
+
+    // orca integration
+    pub fn create_orca_vault(ctx: Context<CreateOrcaVault>, is_dd: u8, orca_vault_nonce: u8) -> ProgramResult {
+        process_create_orca_vault(ctx, is_dd, orca_vault_nonce)
+    }
+
+    pub fn init_orca_farm(ctx: Context<InitRatioUserFarm>, ratio_authority_bump: u8) -> ProgramResult {
+        process_init_orca_farm(ctx, ratio_authority_bump)
+    }
+
+    pub fn deposit_orca_lp(ctx: Context<DepositOrcaLP>, amount: u64, ratio_authority_bump : u8) -> ProgramResult { 
+        process_deposit_orcalp(ctx, amount, ratio_authority_bump)
+    }
+
+    pub fn withdraw_orca_lp(ctx: Context<WithdrawOrcaLP>, amount: u64, ratio_authority_bump : u8) -> ProgramResult { 
+        process_withdraw_orcalp(ctx, amount, ratio_authority_bump) 
+    }
+
+    pub fn harvest_reward(ctx: Context<HarvestReward>, ratio_authority_bump: u8) -> ProgramResult { 
+        process_harvest_reward(ctx, ratio_authority_bump)
     }
 }
