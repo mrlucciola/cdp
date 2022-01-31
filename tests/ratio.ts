@@ -145,10 +145,7 @@ describe('ratio', () => {
         [Buffer.from(GLOBAL_STATE_TAG)],
         stablePoolProgram.programId,
       );
-    console.log("GlobalStateKey", globalStateKey.toBase58());
-
     const globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
-    console.log("fetched globalState", globalState);
 
     const [tokenVaultKey, tokenVaultNonce] =
       await anchor.web3.PublicKey.findProgramAddress(
@@ -304,7 +301,6 @@ describe('ratio', () => {
         stablePoolProgram.programId,
       );
     let globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
-    console.log("fetched globalState", globalState);
 
     const [tokenVaultKey, tokenVaultNonce] =
       await anchor.web3.PublicKey.findProgramAddress(
