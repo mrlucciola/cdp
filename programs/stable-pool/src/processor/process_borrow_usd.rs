@@ -1,19 +1,22 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self,  MintTo, ID};
+use anchor_spl::token::{self, MintTo, ID};
 
-use crate::{
-    error::*,
-    constant::*,
-    instructions::*,
-    utils::*,
-};
+use crate::{constant::*, error::*, instructions::*, utils::*};
 
-pub fn process_borrow_usd(ctx: Context<BorrowUsd>, amount: u64, user_usd_token_nonce: u8) -> ProgramResult {
+pub fn process_borrow_usd(
+    ctx: Context<BorrowUsd>,
+    amount: u64,
+    user_usd_token_nonce: u8,
+) -> ProgramResult {
+    assert_debt_allowed(
+        ctx.accounts.user_trove.locked_coll_balance,
+        ctx.accounts.user_trove.debt,
+        amount,
+        ctx.accounts.token_vault.risk_level,
+    )?;
 
-    assert_debt_allowed(ctx.accounts.user_trove.locked_coll_balance, ctx.accounts.user_trove.debt, amount, ctx.accounts.token_vault.risk_level)?;
-    
     let cur_timestamp = ctx.accounts.clock.unix_timestamp as u64;
-    
+
     assert_limit_mint(cur_timestamp, ctx.accounts.user_trove.last_mint_time)?;
     // mint to user
     let cpi_accounts = MintTo {
@@ -23,7 +26,7 @@ pub fn process_borrow_usd(ctx: Context<BorrowUsd>, amount: u64, user_usd_token_n
     };
 
     let cpi_program = ctx.accounts.token_program.to_account_info().clone();
-    
+
     let signer_seeds = &[
         GLOBAL_STATE_TAG,
         &[ctx.accounts.global_state.global_state_nonce],

@@ -1,39 +1,45 @@
+use crate::{constant::*, error::*, pyth, pyth::*, states::GlobalState};
 use anchor_lang::prelude::*;
-use crate::{
-    constant::*,
-    error::*,
-    states::GlobalState,
-    pyth,
-    pyth::*
-};
-use std::convert::TryInto;
+use arrayref::{array_mut_ref, array_ref, mut_array_refs};
+use spl_math::precise_number::PreciseNumber;
 use std::convert::TryFrom;
-use spl_math::{precise_number::PreciseNumber};
-use arrayref::{array_mut_ref, mut_array_refs, array_ref};
+use std::convert::TryInto;
 
 pub fn get_market_price_devnet(risk_level: u8) -> u64 {
     return 10_000_000_000;
 }
-pub fn assert_debt_allowed(locked_coll_balance: u64, user_debt: u64, amount: u64, risk_level: u8)-> ProgramResult{
+pub fn assert_debt_allowed(
+    locked_coll_balance: u64,
+    user_debt: u64,
+    amount: u64,
+    risk_level: u8,
+) -> ProgramResult {
     let market_price = get_market_price_devnet(risk_level);
     let debt_limit = market_price * locked_coll_balance / 100_000_000_000;
 
     if debt_limit < user_debt + amount {
-        return Err(StablePoolError::NotAllowed.into())
+        return Err(StablePoolError::NotAllowed.into());
     }
     Ok(())
 }
 
-pub fn assert_limit_mint(cur_timestamp: u64, last_mint_time: u64)-> ProgramResult{
+pub fn assert_limit_mint(cur_timestamp: u64, last_mint_time: u64) -> ProgramResult {
     if cur_timestamp < last_mint_time + LIMIT_MINT_TIME {
-        return Err(StablePoolError::NotAllowed.into())
+        return Err(StablePoolError::NotAllowed.into());
     }
     Ok(())
 }
 
 pub fn assert_tvl_allowed(tvl_limit: u64, tvl: u64, amount: u64) -> ProgramResult {
     if tvl_limit < tvl + amount {
-        return Err(StablePoolError::TVLExceeded.into())
+        return Err(StablePoolError::TVLExceeded.into());
+    }
+    Ok(())
+}
+pub fn assert_pda(seeds: &[&[u8]], program_id: &Pubkey, goal_key: &Pubkey) -> ProgramResult {
+    let (found_key, _bump) = Pubkey::find_program_address(seeds, program_id);
+    if found_key != *goal_key {
+        return Err(StablePoolError::InvalidProgramAddress.into());
     }
     Ok(())
 }
@@ -144,10 +150,10 @@ pub fn paused<'info>(global_state: &Account<GlobalState>) -> Result<()> {
 // }
 
 // pub fn get_market_price(
-//     oracle_program_id:Pubkey, 
-//     quote_currency:[u8; 32], 
-//     pyth_product_info:&AccountInfo, 
-//     pyth_price_info:&AccountInfo, 
+//     oracle_program_id:Pubkey,
+//     quote_currency:[u8; 32],
+//     pyth_product_info:&AccountInfo,
+//     pyth_price_info:&AccountInfo,
 //     clock:&Clock
 // )->Result<u128>{
 //     // get market price
@@ -196,7 +202,7 @@ pub fn paused<'info>(global_state: &Account<GlobalState>) -> Result<()> {
 
 //     Ok(market_price.try_round_u64().unwrap() as u128)
 // }
-pub fn assert_devnet()->ProgramResult {
+pub fn assert_devnet() -> ProgramResult {
     if !DEVNET_MODE {
         return Err(StablePoolError::InvalidCluster.into());
     }

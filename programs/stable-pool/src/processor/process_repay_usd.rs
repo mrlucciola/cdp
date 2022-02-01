@@ -1,13 +1,9 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self,  Burn, ID};
+use anchor_spl::token::{self, Burn, ID};
 
-use crate::{
-    constant::*,
-    instructions::*,
-};
+use crate::{constant::*, instructions::*};
 
 pub fn process_repay_usd(ctx: Context<RepayUsd>, amount: u64) -> ProgramResult {
-
     let mut _amount = amount;
     if ctx.accounts.user_trove.debt < amount {
         _amount = ctx.accounts.user_trove.debt;
@@ -20,7 +16,7 @@ pub fn process_repay_usd(ctx: Context<RepayUsd>, amount: u64) -> ProgramResult {
     };
 
     let cpi_program = ctx.accounts.token_program.to_account_info().clone();
-    
+
     let signer_seeds = &[
         GLOBAL_STATE_TAG,
         &[ctx.accounts.global_state.global_state_nonce],
@@ -28,7 +24,7 @@ pub fn process_repay_usd(ctx: Context<RepayUsd>, amount: u64) -> ProgramResult {
     let signer = &[&signer_seeds[..]];
 
     let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
-    
+
     token::burn(cpi_ctx, _amount)?;
 
     ctx.accounts.token_vault.total_debt -= _amount;

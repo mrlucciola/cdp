@@ -16,6 +16,10 @@ pub struct GlobalState {
 #[derive(Default)]
 pub struct TokenVault {
     pub mint_coll: Pubkey,
+    pub reward_mint_a: Pubkey,
+    pub reward_mint_b: Pubkey,
+    pub is_dual: u8,
+
     pub total_coll: u64,
     pub total_debt: u64,
     pub risk_level: u8,
@@ -32,8 +36,11 @@ pub struct UserTrove {
     pub debt: u64,
     pub last_mint_time: u64,
     pub user_trove_nonce: u8,
+    pub wallet_nonce: u8, // because of raydium
     pub token_coll_nonce: u8,
     pub user_usd_nonce: u8,
+    pub user_trove_reward_token_a_nonce: u8,
+    pub user_trove_reward_token_b_nonce: u8,
 }
 
 #[account]

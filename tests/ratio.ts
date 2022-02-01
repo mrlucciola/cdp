@@ -21,7 +21,7 @@ describe('ratio', () => {
   // Constants
   const GLOBAL_STATE_TAG = "global-state-seed";
   const TOKEN_VAULT_TAG = "token-vault-seed";
-  const USER_TROVE_TAG = "user-trove-seed";
+  const USER_TROVE_TAG = "user-trove";
   const USD_MINT_TAG = "usd-mint";
   const USD_TOKEN_TAG = "usd-token";
   const USER_TROVE_POOL_TAG = "user-trove-pool";
@@ -137,6 +137,50 @@ describe('ratio', () => {
     assert(globalState.tvlLimit.toNumber() == tvlLimit, "GlobalState TVL Limit: " + globalState.tvlLimit + " TVL Limit: " + tvlLimit);
     assert(globalState.tvl.toNumber() == 0);
   });
+ 
+  it('Only the super owner can create token vaults', async () => {
+    try{
+      // Request Airdrop for superOwner & user
+    }
+    catch{}
+    const [globalStateKey, globalStateNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(GLOBAL_STATE_TAG)],
+        stablePoolProgram.programId,
+      );
+
+    const [tokenVaultKey, tokenVaultNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(TOKEN_VAULT_TAG), lpMint.publicKey.toBuffer()],
+        stablePoolProgram.programId,
+      );
+
+    const riskLevel = 0;
+    const isDual = 0;
+    
+    const createVaultCall = async ()=>{
+      await stablePoolProgram.rpc.createTokenVault(
+        tokenVaultNonce, 
+        riskLevel,
+        isDual,
+        {
+          accounts: {
+            payer: user.publicKey,
+            tokenVault: tokenVaultKey,
+            globalState: globalStateKey,
+            mintColl: lpMint.publicKey,
+            systemProgram: SystemProgram.programId,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            rent: SYSVAR_RENT_PUBKEY,
+          },
+          signers: [user]
+        });
+    };
+
+    await assert.isRejected(createVaultCall(), /A raw constraint was violated/, "No error was thrown when trying to create a vault with a user different than the super owner");
+
+    await assert.isRejected(stablePoolProgram.account.tokenVault.fetch(tokenVaultKey), /Account does not exist /, "Fetching a vault that shouldn't had been created did not throw an error");
+  });
 
   it('Create Token Vault', async () => {
 
@@ -155,9 +199,11 @@ describe('ratio', () => {
     console.log("tokenVaultKey",tokenVaultKey.toBase58());
 
     const riskLevel = 0;
+    const isDual = 0;
     let txHash = await stablePoolProgram.rpc.createTokenVault(
         tokenVaultNonce, 
         riskLevel,
+        isDual,
         {
           accounts: {
             payer: superOwner.publicKey,
@@ -222,12 +268,13 @@ describe('ratio', () => {
       );
 
     const riskLevel = 0;
-    
+    const isDual = 0;
     const createVaultCall = async ()=>{
       console.log("Calling createVault");
       await stablePoolProgram.rpc.createTokenVault(
         tokenVaultNonce, 
         riskLevel,
+        isDual,
         {
           accounts: {
             payer: localUser.publicKey,
@@ -266,7 +313,6 @@ describe('ratio', () => {
         [Buffer.from(USER_TROVE_POOL_TAG), userTroveKey.toBuffer()],
         stablePoolProgram.programId,
       );
-
     await stablePoolProgram.rpc.createUserTrove(
       userTroveNonce, 
       tokenCollNonce, 

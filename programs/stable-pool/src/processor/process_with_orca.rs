@@ -5,14 +5,9 @@ use anchor_lang::{
         instruction::{AccountMeta, Instruction},
     }
 };
-use anchor_spl::token::{self, ID, Token, Mint, TokenAccount};
+use anchor_spl::token::{Token, Mint, TokenAccount};
 
-use crate::{
-    utils::*,
-    states::*,
-    constant::*,
-    error::*
-};
+use crate::{states::*, constant::*};
 
 use crate::utils::paused;
 use crate::states::GlobalState;
