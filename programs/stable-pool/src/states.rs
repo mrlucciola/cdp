@@ -10,6 +10,8 @@ pub struct GlobalState {
     pub tvl_limit: u64,
     pub tvl: u64,
     pub paused: u8,
+    pub total_debt: u64,
+    pub debt_ceiling: u64,
 }
 
 #[account]
@@ -22,6 +24,7 @@ pub struct TokenVault {
 
     pub total_coll: u64,
     pub total_debt: u64,
+    pub debt_ceiling: u64,
     pub risk_level: u8,
     pub token_vault_nonce: u8,
 }

@@ -102,6 +102,10 @@
         {
           "name": "isDual",
           "type": "u8"
+        },
+        {
+          "name": "debtCeiling",
+          "type": "u64"
         }
       ]
     },
@@ -1186,6 +1190,10 @@
             "type": "u64"
           },
           {
+            "name": "debtCeiling",
+            "type": "u64"
+          },
+          {
             "name": "riskLevel",
             "type": "u8"
           },
@@ -1425,9 +1433,16 @@
       "msg": "This function works on devnet only"
     },
     {
+      "name": "TVLExceeded",
+      "msg": "TVL Exceeded"
       "code": 6010,
       "name": "TVLExceeded",
       "msg": "TVL Exceeded"
+    },
+    {
+      "code": 6011,
+      "name": "DebtCeilingExceeded",
+      "msg": "Debt Ceiling Exceeded"
     }
   ],
   "metadata": {

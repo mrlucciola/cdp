@@ -8,13 +8,11 @@ pub fn process_borrow_usd(
     amount: u64,
     user_usd_token_nonce: u8,
 ) -> ProgramResult {
-    assert_debt_allowed(
-        ctx.accounts.user_trove.locked_coll_balance,
-        ctx.accounts.user_trove.debt,
-        amount,
-        ctx.accounts.token_vault.risk_level,
-    )?;
 
+    assert_debt_allowed(ctx.accounts.user_trove.locked_coll_balance, ctx.accounts.user_trove.debt, amount, ctx.accounts.token_vault.risk_level)?;
+    assert_vault_debt_ceiling_not_exceeded(ctx.accounts.token_vault.debt_ceiling, ctx.accounts.token_vault.total_debt, amount)?;
+    assert_global_debt_ceiling_not_exceeded(ctx.accounts.global_state.debt_ceiling, ctx.accounts.global_state.total_debt, amount)?;
+    
     let cur_timestamp = ctx.accounts.clock.unix_timestamp as u64;
 
     assert_limit_mint(cur_timestamp, ctx.accounts.user_trove.last_mint_time)?;
@@ -37,6 +35,7 @@ pub fn process_borrow_usd(
     token::mint_to(cpi_ctx, amount)?;
 
     ctx.accounts.token_vault.total_debt += amount;
+    ctx.accounts.global_state.total_debt += amount;
     ctx.accounts.user_trove.debt += amount;
     ctx.accounts.user_trove.last_mint_time = cur_timestamp;
     ctx.accounts.user_trove.user_usd_nonce = user_usd_token_nonce;

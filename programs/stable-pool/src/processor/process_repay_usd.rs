@@ -28,6 +28,7 @@ pub fn process_repay_usd(ctx: Context<RepayUsd>, amount: u64) -> ProgramResult {
     token::burn(cpi_ctx, _amount)?;
 
     ctx.accounts.token_vault.total_debt -= _amount;
+    ctx.accounts.global_state.total_debt -= _amount;
     ctx.accounts.user_trove.debt -= _amount;
 
     Ok(())

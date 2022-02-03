@@ -24,21 +24,11 @@ declare_id!("cW8hHb9Azuk99GihhsuFHvAmqSivfjzAFyZ1LjiXsAp");
 pub mod stable_pool {
     use super::*;
 
-    pub fn create_global_state(
-        ctx: Context<CreateGlobalState>,
-        global_state_nonce: u8,
-        mint_usd_nonce: u8,
-        tvl_limit: u64,
-    ) -> ProgramResult {
-        process_create_global_state(ctx, global_state_nonce, mint_usd_nonce, tvl_limit)
+    pub fn create_global_state(ctx: Context<CreateGlobalState>, global_state_nonce:u8, mint_usd_nonce:u8, tvl_limit:u64, debt_ceiling:u64) -> ProgramResult { 
+        process_create_global_state(ctx, global_state_nonce, mint_usd_nonce, tvl_limit, debt_ceiling) 
     }
-    pub fn create_token_vault(
-        ctx: Context<CreateTokenVault>,
-        token_vault_nonce: u8,
-        risk_level: u8,
-        is_dual: u8,
-    ) -> ProgramResult {
-        process_create_token_vault(ctx, token_vault_nonce, risk_level, is_dual)
+    pub fn create_token_vault(ctx: Context<CreateTokenVault>, token_vault_nonce:u8, risk_level:u8, is_dual:u8, debt_ceiling:u64) -> ProgramResult { 
+        process_create_token_vault(ctx, token_vault_nonce, risk_level, is_dual, debt_ceiling)
     }
     pub fn create_user_trove(
         ctx: Context<CreateUserTrove>,
@@ -129,5 +119,12 @@ pub mod stable_pool {
 
     pub fn harvest_reward(ctx: Context<HarvestReward>, ratio_authority_bump: u8) -> ProgramResult {
         process_harvest_reward(ctx, ratio_authority_bump)
+    }
+
+    pub fn set_global_debt_ceiling(ctx: Context<SetGlobalDebtCeiling>, ceiling: u64) -> ProgramResult {
+        process_set_global_debt_ceiling(ctx, ceiling)
+    }
+    pub fn set_vault_debt_ceiling(ctx: Context<SetVaultDebtCeiling>, ceiling: u64) -> ProgramResult {
+        process_set_vault_debt_ceiling(ctx, ceiling)
     }
 }

@@ -60,6 +60,8 @@ describe('orca-integration', () => {
 
   const depositAmount = 100_000_000; // 0.1 LPT
   const tvlLimit = 1_000_000_000;
+  const globalDebtCeiling = 15_000_000;
+  const vaultDebtCeiling = 10_000_000;
   const USD_DECIMAL = 6;
 
   console.log("superOwner =", superOwner.publicKey.toBase58());
@@ -94,6 +96,7 @@ describe('orca-integration', () => {
       globalStateNonce, 
       mintUsdNonce,
       new anchor.BN(tvlLimit),
+      new anchor.BN(globalDebtCeiling),
       {
         accounts: {
           superOwner: superOwner.publicKey,
@@ -141,6 +144,7 @@ describe('orca-integration', () => {
     let txHash = await stablePoolProgram.rpc.createTokenVault(
         tokenVaultNonce, 
         riskLevel,
+        new anchor.BN(vaultDebtCeiling),
         {
           accounts: {
             payer: superOwner.publicKey,

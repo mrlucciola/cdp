@@ -24,4 +24,8 @@ pub enum StablePoolError {
     InvalidCluster,
     #[msg("TVL Exceeded")]
     TVLExceeded,
+    #[msg("Global Debt Ceiling Exceeded")]
+    GlobalDebtCeilingExceeded,
+    #[msg("Vault Debt Ceiling Exceeded")]
+    VaultDebtCeilingExceeded,
 }

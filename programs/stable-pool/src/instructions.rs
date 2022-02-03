@@ -4,7 +4,7 @@ use anchor_spl::token::{Token, TokenAccount,Mint};
 use crate::{states::*,constant::*};
 
 #[derive(Accounts)]
-#[instruction(global_state_nonce:u8, mint_usd_nonce:u8, tvl_limit:u64)]
+#[instruction(global_state_nonce:u8, mint_usd_nonce:u8, tvl_limit:u64, debt_ceiling:u64)]
 pub struct CreateGlobalState <'info>{
     #[account(mut)]
     pub super_owner:  Signer<'info>,
@@ -31,7 +31,7 @@ pub struct CreateGlobalState <'info>{
 }
 
 #[derive(Accounts)]
-#[instruction(token_vault_nonce:u8, risk_level: u8, is_dual: u8)]
+#[instruction(token_vault_nonce:u8, risk_level: u8, is_dual: u8, debt_ceiling: u64)]
 pub struct CreateTokenVault<'info> {
     #[account(mut)]
     pub payer:  Signer<'info>,
@@ -290,7 +290,6 @@ pub struct RepayUsd<'info> {
     pub token_program:Program<'info, Token>,
 }
 
-
 #[derive(Accounts)]
 #[instruction(user_trove_reward_token_a_nonce: u8, user_trove_reward_token_b_nonce: u8)]
 pub struct CreateRaydiumV5RewardVaults<'info> {
@@ -461,4 +460,44 @@ pub struct WithdrawRaydiumV5Collateral<'info> {
 
     pub token_program: Program<'info, Token>,
     pub clock: AccountInfo<'info>,
+}
+
+
+#[derive(Accounts)]
+#[instruction(ceiling:u64)]
+pub struct SetGlobalDebtCeiling<'info>{
+    #[account(mut)]
+    pub payer:  Signer<'info>,
+
+    #[account(mut,
+        seeds = [GLOBAL_STATE_TAG],
+        bump = global_state.global_state_nonce,
+        constraint = payer.key() == global_state.super_owner)]
+    pub global_state: ProgramAccount<'info, GlobalState>,
+}
+
+
+#[derive(Accounts)]
+#[instruction(ceiling:u64)]
+pub struct SetVaultDebtCeiling<'info>{
+    #[account(mut)]
+    pub payer:  Signer<'info>,
+
+    #[account(mut,
+        seeds = [GLOBAL_STATE_TAG],
+        bump = global_state.global_state_nonce)]
+    pub global_state: ProgramAccount<'info, GlobalState>,
+
+    #[account(mut,
+        constraint = mint_coll.key() == token_vault.mint_coll)]
+    pub mint_coll:Account<'info, Mint>,
+
+    #[account(mut,
+        seeds = [
+            TOKEN_VAULT_TAG,
+            mint_coll.key().as_ref()
+        ],
+        bump = token_vault.token_vault_nonce,
+        constraint = payer.key() == global_state.super_owner)]
+    pub token_vault:ProgramAccount<'info, TokenVault>,
 }
