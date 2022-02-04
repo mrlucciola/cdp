@@ -13,7 +13,7 @@ pub mod states;
 
 use crate::{instructions::*, processor::*};
 
-declare_id!("8cWxdanpMMudwFexcZmmmZEZBBx2FzQFE2RjPNu7VgMB");
+declare_id!("HBdT3RTpVY86wcvYXxetNmLcUczAjSr9JuenadoY8dEV");
 
 #[program]
 pub mod stable_pool_faucet {

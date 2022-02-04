@@ -27,11 +27,11 @@ import {
 
 chaiUse(chaiAsPromised)
 
-describe('orca-integration', () => {
+describe('orca-integration', function() {
   // Constants
   const GLOBAL_STATE_TAG = "global-state-seed";
   const TOKEN_VAULT_TAG = "token-vault-seed";
-  const USER_TROVE_TAG = "user-trove-seed";
+  const USER_TROVE_TAG = "user-trove";
   const USD_MINT_TAG = "usd-mint";
   const USER_TROVE_POOL_TAG = "user-trove-pool";
   const ORCA_VAULT_TAG = "orca-vault-seed";
@@ -69,29 +69,23 @@ describe('orca-integration', () => {
 
   const orca = getOrca(provider.connection, Network.DEVNET);
 
-  it('Create Global State', async () => {
-    
-    console.log("stablePoolProgram.programId =", stablePoolProgram.programId.toBase58());
-    
-    const [globalStateKey, globalStateNonce] = 
+  let globalStateKey, globalStateNonce, mintUsdKey, mintUsdNonce;
+
+  
+  this.beforeAll(async function() {
+    [globalStateKey, globalStateNonce] = 
       await anchor.web3.PublicKey.findProgramAddress(
         [Buffer.from(GLOBAL_STATE_TAG)],
         stablePoolProgram.programId,
       );
-
-    console.log("globalStateKey =", globalStateKey.toBase58());
-
-    const [mintUsdKey, mintUsdNonce] =
+    [mintUsdKey, mintUsdNonce] =
       await anchor.web3.PublicKey.findProgramAddress(
         [Buffer.from(USD_MINT_TAG)],
         stablePoolProgram.programId,
       );
+  });
 
-    console.log("mintUsdKey =", mintUsdKey.toBase58());
-
-    // let data = await provider.connection.getAccountInfo(stablePoolProgram.programId);
-    // console.log("data =", data);
-
+  it('Create Global State', async () => {
     let txHash = await stablePoolProgram.rpc.createGlobalState(
       globalStateNonce, 
       mintUsdNonce,
@@ -109,12 +103,9 @@ describe('orca-integration', () => {
         signers: [superOwner]
       }
     ).catch(e => {
-      console.log("e =", e);
+      //console.log("e =", e);
     });
-    console.log("txHash =", txHash);
-
     const globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
-
     assert(globalState.superOwner.toBase58() == superOwner.publicKey.toBase58());
     assert(globalState.mintUsd.toBase58() == mintUsdKey.toBase58());
     assert(globalState.tvlLimit.toNumber() == tvlLimit, "GlobalState TVL Limit: " + globalState.tvlLimit + " TVL Limit: " + tvlLimit);
@@ -122,28 +113,18 @@ describe('orca-integration', () => {
   });
  
   it('Create ORCA/SOL Token Vault', async () => {
-
     let lpMint = DEVNET_ORCASOL_FARM_PARAMS.farmTokenMint;
-    const [globalStateKey, globalStateNonce] =
-      await anchor.web3.PublicKey.findProgramAddress(
-        [Buffer.from(GLOBAL_STATE_TAG)],
-        stablePoolProgram.programId,
-      );
-    console.log("GlobalStateKey", globalStateKey.toBase58());
-
-    const globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
-
     const [tokenVaultKey, tokenVaultNonce] =
       await anchor.web3.PublicKey.findProgramAddress(
         [Buffer.from(TOKEN_VAULT_TAG), lpMint.toBuffer()],
         stablePoolProgram.programId,
       );
-    console.log("tokenVaultKey",tokenVaultKey.toBase58());
-
     const riskLevel = 0;
+    const isDual = 0;
     let txHash = await stablePoolProgram.rpc.createTokenVault(
         tokenVaultNonce, 
         riskLevel,
+        isDual,
         new anchor.BN(vaultDebtCeiling),
         {
           accounts: {
@@ -158,16 +139,11 @@ describe('orca-integration', () => {
           signers: [superOwner]
         }
     ).catch(e => {
-      console.log("Creating Vault Error:", e);
+      //console.log("Creating Vault Error:", e);
     });
-  
-    console.log("txHash =", txHash);
-
     let tokenVault = await stablePoolProgram.account.tokenVault.fetch(tokenVaultKey);
-
     assert(tokenVault.mintColl.toBase58() == lpMint.toBase58(), "mintColl mismatch");
     assert(tokenVault.riskLevel == riskLevel, "riskLevel mismatch");
-
   });
 
   it('Create User Trove', async () => {
@@ -208,7 +184,7 @@ describe('orca-integration', () => {
         signers: [user]
       }
     ).catch(e => {
-      console.log("Creating UserTrove Error:", e);
+      //console.log("Creating UserTrove Error:", e);
     });
 
     let userTrove = await stablePoolProgram.account.userTrove.fetch(userTroveKey);
@@ -216,28 +192,18 @@ describe('orca-integration', () => {
     assert(userTrove.lockedCollBalance.toNumber() == 0, "lockedCollBalance mismatch");
     assert(userTrove.debt.toNumber() == 0, "debt mismatch");
   });
-
   
   it('Create Orca/SOL OrcaVault', async () => {
-
     let baseMint = DEVNET_ORCASOL_FARM_PARAMS.baseTokenMint;
     let lpMint = DEVNET_ORCASOL_FARM_PARAMS.farmTokenMint;
-
     const [orcaVaultKey, orcaVaultNonce] =
       await anchor.web3.PublicKey.findProgramAddress(
         [Buffer.from(ORCA_VAULT_TAG), lpMint.toBuffer()],
         stablePoolProgram.programId,
       );
-  
-    const [globalStateKey, globalStateNonce] =
-      await anchor.web3.PublicKey.findProgramAddress(
-        [Buffer.from(GLOBAL_STATE_TAG)],
-        stablePoolProgram.programId,
-      );
-    
     await stablePoolProgram.rpc.createOrcaVault(
-        0,
-        orcaVaultNonce, 
+      0,
+      orcaVaultNonce, 
       {
         accounts: {
           payer: superOwner.publicKey,
@@ -252,7 +218,7 @@ describe('orca-integration', () => {
         signers: [superOwner]
       }
     ).catch(e => {
-      console.log("Creating Orca Vault Error:", e);
+      //console.log("Creating Orca Vault Error:", e);
     });
 
     let orcaVault = await stablePoolProgram.account.ratioOrcaVault.fetch(orcaVaultKey);
@@ -305,7 +271,6 @@ describe('orca-integration', () => {
       const orcaSolFarm = orca.getFarm(OrcaFarmConfig.ORCA_SOL_AQ);
       const farmDepositPayload = await orcaSolFarm.deposit(user, lpBalance);
       const farmDepositTxId = await farmDepositPayload.execute();
-      console.log("Farm deposited:", farmDepositTxId, "\n");
   });
   it('Deposit Orca/SOL LP to CDP Vault', async () => {
     
@@ -385,11 +350,6 @@ describe('orca-integration', () => {
           [Buffer.from(ORCA_VAULT_TAG), lpMint.toBuffer()],
           stablePoolProgram.programId,
         );
-      const [globalStateKey, globalStateNonce] = 
-        await anchor.web3.PublicKey.findProgramAddress(
-          [Buffer.from(GLOBAL_STATE_TAG)],
-          stablePoolProgram.programId,
-        );
 
       let {userFarmAddress: ratioUserFarmAddress, userFarmData: ratioUserFarmData} 
           = await getOrcaUserFarm(globalFarmAddress, ratioAuthority);
@@ -464,12 +424,9 @@ describe('orca-integration', () => {
       );
 
     await provider.connection.confirmTransaction(signedTransaction, 'processed');
-    console.log("Farm deposited:", signedTransaction);
 
     let userlp_amount = await provider.connection.getTokenAccountBalance(userFarmTokenPublicKey);
     let ratiolp_amount = await provider.connection.getTokenAccountBalance(ratioPoolTokenAccount);
-    console.log("userlp_amount =", userlp_amount.value.uiAmount);
-    console.log("ratiolp_amount =", ratiolp_amount.value.uiAmount);
     assert(prevUserlp_amount.value.uiAmount - userlp_amount.value.uiAmount == 1);
   })
 
@@ -481,7 +438,6 @@ describe('orca-integration', () => {
     
     let amount = 1; // 1 LP token
     const depositAmount = OrcaU64.fromNumber(amount, 6);
-    console.log("depositAmount = ", depositAmount.toNumber());
 
     const { address: globalFarmAddress, rewardTokenMint } = DEVNET_ORCASOL_FARM_PARAMS;
     let {userFarmAddress, userFarmData} = await getOrcaUserFarm(globalFarmAddress, user.publicKey);
@@ -534,11 +490,6 @@ describe('orca-integration', () => {
         [Buffer.from(ORCA_VAULT_TAG), lpMint.toBuffer()],
         stablePoolProgram.programId,
       );
-    const [globalStateKey, globalStateNonce] = 
-      await anchor.web3.PublicKey.findProgramAddress(
-        [Buffer.from(GLOBAL_STATE_TAG)],
-        stablePoolProgram.programId,
-      );
     let {userFarmAddress: ratioUserFarmAddress, userFarmData: ratioUserFarmData} 
         = await getOrcaUserFarm(globalFarmAddress, ratioAuthority);
 
@@ -587,12 +538,8 @@ describe('orca-integration', () => {
     let prevUserlp_amount = await provider.connection.getTokenAccountBalance(userFarmTokenPublicKey);
     let tx = await provider.connection.sendTransaction(new Transaction().add(...arrIx), [user]);
     await provider.connection.confirmTransaction(tx, 'processed');
-    console.log("Farm deposited:", tx);
-
     let userlp_amount = await provider.connection.getTokenAccountBalance(userFarmTokenPublicKey);
     let ratiolp_amount = await provider.connection.getTokenAccountBalance(ratioPoolTokenAccount);
-    console.log("userlp_amount =", userlp_amount.value.uiAmount);
-    console.log("ratiolp_amount =", ratiolp_amount.value.uiAmount);
     assert(userlp_amount.value.uiAmount - prevUserlp_amount.value.uiAmount == 1);
   })
 
@@ -617,11 +564,6 @@ describe('orca-integration', () => {
       [Buffer.from(RATIO_ORCA_AUTH_TAG), user.publicKey.toBuffer()],
       stablePoolProgram.programId,
     );
-    const [globalStateKey, globalStateNonce] = 
-      await anchor.web3.PublicKey.findProgramAddress(
-        [Buffer.from(GLOBAL_STATE_TAG)],
-        stablePoolProgram.programId,
-      );
     let ratioPoolTokenAccount = await getOrCreateATokenAccountIx(
         ratioAuthority,
         true,
@@ -655,13 +597,9 @@ describe('orca-integration', () => {
       }
     );
     await provider.connection.confirmTransaction(signedTransaction, 'processed');
-    console.log("Farm deposited:", signedTransaction, "\n");
-
     let userReward = await provider.connection.getTokenAccountBalance(userRewardTokenPublicKey);
     let userlp_amount = await provider.connection.getTokenAccountBalance(userFarmTokenPublicKey);
     let ratiolp_amount = await provider.connection.getTokenAccountBalance(ratioPoolTokenAccount);
-    console.log("userlp_amount =", userlp_amount.value.uiAmount);
-    console.log("ratiolp_amount =", ratiolp_amount.value.uiAmount);
     assert(userReward >= prevUserReward);
   })
 });

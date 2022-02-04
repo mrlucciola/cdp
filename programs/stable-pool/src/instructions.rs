@@ -1,4 +1,4 @@
-use anchor_lang::prelude::*;
+use anchor_lang::{prelude::*, accounts::program_account::ProgramAccount};
 use anchor_spl::token::{Token, TokenAccount,Mint};
 
 use crate::{states::*,constant::*};

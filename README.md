@@ -72,7 +72,7 @@
 
      - If so, first copy the address and airdrop to account (ctrl + c to exit the loop):
 
-   ```for i in `seq 1 10`; solana airdrop 2 _your_address_; done```
+   ```for i in `seq 1 10`; do solana airdrop 2 _your_address_; done```
    
      - And deploy again:
        ```anchor deploy```

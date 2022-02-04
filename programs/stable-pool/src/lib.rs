@@ -18,7 +18,7 @@ pub mod states;
 pub mod utils;
 use crate::{instructions::*, processor::*};
 
-declare_id!("cW8hHb9Azuk99GihhsuFHvAmqSivfjzAFyZ1LjiXsAp");
+declare_id!("AmJTfLP6JburcteCiUs55YmSsTuQr75CRMqmNKmJBKXA");
 
 #[program]
 pub mod stable_pool {
