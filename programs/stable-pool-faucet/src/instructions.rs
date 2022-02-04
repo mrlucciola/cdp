@@ -1,4 +1,4 @@
-use anchor_lang::{accounts::program_account::ProgramAccount, prelude::*};
+use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 
 use crate::{constant::*, states::*};
@@ -14,7 +14,7 @@ pub struct CreateFaucetState<'info> {
     bump = state_nonce,
     payer = super_owner,
     )]
-    pub faucet_state: ProgramAccount<'info, Faucet>,
+    pub faucet_state: Account<'info, Faucet>,
 
     #[account(init,
         mint::decimals = LP_DECIMALS,
@@ -61,7 +61,7 @@ pub struct FaucetUsdcUsdxLp<'info> {
     #[account(mut,
         seeds = [FAUCET_TAG],
         bump = state_nonce)]
-    pub faucet_state: ProgramAccount<'info, Faucet>,
+    pub faucet_state: Account<'info, Faucet>,
 
     #[account(mut,
         seeds = [LP_USDC_USDX_TAG],
@@ -91,7 +91,7 @@ pub struct FaucetEthSolLp<'info> {
     #[account(mut,
         seeds = [FAUCET_TAG],
         bump = state_nonce)]
-    pub faucet_state: ProgramAccount<'info, Faucet>,
+    pub faucet_state: Account<'info, Faucet>,
 
     #[account(mut,
         seeds = [LP_ETH_SOL_TAG],
@@ -121,7 +121,7 @@ pub struct FaucetAtlasRayLp<'info> {
     #[account(mut,
         seeds = [FAUCET_TAG],
         bump = state_nonce)]
-    pub faucet_state: ProgramAccount<'info, Faucet>,
+    pub faucet_state: Account<'info, Faucet>,
 
     #[account(mut,
         seeds = [LP_ATLAS_RAY_TAG],
@@ -151,7 +151,7 @@ pub struct FaucetSamoRayLp<'info> {
     #[account(mut,
         seeds = [FAUCET_TAG],
         bump = state_nonce)]
-    pub faucet_state: ProgramAccount<'info, Faucet>,
+    pub faucet_state: Account<'info, Faucet>,
 
     #[account(mut,
         seeds = [LP_SAMO_RAY_TAG],

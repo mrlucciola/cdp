@@ -11,7 +11,7 @@ https://github.com/CDPApp/rf-engine/pull/xyz
 
 Provide a description of the changes (additions, updates, deletions) made to the codebase and how they apply to the ticket
 
-## Steps to test
+### Steps to test
 
 Localnet/devnet/mainnet test
 1. Set up environment to test on localnet/devnet
@@ -25,26 +25,18 @@ Localnet/devnet/mainnet test
 - `anchor test --skip-build --skip-deploy --skip-local-validator`
 
 
-## Risks and notes
+### Risks and notes
 
 Describe apparent or potential risks, breaking changes, issues that could be the result of merging this code
 
-## Checklist (you can prefill these checkboxes with 'x')
+### Checklist (you can prefill these checkboxes with 'x')
 
-[] Code includes the most recent changes to `mainnet_dev`. `git pull --rebase origin mainnet_dev` and fixed all merge conflicts
+- [ ] Code includes the most recent changes to `mainnet_dev`. `git pull --rebase origin mainnet_dev` and fixed all merge conflicts
 Commit hash for HEAD: ________
-
-[] All commits begin with ticket number, and include brief description of changes made: `RFM-000 add xyz function...`
-
-[] PR is named correctly
-
-[] Code is tested and working at each commit
-
-[] Jira ticket is moved to 'In Testing'/'In Review'
-
-[] PR is assigned to all developers that pushed/contributed to PR
-
-[] PR is assigned a reviewer
-
-[] PR is tagged properly
-
+- [ ] All commits begin with ticket number, and include brief description of changes made: `RFM-000 add xyz function...`
+- [ ] PR is named correctly
+- [ ] Code is tested and working at each commit
+- [ ] Jira ticket is moved to 'In Testing'/'In Review'
+- [ ] PR is assigned to all developers that pushed/contributed to PR
+- [ ] PR is assigned a reviewer
+- [ ] PR is tagged properly

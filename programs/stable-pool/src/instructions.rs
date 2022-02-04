@@ -1,10 +1,7 @@
 use anchor_lang::prelude::*;
-use anchor_spl::{
-    associated_token::AssociatedToken,
-    token::{self, Token, TokenAccount, Mint},
-};
-use quarry_mine::{ Rewarder,};
-
+use anchor_spl::token::{self, Token, TokenAccount, Mint};
+use quarry_mine::Rewarder;
+// local
 use crate::{
     states::*,
     constant::*,
@@ -23,7 +20,7 @@ pub struct CreateGlobalState <'info>{
         bump = global_state_nonce,
         payer = super_owner,
         )]
-    pub global_state: ProgramAccount<'info, GlobalState>,
+    pub global_state: Account<'info, GlobalState>,
 
     #[account(init_if_needed,
         mint::decimals = USD_DECIMALS,
@@ -50,12 +47,12 @@ pub struct CreateTokenVault<'info> {
         bump = token_vault_nonce,
         payer = payer,
         constraint = payer.key() == global_state.super_owner)]
-    pub token_vault: ProgramAccount<'info, TokenVault>,
+    pub token_vault: Account<'info, TokenVault>,
 
     #[account(mut,
         seeds = [GLOBAL_STATE_TAG],
         bump = global_state.global_state_nonce)]
-    pub global_state: ProgramAccount<'info, GlobalState>,
+    pub global_state: Account<'info, GlobalState>,
 
     pub mint_coll:Account<'info, Mint>,
 
@@ -63,7 +60,6 @@ pub struct CreateTokenVault<'info> {
     pub token_program: Program<'info, Token>,
     pub rent: Sysvar<'info, Rent>,
 }
-
 
 #[derive(Accounts)]
 #[instruction(user_trove_nonce: u8)]
@@ -78,7 +74,7 @@ pub struct CreateRaydiumUserAccount<'info> {
         seeds = [TOKEN_VAULT_TAG,token_vault.mint_coll.as_ref()],
         bump = token_vault.token_vault_nonce
     )]
-    pub token_vault:ProgramAccount<'info, TokenVault>,
+    pub token_vault:Account<'info, TokenVault>,
 
     pub raydium_program_id: AccountInfo<'info>,
     #[account(mut)]
@@ -89,8 +85,6 @@ pub struct CreateRaydiumUserAccount<'info> {
     pub system_program: Program<'info, System>,
     pub rent: Sysvar<'info, Rent>,
 }
-
-
 
 #[derive(Accounts)]
 #[instruction(user_trove_nonce:u8, token_coll_nonce:u8)]
@@ -104,7 +98,7 @@ pub struct CreateUserTrove<'info> {
     bump = user_trove_nonce,
     payer = trove_owner,
     )]
-    pub user_trove:ProgramAccount<'info, UserTrove>,
+    pub user_trove:Account<'info, UserTrove>,
 
     #[account(init_if_needed,
         token::mint = mint_coll,
@@ -118,7 +112,7 @@ pub struct CreateUserTrove<'info> {
         seeds = [TOKEN_VAULT_TAG,mint_coll.key().as_ref()],
         bump = token_vault.token_vault_nonce,
     )]
-    pub token_vault:ProgramAccount<'info, TokenVault>,
+    pub token_vault:Account<'info, TokenVault>,
 
     #[account(mut,
         constraint = mint_coll.key() == token_vault.mint_coll)]
@@ -136,13 +130,13 @@ pub struct RatioStaker<'info> {
     #[account(mut,
         seeds = [GLOBAL_STATE_TAG],
         bump = global_state.global_state_nonce)]
-    pub global_state: ProgramAccount<'info, GlobalState>,
+    pub global_state: Account<'info, GlobalState>,
 
     #[account(mut,
         seeds = [TOKEN_VAULT_TAG,mint_coll.key().as_ref()],
         bump = token_vault.token_vault_nonce,
     )]
-    pub token_vault:ProgramAccount<'info, TokenVault>,
+    pub token_vault:Account<'info, TokenVault>,
 
     #[account(mut,
         seeds = [
@@ -151,7 +145,7 @@ pub struct RatioStaker<'info> {
             owner.key().as_ref()
         ],
         bump = user_trove.user_trove_nonce)]
-    pub user_trove:ProgramAccount<'info, UserTrove>,
+    pub user_trove:Account<'info, UserTrove>,
 
     pub owner:  Signer<'info>,
 
@@ -182,18 +176,18 @@ pub struct HarvestReward<'info> {
     #[account(mut,
         seeds = [GLOBAL_STATE_TAG],
         bump = global_state.global_state_nonce)]
-    pub global_state: ProgramAccount<'info, GlobalState>,
+    pub global_state: Account<'info, GlobalState>,
 
     #[account(mut,
         seeds = [TOKEN_VAULT_TAG, collateral_mint.key().as_ref()],
         bump = token_vault.token_vault_nonce,
     )]
-    pub token_vault:ProgramAccount<'info, TokenVault>,
+    pub token_vault:Account<'info, TokenVault>,
 
     #[account(mut,
         seeds = [USER_TROVE_TAG,token_vault.key().as_ref(), authority.key().as_ref()],
         bump = user_trove.user_trove_nonce)]
-    pub user_trove:ProgramAccount<'info, UserTrove>,
+    pub user_trove:Account<'info, UserTrove>,
 
     pub authority: Signer<'info>,
 
@@ -231,16 +225,16 @@ pub struct BorrowUsd<'info> {
         seeds = [TOKEN_VAULT_TAG,mint_coll.key().as_ref()],
         bump = token_vault.token_vault_nonce,
     )]
-    pub token_vault:ProgramAccount<'info, TokenVault>,
+    pub token_vault:Account<'info, TokenVault>,
     #[account(mut,
         seeds = [USER_TROVE_TAG,token_vault.key().as_ref(), owner.key().as_ref()],
         bump = user_trove.user_trove_nonce)]
-    pub user_trove:ProgramAccount<'info, UserTrove>,
+    pub user_trove:Account<'info, UserTrove>,
     
     #[account(mut,
         seeds = [GLOBAL_STATE_TAG],
         bump = global_state.global_state_nonce)]
-    pub global_state: ProgramAccount<'info, GlobalState>,
+    pub global_state: Account<'info, GlobalState>,
 
     #[account(mut,
         seeds = [USD_MINT_TAG],
@@ -273,7 +267,6 @@ pub struct BorrowUsd<'info> {
     pub clock: Sysvar<'info, Clock>,
 }
 
- 
 #[derive(Accounts)]
 #[instruction(amount: u64)]
 pub struct RepayUsd<'info> {
@@ -282,17 +275,17 @@ pub struct RepayUsd<'info> {
         seeds = [TOKEN_VAULT_TAG,mint_coll.key().as_ref()],
         bump = token_vault.token_vault_nonce,
     )]
-    pub token_vault:ProgramAccount<'info, TokenVault>,
+    pub token_vault:Account<'info, TokenVault>,
 
     #[account(mut,
         seeds = [USER_TROVE_TAG,token_vault.key().as_ref(), owner.key().as_ref()],
         bump = user_trove.user_trove_nonce)]
-    pub user_trove:ProgramAccount<'info, UserTrove>,
+    pub user_trove:Account<'info, UserTrove>,
 
     #[account(mut,
         seeds = [GLOBAL_STATE_TAG],
         bump = global_state.global_state_nonce)]
-    pub global_state: ProgramAccount<'info, GlobalState>,
+    pub global_state: Account<'info, GlobalState>,
 
     #[account(mut,
         seeds = [USD_MINT_TAG],
@@ -319,12 +312,12 @@ pub struct CreateRaydiumV5RewardVaults<'info> {
         seeds = [USER_TROVE_TAG,token_vault.key().as_ref(), owner.key().as_ref()],
         bump = user_trove.user_trove_nonce,
     )]
-    pub user_trove:ProgramAccount<'info, UserTrove>,
+    pub user_trove:Account<'info, UserTrove>,
     #[account(mut,
         seeds = [TOKEN_VAULT_TAG,token_vault.mint_coll.as_ref()],
         bump = token_vault.token_vault_nonce,
     )]
-    pub token_vault:ProgramAccount<'info, TokenVault>,
+    pub token_vault:Account<'info, TokenVault>,
 
     pub reward_mint_a:Account<'info, Mint>,
 
@@ -369,12 +362,12 @@ pub struct DepositRaydiumV5Collateral<'info> {
         seeds = [USER_TROVE_TAG,token_vault.key().as_ref(), owner.key().as_ref()],
         bump = user_trove.user_trove_nonce,
     )]
-    pub user_trove:ProgramAccount<'info, UserTrove>,
+    pub user_trove:Account<'info, UserTrove>,
     #[account(mut,
         seeds = [TOKEN_VAULT_TAG,token_vault.mint_coll.as_ref()],
         bump = token_vault.token_vault_nonce,
     )]
-    pub token_vault:ProgramAccount<'info, TokenVault>,
+    pub token_vault:Account<'info, TokenVault>,
     #[account(mut)]
     pub user_trove_token_coll: AccountInfo<'info>, 
     #[account(mut)]
@@ -426,17 +419,17 @@ pub struct DepositRaydiumV5Collateral<'info> {
 #[derive(Accounts)]
 #[instruction(amount: u64)]
 pub struct WithdrawRaydiumV5Collateral<'info> {
-    pub owner:  Signer<'info>,
+    pub owner: Signer<'info>,
     #[account(mut,
         seeds = [USER_TROVE_TAG,token_vault.key().as_ref(), owner.key().as_ref()],
         bump = user_trove.user_trove_nonce,
     )]
-    pub user_trove:ProgramAccount<'info, UserTrove>,
+    pub user_trove:Account<'info, UserTrove>,
     #[account(mut,
         seeds = [TOKEN_VAULT_TAG,token_vault.mint_coll.as_ref()],
         bump = token_vault.token_vault_nonce
     )]
-    pub token_vault:ProgramAccount<'info, TokenVault>,
+    pub token_vault:Account<'info, TokenVault>,
     #[account(mut)]
     pub user_trove_token_coll: AccountInfo<'info>, 
     #[account(mut)]
@@ -483,7 +476,6 @@ pub struct WithdrawRaydiumV5Collateral<'info> {
     pub clock: AccountInfo<'info>,
 }
 
-
 #[derive(Accounts)]
 #[instruction(ceiling:u64)]
 pub struct SetGlobalDebtCeiling<'info>{
@@ -494,9 +486,8 @@ pub struct SetGlobalDebtCeiling<'info>{
         seeds = [GLOBAL_STATE_TAG],
         bump = global_state.global_state_nonce,
         constraint = payer.key() == global_state.super_owner)]
-    pub global_state: ProgramAccount<'info, GlobalState>,
+    pub global_state: Account<'info, GlobalState>,
 }
-
 
 #[derive(Accounts)]
 #[instruction(ceiling:u64)]
@@ -507,7 +498,7 @@ pub struct SetVaultDebtCeiling<'info>{
     #[account(mut,
         seeds = [GLOBAL_STATE_TAG],
         bump = global_state.global_state_nonce)]
-    pub global_state: ProgramAccount<'info, GlobalState>,
+    pub global_state: Account<'info, GlobalState>,
 
     #[account(mut,
         constraint = mint_coll.key() == token_vault.mint_coll)]
@@ -520,7 +511,7 @@ pub struct SetVaultDebtCeiling<'info>{
         ],
         bump = token_vault.token_vault_nonce,
         constraint = payer.key() == global_state.super_owner)]
-    pub token_vault:ProgramAccount<'info, TokenVault>,
+    pub token_vault:Account<'info, TokenVault>,
 }
 
 #[derive(Accounts)]
@@ -531,7 +522,7 @@ pub struct CreateQuarryMiner<'info> {
         seeds = [TOKEN_VAULT_TAG, token_mint.key().as_ref()],
         bump = token_vault.token_vault_nonce,
     )]
-    pub token_vault:ProgramAccount<'info, TokenVault>,
+    pub token_vault:Account<'info, TokenVault>,
 
     #[account(mut,
         seeds = [
@@ -540,7 +531,7 @@ pub struct CreateQuarryMiner<'info> {
             payer.key().as_ref()
         ],
         bump = user_trove.user_trove_nonce)]
-    pub user_trove:ProgramAccount<'info, UserTrove>,
+    pub user_trove:Account<'info, UserTrove>,
 
     #[account(mut)]
     pub payer:  Signer<'info>,

@@ -26,10 +26,28 @@ pub mod site_fee_owner {
 pub mod stable_pool {
     use super::*;
 
-    pub fn create_global_state(ctx: Context<CreateGlobalState>, global_state_nonce:u8, mint_usd_nonce:u8, tvl_limit:u64, debt_ceiling:u64) -> ProgramResult { 
-        process_create_global_state(ctx, global_state_nonce, mint_usd_nonce, tvl_limit, debt_ceiling) 
+    pub fn create_global_state(
+        ctx: Context<CreateGlobalState>,
+        global_state_nonce: u8,
+        mint_usd_nonce: u8,
+        tvl_limit: u64,
+        debt_ceiling: u64,
+    ) -> ProgramResult {
+        process_create_global_state(
+            ctx,
+            global_state_nonce,
+            mint_usd_nonce,
+            tvl_limit,
+            debt_ceiling,
+        )
     }
-    pub fn create_token_vault(ctx: Context<CreateTokenVault>, token_vault_nonce:u8, risk_level:u8, is_dual:u8, debt_ceiling:u64) -> ProgramResult { 
+    pub fn create_token_vault(
+        ctx: Context<CreateTokenVault>,
+        token_vault_nonce: u8,
+        risk_level: u8,
+        is_dual: u8,
+        debt_ceiling: u64,
+    ) -> ProgramResult {
         process_create_token_vault(ctx, token_vault_nonce, risk_level, is_dual, debt_ceiling)
     }
     pub fn create_user_trove(
@@ -40,11 +58,11 @@ pub mod stable_pool {
         process_create_user_trove(ctx, user_trove_nonce, token_coll_nonce)
     }
 
-    pub fn deposit_collateral(ctx: Context<RatioStaker>, amount: u64) -> ProgramResult { 
-        ctx.accounts.deposit(amount) 
+    pub fn deposit_collateral(ctx: Context<RatioStaker>, amount: u64) -> ProgramResult {
+        ctx.accounts.deposit(amount)
     }
-    pub fn withdraw_collateral(ctx: Context<RatioStaker>, amount: u64) -> ProgramResult { 
-        ctx.accounts.withdraw(amount) 
+    pub fn withdraw_collateral(ctx: Context<RatioStaker>, amount: u64) -> ProgramResult {
+        ctx.accounts.withdraw(amount)
     }
 
     pub fn borrow_usd(
@@ -119,26 +137,39 @@ pub mod stable_pool {
         process_withdraw_orcalp(ctx, amount, ratio_authority_bump)
     }
 
-    pub fn harvest_reward(ctx: Context<HarvestReward>, ratio_authority_bump: u8) -> ProgramResult {
+    pub fn harvest_reward(
+        ctx: Context<HarvestOrcaReward>,
+        ratio_authority_bump: u8,
+    ) -> ProgramResult {
         process_harvest_reward(ctx, ratio_authority_bump)
     }
 
-    pub fn set_global_debt_ceiling(ctx: Context<SetGlobalDebtCeiling>, ceiling: u64) -> ProgramResult {
+    pub fn set_global_debt_ceiling(
+        ctx: Context<SetGlobalDebtCeiling>,
+        ceiling: u64,
+    ) -> ProgramResult {
         process_set_global_debt_ceiling(ctx, ceiling)
     }
-    pub fn set_vault_debt_ceiling(ctx: Context<SetVaultDebtCeiling>, ceiling: u64) -> ProgramResult {
+    pub fn set_vault_debt_ceiling(
+        ctx: Context<SetVaultDebtCeiling>,
+        ceiling: u64,
+    ) -> ProgramResult {
         process_set_vault_debt_ceiling(ctx, ceiling)
     }
-    pub fn create_quarry_miner( ctx: Context<CreateQuarryMiner>, miner_bump:u8, miner_vault_bump: u8) -> ProgramResult { 
-        ctx.accounts.create(miner_bump, miner_vault_bump) 
+    pub fn create_quarry_miner(
+        ctx: Context<CreateQuarryMiner>,
+        miner_bump: u8,
+        miner_vault_bump: u8,
+    ) -> ProgramResult {
+        ctx.accounts.create(miner_bump, miner_vault_bump)
     }
-    pub fn deposit_to_saber( ctx: Context<SaberStaker>, amount: u64, ) -> ProgramResult { 
-        ctx.accounts.deposit(amount) 
+    pub fn deposit_to_saber(ctx: Context<SaberStaker>, amount: u64) -> ProgramResult {
+        ctx.accounts.deposit(amount)
     }
-    pub fn withdraw_from_saber( ctx: Context<SaberStaker>, amount: u64, ) -> ProgramResult { 
-        ctx.accounts.withdraw(amount) 
+    pub fn withdraw_from_saber(ctx: Context<SaberStaker>, amount: u64) -> ProgramResult {
+        ctx.accounts.withdraw(amount)
     }
-    pub fn harvest_from_saber( ctx: Context<HarvestFromSaber>) -> ProgramResult { 
+    pub fn harvest_from_saber(ctx: Context<HarvestFromSaber>) -> ProgramResult {
         ctx.accounts.harvest()
     }
 }
