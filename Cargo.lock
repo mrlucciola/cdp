@@ -951,6 +951,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "quarry-mine"
+version = "1.11.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2c95c49772ea7eac5e42bed30e9be1e0117659921d9c2b3e6e606156bb51f640"
+dependencies = [
+ "anchor-lang",
+ "anchor-spl",
+ "num-traits",
+ "quarry-mint-wrapper",
+ "spl-math",
+ "vipers",
+]
+
+[[package]]
+name = "quarry-mint-wrapper"
+version = "1.11.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2ed21bc001b670869c2d1bfe26fc850393353744b566a7324af2d6dc67814a68"
+dependencies = [
+ "anchor-lang",
+ "anchor-spl",
+ "vipers",
+]
+
+[[package]]
 name = "quote"
 version = "1.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1282,6 +1307,7 @@ dependencies = [
  "anchor-spl",
  "arrayref",
  "bytemuck",
+ "quarry-mine",
  "spl-math",
 ]
 
@@ -1391,6 +1417,17 @@ name = "version_check"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
+
+[[package]]
+name = "vipers"
+version = "1.5.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aa8c839e2a15777b45909d05ab3eeaaa3035b43241b404345c9cd999ed30df09"
+dependencies = [
+ "anchor-lang",
+ "anchor-spl",
+ "spl-associated-token-account",
+]
 
 [[package]]
 name = "wasi"

@@ -21,7 +21,7 @@ pub struct TokenVault {
     pub reward_mint_a: Pubkey,
     pub reward_mint_b: Pubkey,
     pub is_dual: u8,
-
+    pub reward_mint: Pubkey,
     pub total_coll: u64,
     pub total_debt: u64,
     pub debt_ceiling: u64,

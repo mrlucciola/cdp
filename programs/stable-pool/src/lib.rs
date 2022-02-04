@@ -18,8 +18,10 @@ pub mod states;
 pub mod utils;
 use crate::{instructions::*, processor::*};
 
-declare_id!("AmJTfLP6JburcteCiUs55YmSsTuQr75CRMqmNKmJBKXA");
-
+declare_id!("FqS3DWMYNUJcFujkrHCWA7C6HgCXFZhHUKaPuDs8rqXY");
+pub mod site_fee_owner {
+    anchor_lang::declare_id!("2Pv5mjmKYAtXNpr3mcsXf7HjtS3fieJeFoWPATVT5rWa");
+}
 #[program]
 pub mod stable_pool {
     use super::*;
@@ -38,11 +40,11 @@ pub mod stable_pool {
         process_create_user_trove(ctx, user_trove_nonce, token_coll_nonce)
     }
 
-    pub fn deposit_collateral(ctx: Context<DepositCollateral>, amount: u64) -> ProgramResult {
-        process_deposit_collateral(ctx, amount)
+    pub fn deposit_collateral(ctx: Context<RatioStaker>, amount: u64) -> ProgramResult { 
+        ctx.accounts.deposit(amount) 
     }
-    pub fn withdraw_collateral(ctx: Context<WithdrawCollateral>, amount: u64) -> ProgramResult {
-        process_withdraw_collateral(ctx, amount)
+    pub fn withdraw_collateral(ctx: Context<RatioStaker>, amount: u64) -> ProgramResult { 
+        ctx.accounts.withdraw(amount) 
     }
 
     pub fn borrow_usd(
@@ -126,5 +128,17 @@ pub mod stable_pool {
     }
     pub fn set_vault_debt_ceiling(ctx: Context<SetVaultDebtCeiling>, ceiling: u64) -> ProgramResult {
         process_set_vault_debt_ceiling(ctx, ceiling)
+    }
+    pub fn create_quarry_miner( ctx: Context<CreateQuarryMiner>, miner_bump:u8, miner_vault_bump: u8) -> ProgramResult { 
+        ctx.accounts.create(miner_bump, miner_vault_bump) 
+    }
+    pub fn deposit_to_saber( ctx: Context<SaberStaker>, amount: u64, ) -> ProgramResult { 
+        ctx.accounts.deposit(amount) 
+    }
+    pub fn withdraw_from_saber( ctx: Context<SaberStaker>, amount: u64, ) -> ProgramResult { 
+        ctx.accounts.withdraw(amount) 
+    }
+    pub fn harvest_from_saber( ctx: Context<HarvestFromSaber>) -> ProgramResult { 
+        ctx.accounts.harvest()
     }
 }

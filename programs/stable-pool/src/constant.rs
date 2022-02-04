@@ -20,6 +20,8 @@ pub enum ORCA_INSTRUCTIONS {
 }
 pub const USER_TROVE_REWARD_A_TAG: &[u8] = b"user-trove-reward-a";
 pub const USER_TROVE_REWARD_B_TAG: &[u8] = b"user-trove-reward-b";
+pub const HARVEST_FEE_NUMERATOR: u128 = 3;
+pub const FEE_DENOMINATOR: u128 = 1000;
 
 pub const RAYDIUM_USER_ACCOUNT_SIZE: usize = 248;
 pub const DEVNET_MODE: bool = {

@@ -1,9 +1,13 @@
-use crate::{constant::*, error::*, pyth, pyth::*, states::GlobalState};
+// modules
 use anchor_lang::prelude::*;
-use arrayref::{array_mut_ref, array_ref, mut_array_refs};
-use spl_math::precise_number::PreciseNumber;
-use std::convert::TryFrom;
+use arrayref::array_ref;
+use quarry_mine::cpi::{
+    accounts::{ClaimRewards, UserClaim, UserStake},
+    claim_rewards, stake_tokens, withdraw_tokens,
+};
 use std::convert::TryInto;
+// local
+use crate::{constant::*, error::*, instructions::SaberFarm, states::GlobalState};
 
 pub fn get_market_price_devnet(risk_level: u8) -> u64 {
     return 10_000_000_000;
@@ -56,6 +60,30 @@ pub fn paused<'info>(global_state: &Account<GlobalState>) -> Result<()> {
     Ok(())
 }
 
+pub struct ProcessedAmounts {
+    pub owner_fee: u64,
+    pub new_amount: u64,
+}
+
+pub fn calculate_fee(input_amount: u64, fee_pct: u128) -> Result<ProcessedAmounts> {
+    let mut fee_amount = u128::from(input_amount)
+        .checked_mul(fee_pct)
+        .unwrap()
+        .checked_div(FEE_DENOMINATOR)
+        .unwrap();
+
+    if fee_amount == 0 {
+        fee_amount = 1;
+    }
+
+    let new_amount = u128::from(input_amount).checked_sub(fee_amount).unwrap();
+
+    Ok(ProcessedAmounts {
+        owner_fee: fee_amount.try_into().unwrap(),
+        new_amount: new_amount.try_into().unwrap(),
+    })
+}
+
 pub fn assert_global_debt_ceiling_not_exceeded(
     debt_ceiling: u64,
     total_debt: u64,
@@ -68,6 +96,120 @@ pub fn assert_global_debt_ceiling_not_exceeded(
     if debt_ceiling < total_debt + amount {
         return Err(StablePoolError::GlobalDebtCeilingExceeded.into());
     }
+    Ok(())
+}
+
+pub fn stake_to_saber_pda<'info>(
+    farm_program: AccountInfo<'info>,
+    token_program: AccountInfo<'info>,
+
+    user_authority: AccountInfo<'info>,
+
+    farm: &SaberFarm<'info>,
+
+    token_account: AccountInfo<'info>,
+    rewarder: AccountInfo<'info>,
+
+    amount: u64,
+    authority_seeds: &[&[u8]],
+) -> ProgramResult {
+    stake_tokens(
+        CpiContext::new(
+            farm_program,
+            UserStake {
+                authority: user_authority,
+                miner: farm.miner.to_account_info(),
+                quarry: farm.quarry.to_account_info(),
+                miner_vault: farm.miner_vault.to_account_info(),
+                token_account: token_account.clone(),
+                token_program: token_program.clone(),
+                rewarder,
+            },
+        )
+        .with_signer(&[&authority_seeds[..]]),
+        amount,
+    )?;
+
+    Ok(())
+}
+pub fn unstake_from_saber_pda<'info>(
+    farm_program: AccountInfo<'info>,
+    token_program: AccountInfo<'info>,
+
+    authority: AccountInfo<'info>,
+
+    farm: &SaberFarm<'info>,
+
+    token_account: AccountInfo<'info>,
+    rewarder: AccountInfo<'info>,
+
+    amount: u64,
+    authority_seeds: &[&[u8]],
+) -> ProgramResult {
+    withdraw_tokens(
+        CpiContext::new(
+            farm_program,
+            UserStake {
+                authority: authority,
+                miner: farm.miner.to_account_info(),
+                quarry: farm.quarry.to_account_info(),
+                miner_vault: farm.miner_vault.to_account_info(),
+                token_account: token_account.clone(),
+                token_program: token_program.clone(),
+                rewarder,
+            },
+        )
+        .with_signer(&[&authority_seeds[..]]),
+        amount,
+    )?;
+
+    Ok(())
+}
+
+pub fn harvest_from_saber_pda<'info>(
+    farm_program: AccountInfo<'info>,
+    token_program: AccountInfo<'info>,
+
+    authority: AccountInfo<'info>,
+    reward_token: AccountInfo<'info>,
+    token_account: AccountInfo<'info>,
+
+    // harvest_accounts: &FarmHarvest<'info>,
+    farm: &SaberFarm<'info>,
+
+    rewarder: AccountInfo<'info>,
+
+    mint_wrapper: AccountInfo<'info>,
+    mint_wrapper_program: AccountInfo<'info>,
+    minter: AccountInfo<'info>,
+    rewards_token_mint: AccountInfo<'info>,
+    claim_fee_token_account: AccountInfo<'info>,
+    authority_seeds: &[&[u8]],
+) -> ProgramResult {
+    claim_rewards(
+        CpiContext::new(
+            farm_program,
+            ClaimRewards {
+                mint_wrapper: mint_wrapper.to_account_info(),
+                mint_wrapper_program: mint_wrapper_program.to_account_info(),
+                minter: minter.to_account_info(),
+                rewards_token_mint: rewards_token_mint.to_account_info(),
+                rewards_token_account: reward_token.clone(),
+                claim_fee_token_account: claim_fee_token_account.to_account_info(),
+                stake: UserClaim {
+                    authority: authority.clone(),
+                    miner: farm.miner.to_account_info(),
+                    quarry: farm.quarry.to_account_info(),
+                    unused_miner_vault: farm.miner_vault.to_account_info(),
+                    unused_token_account: token_account,
+                    token_program: token_program.clone(),
+                    rewarder,
+                },
+            },
+        )
+        .with_signer(&[&authority_seeds[..]]),
+    )?;
+
     Ok(())
 }
 

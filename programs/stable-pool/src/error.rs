@@ -28,4 +28,6 @@ pub enum StablePoolError {
     GlobalDebtCeilingExceeded,
     #[msg("Vault Debt Ceiling Exceeded")]
     VaultDebtCeilingExceeded,
+    #[msg("Transfer amount is invalid")]
+    InvalidTransferAmount,
 }

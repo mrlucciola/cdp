@@ -196,7 +196,7 @@ pub fn process_withdraw_orcalp(
 
 #[access_control(paused(&ctx.accounts.global_state))]
 pub fn process_harvest_reward(
-    ctx: Context<HarvestReward>,
+    ctx: Context<HarvestOrcaReward>,
     ratio_authority_bump: u8
 ) -> ProgramResult {
     let mut data: Vec<u8> = vec![];
@@ -458,7 +458,7 @@ pub struct WithdrawOrcaLP<'info> {
 
 #[derive(Accounts)]
 #[instruction(ratio_authority_bump: u8)]
-pub struct HarvestReward<'info> {
+pub struct HarvestOrcaReward<'info> {
     #[account(mut)]
     pub owner:  Signer<'info>,
 
