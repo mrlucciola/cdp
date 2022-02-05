@@ -1,10 +1,22 @@
 // modules
 use anchor_lang::prelude::*;
 use arrayref::array_ref;
+
+// use std::convert::TryInto;
+// use std::convert::TryFrom;
+// use spl_math::{precise_number::PreciseNumber};
+
 use quarry_mine::cpi::{
-    accounts::{ClaimRewards, UserClaim, UserStake},
-    claim_rewards, stake_tokens, withdraw_tokens,
+    withdraw_tokens, 
+    claim_rewards,
+    stake_tokens,
+    accounts::{
+        UserStake, 
+        UserClaim,
+        ClaimRewards, 
+    }
 };
+
 use std::convert::TryInto;
 // local
 use crate::{constant::*, error::*, instructions::SaberFarm, states::GlobalState};
