@@ -26,7 +26,7 @@ pub struct CreateGlobalState <'info>{
         )]
     pub global_state: Account<'info, GlobalState>,
 
-    #[account(init_if_needed,
+    #[account(init,
         mint::decimals = USD_DECIMALS,
         mint::authority = global_state,
         seeds = [USD_MINT_TAG],
@@ -121,7 +121,19 @@ pub struct CreateUserTrove<'info> {
     #[account(mut,
         constraint = mint_coll.key() == token_vault.mint_coll)]
     pub mint_coll: Account<'info, Mint>,
+
+    #[account(init,
+        token::mint = reward_mint,
+        token::authority = user_trove,
+        seeds = [USER_TROVE_POOL_TAG, user_trove.key().as_ref(), reward_mint.key().key().as_ref()],
+        bump = reward_vault_bump,
+        payer = trove_owner)]
+    pub reward_vault:ProgramAccount<'info, TokenVault>,
     
+    #[account(mut,
+        constraint = reward_mint.key() == token_vault.reward_mint)]
+    pub reward_mint: Account<'info, Mint>,
+
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub rent: Sysvar<'info, Rent>,

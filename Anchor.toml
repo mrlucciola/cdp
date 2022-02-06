@@ -1,13 +1,13 @@
 [programs.localnet]
-stable_pool = "AmJTfLP6JburcteCiUs55YmSsTuQr75CRMqmNKmJBKXA"
+stable_pool = "FqS3DWMYNUJcFujkrHCWA7C6HgCXFZhHUKaPuDs8rqXY"
 stable_pool_faucet = "HBdT3RTpVY86wcvYXxetNmLcUczAjSr9JuenadoY8dEV"
 
 [programs.devnet]
-stable_pool = "AmJTfLP6JburcteCiUs55YmSsTuQr75CRMqmNKmJBKXA"
+stable_pool = "FqS3DWMYNUJcFujkrHCWA7C6HgCXFZhHUKaPuDs8rqXY"
 stable_pool_faucet = "HBdT3RTpVY86wcvYXxetNmLcUczAjSr9JuenadoY8dEV"
 
 [programs.mainnet]
-stable_pool = "AmJTfLP6JburcteCiUs55YmSsTuQr75CRMqmNKmJBKXA"
+stable_pool = "FqS3DWMYNUJcFujkrHCWA7C6HgCXFZhHUKaPuDs8rqXY"
 stable_pool_faucet = "HBdT3RTpVY86wcvYXxetNmLcUczAjSr9JuenadoY8dEV"
 
 [registry]
@@ -24,3 +24,4 @@ raysuper = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/raydium-mainne
 rayuser1 = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/raydium-mainnet-test/user1_actions.ts"
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/ratio.ts"
 test-raydim-mainnet = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/raydium-mainnet-test.ts"
+saber-test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/saber-test.ts"
