@@ -18,5 +18,7 @@ anchor-lang = "0.20.1"
 anchor-spl = "0.20.1"
 arrayref = "0.3.6"
 bytemuck = "1.7.2"
-quarry-mine = {version = "1.10.0", features = ["cpi"]}
-spl-math = {version = "0.1.0", features = ["no-entrypoint"]}
+solana-program = "1.8.2"
+spl-math = { version = "0.1.0",features = [ "no-entrypoint" ] }
+quarry-mine = { version = "1.10.0", features = ["cpi"] }
+spl-token = { version = "3.2.0", features = [ "no-entrypoint" ] }

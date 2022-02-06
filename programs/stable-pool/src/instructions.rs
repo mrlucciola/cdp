@@ -1,7 +1,11 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Token, TokenAccount, Mint};
 use quarry_mine::Rewarder;
 // local
+use anchor_spl::{
+    associated_token::AssociatedToken,
+    token::{self, Token, TokenAccount, Mint}
+};
+
 use crate::{
     states::*,
     constant::*,
@@ -12,17 +16,17 @@ use crate::{
 #[instruction(global_state_nonce:u8, mint_usd_nonce:u8, tvl_limit:u64, debt_ceiling:u64)]
 pub struct CreateGlobalState <'info>{
     #[account(mut)]
-    pub super_owner:  Signer<'info>,
+    pub super_owner: Signer<'info>,
 
     #[account(
-        init_if_needed,
+        init,
         seeds = [GLOBAL_STATE_TAG],
         bump = global_state_nonce,
         payer = super_owner,
         )]
     pub global_state: Account<'info, GlobalState>,
 
-    #[account(init_if_needed,
+    #[account(init,
         mint::decimals = USD_DECIMALS,
         mint::authority = global_state,
         seeds = [USD_MINT_TAG],
@@ -56,6 +60,8 @@ pub struct CreateTokenVault<'info> {
 
     pub mint_coll:Account<'info, Mint>,
 
+    pub reward_mint: Account<'info, Mint>,
+
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub rent: Sysvar<'info, Rent>,
@@ -87,37 +93,56 @@ pub struct CreateRaydiumUserAccount<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(user_trove_nonce:u8, token_coll_nonce:u8)]
+#[instruction(user_trove_nonce:u8, token_coll_nonce:u8, reward_vault_bump: u8)]
 pub struct CreateUserTrove<'info> {
-    #[account(mut)]
-    pub trove_owner: Signer<'info>,
-
-    #[account(
-    init_if_needed,
-    seeds = [USER_TROVE_TAG,token_vault.key().as_ref(), trove_owner.key().as_ref()],
-    bump = user_trove_nonce,
-    payer = trove_owner,
-    )]
-    pub user_trove:Account<'info, UserTrove>,
-
-    #[account(init_if_needed,
-        token::mint = mint_coll,
-        token::authority = user_trove,
-        seeds = [USER_TROVE_POOL_TAG, user_trove.key().as_ref()],
-        bump = token_coll_nonce,
-        payer = trove_owner)]
-    pub token_coll:Account<'info, TokenAccount>,
 
     #[account(mut,
-        seeds = [TOKEN_VAULT_TAG,mint_coll.key().as_ref()],
+        seeds = [TOKEN_VAULT_TAG, mint_coll.key().as_ref()],
         bump = token_vault.token_vault_nonce,
     )]
     pub token_vault:Account<'info, TokenVault>,
 
+    #[account(
+        init_if_needed,
+        seeds = [USER_TROVE_TAG,token_vault.key().as_ref(), authority.key().as_ref()],
+        bump = user_trove_nonce,
+        payer = authority,
+    )]
+    pub user_trove:Account<'info, UserTrove>,
+
+    pub authority: Signer<'info>,
+
+    #[account(init_if_needed,
+        token::mint = mint_coll,
+        token::authority = user_trove,
+        seeds = [
+            USER_TROVE_POOL_TAG, 
+            user_trove.key().as_ref(),
+            mint_coll.key().as_ref(),
+        ],
+        bump = token_coll_nonce,
+        payer = authority)]
+    pub token_coll:Account<'info, TokenAccount>,
+
     #[account(mut,
         constraint = mint_coll.key() == token_vault.mint_coll)]
     pub mint_coll: Account<'info, Mint>,
+
+    #[account(init,
+        token::mint = reward_mint,
+        token::authority = user_trove,
+        seeds = [
+            USER_TROVE_POOL_TAG, 
+            user_trove.key().as_ref(), 
+            reward_mint.key().key().as_ref()
+        ],
+        bump = reward_vault_bump,
+        payer = authority)]
+    pub reward_vault:Account<'info, TokenAccount>,
     
+    #[account(constraint = reward_mint.key() == token_vault.reward_mint)]
+    pub reward_mint: Account<'info, Mint>,
+
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub rent: Sysvar<'info, Rent>,

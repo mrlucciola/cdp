@@ -1,10 +1,26 @@
 // modules
 use anchor_lang::prelude::*;
 use arrayref::array_ref;
+
+// use std::convert::TryInto;
+// use std::convert::TryFrom;
+// use spl_math::{precise_number::PreciseNumber};
+
 use quarry_mine::cpi::{
-    accounts::{ClaimRewards, UserClaim, UserStake},
-    claim_rewards, stake_tokens, withdraw_tokens,
+    withdraw_tokens, 
+    claim_rewards,
+    stake_tokens,
+    accounts::{
+        UserStake, 
+        UserClaim,
+        ClaimRewards, 
+    }
 };
+use solana_program::{
+    program::{ invoke, invoke_signed },
+    instruction::Instruction
+};
+
 use std::convert::TryInto;
 // local
 use crate::{constant::*, error::*, instructions::SaberFarm, states::GlobalState};
@@ -58,30 +74,6 @@ pub fn get_token_balance(token_account: &AccountInfo) -> Result<u64> {
 pub fn paused<'info>(global_state: &Account<GlobalState>) -> Result<()> {
     require!(global_state.paused == 0, StablePoolError::NotAllowed);
     Ok(())
-}
-
-pub struct ProcessedAmounts {
-    pub owner_fee: u64,
-    pub new_amount: u64,
-}
-
-pub fn calculate_fee(input_amount: u64, fee_pct: u128) -> Result<ProcessedAmounts> {
-    let mut fee_amount = u128::from(input_amount)
-        .checked_mul(fee_pct)
-        .unwrap()
-        .checked_div(FEE_DENOMINATOR)
-        .unwrap();
-
-    if fee_amount == 0 {
-        fee_amount = 1;
-    }
-
-    let new_amount = u128::from(input_amount).checked_sub(fee_amount).unwrap();
-
-    Ok(ProcessedAmounts {
-        owner_fee: fee_amount.try_into().unwrap(),
-        new_amount: new_amount.try_into().unwrap(),
-    })
 }
 
 pub fn assert_global_debt_ceiling_not_exceeded(
@@ -166,6 +158,31 @@ pub fn unstake_from_saber_pda<'info>(
     Ok(())
 }
 
+pub struct ProcessedAmounts {
+    pub owner_fee: u64,
+    pub new_amount: u64,
+}
+
+pub fn calculate_fee(
+    input_amount: u64,
+    fee_pct: u128,
+)->Result<ProcessedAmounts>{
+    let mut fee_amount = u128::from(input_amount).checked_mul(fee_pct).unwrap()
+    .checked_div(FEE_DENOMINATOR).unwrap();
+
+    if fee_amount == 0 {
+        fee_amount = 1;
+    }
+
+    let new_amount = u128::from(input_amount).checked_sub(fee_amount).unwrap();
+    
+    Ok(ProcessedAmounts{
+        owner_fee: fee_amount.try_into().unwrap(),
+        new_amount: new_amount.try_into().unwrap(),
+    })
+}
+
+
 pub fn harvest_from_saber_pda<'info>(
     farm_program: AccountInfo<'info>,
     token_program: AccountInfo<'info>,
@@ -231,6 +248,59 @@ pub fn assert_vault_debt_ceiling_not_exceeded(
 pub fn assert_devnet() -> ProgramResult {
     if !DEVNET_MODE {
         return Err(StablePoolError::InvalidCluster.into());
+    }
+    Ok(())
+}
+
+// orca lp integration
+pub fn fn_cpi_invoke<'info, 'a>(
+    accounts: &[AccountInfo<'info>], 
+    cpi_program: AccountInfo<'info>,
+    instruction: u8,
+    amount: u64,
+    is_pda_sign: bool,
+    authority_signer_seeds: Option<&'a[&'a[u8]]>
+) -> ProgramResult {
+    let mut data: Vec<u8> = vec![];
+    data.push(instruction);
+    data.extend(amount.to_le_bytes().to_vec());
+    
+    // Getting AccountMeta Vector
+    let accounts_metas: Vec<AccountMeta> 
+        = accounts.iter().map(
+            |acc| if acc.is_writable == true { AccountMeta::new(*acc.key, acc.is_signer)} 
+                                else {AccountMeta::new_readonly(*acc.key, acc.is_signer)}
+        )
+        .collect();
+
+    //msg!("metas: {:?}", &accounts_metas);
+    // Constructing Instruction
+    let instruction = Instruction {
+        program_id: cpi_program.key(),
+        data,
+        accounts: accounts_metas
+    };
+
+    // Getting Accounts Vector
+    let mut ix_accounts: Vec<AccountInfo> 
+        = accounts.iter().map(|acc| acc.clone())
+        .collect();
+
+    ix_accounts.push(cpi_program.clone()); 
+
+    //msg!("ix_accounts: {:?}", &ix_accounts[0]);
+    // CPI Invoke
+    if is_pda_sign {
+        invoke_signed(
+            &instruction,
+            &ix_accounts,
+            &[authority_signer_seeds.unwrap()]
+        )?;
+    } else {     
+        invoke(
+            &instruction,
+            &ix_accounts
+        )?;
     }
     Ok(())
 }

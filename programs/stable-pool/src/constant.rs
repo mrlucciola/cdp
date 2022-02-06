@@ -9,7 +9,7 @@ pub const RATIO_ORCA_AUTH_TAG: &[u8] = b"cdp-orca-auth";
 
 pub const USD_DECIMALS: u8 = 6;
 
-pub enum ORCA_INSTRUCTIONS {
+pub enum OrcaInstructions {
     InitGlobalFarm,
     InitUserFarm,
     ConvertTokens,
