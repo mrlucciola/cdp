@@ -1,7 +1,11 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Token, TokenAccount, Mint};
 use quarry_mine::Rewarder;
 // local
+use anchor_spl::{
+    associated_token::AssociatedToken,
+    token::{self, Token, TokenAccount, Mint}
+};
+
 use crate::{
     states::*,
     constant::*,
@@ -12,7 +16,7 @@ use crate::{
 #[instruction(global_state_nonce:u8, mint_usd_nonce:u8, tvl_limit:u64, debt_ceiling:u64)]
 pub struct CreateGlobalState <'info>{
     #[account(mut)]
-    pub super_owner:  Signer<'info>,
+    pub super_owner: Signer<'info>,
 
     #[account(
         init_if_needed,
