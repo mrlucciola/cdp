@@ -21,7 +21,7 @@ export type OrcaTest = {
           "isSigner": false
         },
         {
-          "name": "ratioBaseTokenAccount",
+          "name": "userBaseTokenAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -66,17 +66,17 @@ export type OrcaTest = {
           "isSigner": false
         },
         {
-          "name": "ratioUserFarm",
+          "name": "userFarm",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "rewardTokenVault",
+          "name": "orcaRewardVault",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "baseTokenVault",
+          "name": "orcaBaseVault",
           "isMut": true,
           "isSigner": false
         },
@@ -312,7 +312,7 @@ export const IDL: OrcaTest = {
           "isSigner": false
         },
         {
-          "name": "ratioBaseTokenAccount",
+          "name": "userBaseTokenAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -357,17 +357,17 @@ export const IDL: OrcaTest = {
           "isSigner": false
         },
         {
-          "name": "ratioUserFarm",
+          "name": "userFarm",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "rewardTokenVault",
+          "name": "orcaRewardVault",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "baseTokenVault",
+          "name": "orcaBaseVault",
           "isMut": true,
           "isSigner": false
         },

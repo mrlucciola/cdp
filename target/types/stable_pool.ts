@@ -79,6 +79,11 @@ export type StablePool = {
           "isSigner": false
         },
         {
+          "name": "rewardMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -138,6 +143,16 @@ export type StablePool = {
         },
         {
           "name": "mintColl",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "rewardVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "rewardMint",
           "isMut": true,
           "isSigner": false
         },
@@ -1683,7 +1698,7 @@ export type StablePool = {
   ],
   "types": [
     {
-      "name": "ORCA_INSTRUCTIONS",
+      "name": "OrcaInstructions",
       "type": {
         "kind": "enum",
         "variants": [
@@ -1961,6 +1976,11 @@ export const IDL: StablePool = {
           "isSigner": false
         },
         {
+          "name": "rewardMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -2020,6 +2040,16 @@ export const IDL: StablePool = {
         },
         {
           "name": "mintColl",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "rewardVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "rewardMint",
           "isMut": true,
           "isSigner": false
         },
@@ -3565,7 +3595,7 @@ export const IDL: StablePool = {
   ],
   "types": [
     {
-      "name": "ORCA_INSTRUCTIONS",
+      "name": "OrcaInstructions",
       "type": {
         "kind": "enum",
         "variants": [

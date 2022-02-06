@@ -19,7 +19,7 @@ pub struct CreateGlobalState <'info>{
     pub super_owner: Signer<'info>,
 
     #[account(
-        init_if_needed,
+        init,
         seeds = [GLOBAL_STATE_TAG],
         bump = global_state_nonce,
         payer = super_owner,
@@ -60,6 +60,8 @@ pub struct CreateTokenVault<'info> {
 
     pub mint_coll:Account<'info, Mint>,
 
+    pub reward_mint: Account<'info, Mint>,
+
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub rent: Sysvar<'info, Rent>,
@@ -91,16 +93,16 @@ pub struct CreateRaydiumUserAccount<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(user_trove_nonce:u8, token_coll_nonce:u8)]
+#[instruction(user_trove_nonce:u8, token_coll_nonce:u8, reward_vault_bump: u8)]
 pub struct CreateUserTrove<'info> {
     #[account(mut)]
     pub trove_owner: Signer<'info>,
 
     #[account(
-    init_if_needed,
-    seeds = [USER_TROVE_TAG,token_vault.key().as_ref(), trove_owner.key().as_ref()],
-    bump = user_trove_nonce,
-    payer = trove_owner,
+        init_if_needed,
+        seeds = [USER_TROVE_TAG,token_vault.key().as_ref(), trove_owner.key().as_ref()],
+        bump = user_trove_nonce,
+        payer = trove_owner,
     )]
     pub user_trove:Account<'info, UserTrove>,
 
@@ -128,7 +130,7 @@ pub struct CreateUserTrove<'info> {
         seeds = [USER_TROVE_POOL_TAG, user_trove.key().as_ref(), reward_mint.key().key().as_ref()],
         bump = reward_vault_bump,
         payer = trove_owner)]
-    pub reward_vault:ProgramAccount<'info, TokenVault>,
+    pub reward_vault:Account<'info, TokenAccount>,
     
     #[account(mut,
         constraint = reward_mint.key() == token_vault.reward_mint)]
