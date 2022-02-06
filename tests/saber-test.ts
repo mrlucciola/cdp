@@ -572,6 +572,7 @@ describe('saber-test', () => {
     console.log("poolLpTokenAccount.amount =", poolLpTokenAccount.amount.toString());
     console.log("userLpTokenAccount.amount =", userLpTokenAccount.amount.toString());
   });
+<<<<<<< HEAD
   it('Withdraw from Saber', async () => {
 
     await stablePoolProgram.rpc.withdrawFromSaber(
@@ -660,6 +661,9 @@ describe('saber-test', () => {
     console.log("reward.amount =", reward.amount.toString());
     console.log("fee amount =", fee.amount.toString());
   });
+=======
+  
+>>>>>>> 361e59c (Deposit LP token to Saber Farm)
 });
 
 
