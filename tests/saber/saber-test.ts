@@ -1,7 +1,7 @@
 import * as anchor from '@project-serum/anchor';
 const serumCmn = require("@project-serum/common");
 
-import { StablePool } from '../target/types/stable_pool';
+import { StablePool } from '../../target/types/stable_pool';
 import {
   PublicKey,
   Keypair,
@@ -33,8 +33,8 @@ import {
   ZERO,
 } from "@saberhq/token-utils";
 
-import { deployTestTokens } from '../test-modules/saber/deployTestTokens';
-import { findMinerAddress, QuarrySDK, QUARRY_ADDRESSES } from '../test-modules/quarry';
+import { deployTestTokens } from './utils/deployTestTokens';
+import { findMinerAddress, QuarrySDK, QUARRY_ADDRESSES } from '@quarryprotocol/quarry-sdk';
 import { isMainThread } from 'worker_threads';
 import { BN } from '@project-serum/anchor';
 chaiUse(chaiAsPromised)
