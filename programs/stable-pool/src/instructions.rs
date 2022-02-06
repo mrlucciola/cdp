@@ -95,30 +95,34 @@ pub struct CreateRaydiumUserAccount<'info> {
 #[derive(Accounts)]
 #[instruction(user_trove_nonce:u8, token_coll_nonce:u8, reward_vault_bump: u8)]
 pub struct CreateUserTrove<'info> {
-    #[account(mut)]
-    pub trove_owner: Signer<'info>,
+
+    #[account(mut,
+        seeds = [TOKEN_VAULT_TAG, mint_coll.key().as_ref()],
+        bump = token_vault.token_vault_nonce,
+    )]
+    pub token_vault:Account<'info, TokenVault>,
 
     #[account(
         init_if_needed,
-        seeds = [USER_TROVE_TAG,token_vault.key().as_ref(), trove_owner.key().as_ref()],
+        seeds = [USER_TROVE_TAG,token_vault.key().as_ref(), authority.key().as_ref()],
         bump = user_trove_nonce,
-        payer = trove_owner,
+        payer = authority,
     )]
     pub user_trove:Account<'info, UserTrove>,
+
+    pub authority: Signer<'info>,
 
     #[account(init_if_needed,
         token::mint = mint_coll,
         token::authority = user_trove,
-        seeds = [USER_TROVE_POOL_TAG, user_trove.key().as_ref()],
+        seeds = [
+            USER_TROVE_POOL_TAG, 
+            user_trove.key().as_ref(),
+            mint_coll.key().as_ref(),
+        ],
         bump = token_coll_nonce,
-        payer = trove_owner)]
+        payer = authority)]
     pub token_coll:Account<'info, TokenAccount>,
-
-    #[account(mut,
-        seeds = [TOKEN_VAULT_TAG,mint_coll.key().as_ref()],
-        bump = token_vault.token_vault_nonce,
-    )]
-    pub token_vault:Account<'info, TokenVault>,
 
     #[account(mut,
         constraint = mint_coll.key() == token_vault.mint_coll)]
@@ -127,13 +131,16 @@ pub struct CreateUserTrove<'info> {
     #[account(init,
         token::mint = reward_mint,
         token::authority = user_trove,
-        seeds = [USER_TROVE_POOL_TAG, user_trove.key().as_ref(), reward_mint.key().key().as_ref()],
+        seeds = [
+            USER_TROVE_POOL_TAG, 
+            user_trove.key().as_ref(), 
+            reward_mint.key().key().as_ref()
+        ],
         bump = reward_vault_bump,
-        payer = trove_owner)]
+        payer = authority)]
     pub reward_vault:Account<'info, TokenAccount>,
     
-    #[account(mut,
-        constraint = reward_mint.key() == token_vault.reward_mint)]
+    #[account(constraint = reward_mint.key() == token_vault.reward_mint)]
     pub reward_mint: Account<'info, Mint>,
 
     pub system_program: Program<'info, System>,

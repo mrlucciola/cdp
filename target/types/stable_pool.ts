@@ -122,9 +122,9 @@ export type StablePool = {
       "name": "createUserTrove",
       "accounts": [
         {
-          "name": "troveOwner",
+          "name": "tokenVault",
           "isMut": true,
-          "isSigner": true
+          "isSigner": false
         },
         {
           "name": "userTrove",
@@ -132,12 +132,12 @@ export type StablePool = {
           "isSigner": false
         },
         {
-          "name": "tokenColl",
-          "isMut": true,
-          "isSigner": false
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
         },
         {
-          "name": "tokenVault",
+          "name": "tokenColl",
           "isMut": true,
           "isSigner": false
         },
@@ -153,7 +153,7 @@ export type StablePool = {
         },
         {
           "name": "rewardMint",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -2019,9 +2019,9 @@ export const IDL: StablePool = {
       "name": "createUserTrove",
       "accounts": [
         {
-          "name": "troveOwner",
+          "name": "tokenVault",
           "isMut": true,
-          "isSigner": true
+          "isSigner": false
         },
         {
           "name": "userTrove",
@@ -2029,12 +2029,12 @@ export const IDL: StablePool = {
           "isSigner": false
         },
         {
-          "name": "tokenColl",
-          "isMut": true,
-          "isSigner": false
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
         },
         {
-          "name": "tokenVault",
+          "name": "tokenColl",
           "isMut": true,
           "isSigner": false
         },
@@ -2050,7 +2050,7 @@ export const IDL: StablePool = {
         },
         {
           "name": "rewardMint",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
