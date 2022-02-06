@@ -1775,6 +1775,35 @@ export type StablePool = {
           }
         ]
       }
+    },
+    {
+      "name": "OrcaInstrunction",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "InitGlobalFarm"
+          },
+          {
+            "name": "InitUserFarm"
+          },
+          {
+            "name": "ConvertTokens"
+          },
+          {
+            "name": "RevertTokens"
+          },
+          {
+            "name": "Harvest"
+          },
+          {
+            "name": "RemoveRewards"
+          },
+          {
+            "name": "SetEmissionsPerSecond"
+          }
+        ]
+      }
     }
   ],
   "errors": [
@@ -3625,6 +3654,35 @@ export const IDL: StablePool = {
           },
           {
             "name": "Price"
+          }
+        ]
+      }
+    },
+    {
+      "name": "OrcaInstrunction",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "InitGlobalFarm"
+          },
+          {
+            "name": "InitUserFarm"
+          },
+          {
+            "name": "ConvertTokens"
+          },
+          {
+            "name": "RevertTokens"
+          },
+          {
+            "name": "Harvest"
+          },
+          {
+            "name": "RemoveRewards"
+          },
+          {
+            "name": "SetEmissionsPerSecond"
           }
         ]
       }

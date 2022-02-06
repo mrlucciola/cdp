@@ -8,199 +8,7 @@ export type OrcaTest = {
       "args": []
     },
     {
-      "name": "stakeLpToOrca",
-      "accounts": [
-        {
-          "name": "owner",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "baseTokenAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "baseTokenMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "poolTokenAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "poolTokenMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "rewardTokenAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "rewardTokenMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "globalFarm",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userFarm",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "rewardTokenVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "baseTokenVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "authority",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "orcaFarmProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "amount",
-          "type": "u64"
-        }
-      ]
-    },
-    {
-      "name": "unstakeLpFromOrca",
-      "accounts": [
-        {
-          "name": "owner",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "baseTokenAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "baseTokenMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "poolTokenAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "poolTokenMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "rewardTokenAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "rewardTokenMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "globalFarm",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userFarm",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "rewardTokenVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "baseTokenVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "authority",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "orcaFarmProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "amount",
-          "type": "u64"
-        }
-      ]
-    },
-    {
-      "name": "depositOrcaLp",
+      "name": "withdrawOrcaLp",
       "accounts": [
         {
           "name": "owner",
@@ -209,11 +17,11 @@ export type OrcaTest = {
         },
         {
           "name": "ratioAuthority",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
-          "name": "baseTokenAccount",
+          "name": "ratioBaseTokenAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -238,7 +46,122 @@ export type OrcaTest = {
           "isSigner": false
         },
         {
-          "name": "rewardTokenAccount",
+          "name": "userRewardTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "ratioRewardTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "rewardTokenMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "globalFarm",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "ratioUserFarm",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "rewardTokenVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "baseTokenVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "orcaFarmProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "ratioAuthorityBump",
+          "type": "u8"
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "depositOrcaLp",
+      "accounts": [
+        {
+          "name": "owner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "ratioAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userBaseTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "baseTokenMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userPoolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "ratioPoolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "poolTokenMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userRewardTokenAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -263,12 +186,12 @@ export type OrcaTest = {
           "isSigner": false
         },
         {
-          "name": "rewardTokenVault",
+          "name": "orcaRewardVault",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "baseTokenVault",
+          "name": "orcaBaseVault",
           "isMut": true,
           "isSigner": false
         },
@@ -376,199 +299,7 @@ export const IDL: OrcaTest = {
       "args": []
     },
     {
-      "name": "stakeLpToOrca",
-      "accounts": [
-        {
-          "name": "owner",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "baseTokenAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "baseTokenMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "poolTokenAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "poolTokenMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "rewardTokenAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "rewardTokenMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "globalFarm",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userFarm",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "rewardTokenVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "baseTokenVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "authority",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "orcaFarmProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "amount",
-          "type": "u64"
-        }
-      ]
-    },
-    {
-      "name": "unstakeLpFromOrca",
-      "accounts": [
-        {
-          "name": "owner",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "baseTokenAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "baseTokenMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "poolTokenAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "poolTokenMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "rewardTokenAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "rewardTokenMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "globalFarm",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userFarm",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "rewardTokenVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "baseTokenVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "authority",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "orcaFarmProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "amount",
-          "type": "u64"
-        }
-      ]
-    },
-    {
-      "name": "depositOrcaLp",
+      "name": "withdrawOrcaLp",
       "accounts": [
         {
           "name": "owner",
@@ -577,11 +308,11 @@ export const IDL: OrcaTest = {
         },
         {
           "name": "ratioAuthority",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
-          "name": "baseTokenAccount",
+          "name": "ratioBaseTokenAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -606,7 +337,122 @@ export const IDL: OrcaTest = {
           "isSigner": false
         },
         {
-          "name": "rewardTokenAccount",
+          "name": "userRewardTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "ratioRewardTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "rewardTokenMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "globalFarm",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "ratioUserFarm",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "rewardTokenVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "baseTokenVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "orcaFarmProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "ratioAuthorityBump",
+          "type": "u8"
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "depositOrcaLp",
+      "accounts": [
+        {
+          "name": "owner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "ratioAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userBaseTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "baseTokenMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userPoolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "ratioPoolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "poolTokenMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userRewardTokenAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -631,12 +477,12 @@ export const IDL: OrcaTest = {
           "isSigner": false
         },
         {
-          "name": "rewardTokenVault",
+          "name": "orcaRewardVault",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "baseTokenVault",
+          "name": "orcaBaseVault",
           "isMut": true,
           "isSigner": false
         },

@@ -19,7 +19,7 @@ pub fn process_init_orca_farm(
     invoke_signed(
         &Instruction {
             program_id: ctx.accounts.orca_farm_program.key(),
-            data: vec![ORCA_INSTRUCTIONS::InitUserFarm as u8],
+            data: vec![OrcaInstrunction::InitUserFarm as u8],
             accounts: vec![
                 // global farm
                 AccountMeta::new_readonly(ctx.accounts.global_farm.key(), false),
@@ -65,7 +65,7 @@ pub fn process_deposit_orcalp(
     ratio_authority_bump : u8,
 ) -> ProgramResult {
     let mut data: Vec<u8> = vec![];
-    data.push(ORCA_INSTRUCTIONS::ConvertTokens as u8);
+    data.push(OrcaInstrunction::ConvertTokens as u8);
     data.extend(amount.to_le_bytes().to_vec());
     invoke_signed(
         &Instruction {
@@ -133,7 +133,7 @@ pub fn process_withdraw_orcalp(
     ///
     /// First, Unstake Ratio's LP tokens to baseToken
     let mut data: Vec<u8> = vec![];
-    data.push(ORCA_INSTRUCTIONS::RevertTokens as u8);
+    data.push(OrcaInstrunction::RevertTokens as u8);
     data.extend(amount.to_le_bytes().to_vec());
 
     invoke_signed(
@@ -200,7 +200,7 @@ pub fn process_harvest_reward(
     ratio_authority_bump: u8
 ) -> ProgramResult {
     let mut data: Vec<u8> = vec![];
-    data.push(ORCA_INSTRUCTIONS::Harvest as u8);
+    data.push(OrcaInstrunction::Harvest as u8);
 
     invoke_signed(
         &Instruction {

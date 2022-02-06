@@ -58,3 +58,14 @@ pub struct RatioOrcaVault {
     // if support double-dip
     pub is_dd: u8,
 }
+
+// orca lp integration
+pub enum OrcaInstrunction {
+    InitGlobalFarm,
+    InitUserFarm,
+    ConvertTokens,
+    RevertTokens,
+    Harvest,
+    RemoveRewards,
+    SetEmissionsPerSecond,
+}
