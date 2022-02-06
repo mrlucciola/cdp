@@ -572,10 +572,6 @@ describe('saber-test', () => {
     console.log("poolLpTokenAccount.amount =", poolLpTokenAccount.amount.toString());
     console.log("userLpTokenAccount.amount =", userLpTokenAccount.amount.toString());
   });
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 573a60f (Withdraw LP token to Saber)
   it('Withdraw from Saber', async () => {
 
     await stablePoolProgram.rpc.withdrawFromSaber(
@@ -618,7 +614,6 @@ describe('saber-test', () => {
     console.log("poolLpTokenAccount.amount =", poolLpTokenAccount.amount.toString());
     console.log("userLpTokenAccount.amount =", userLpTokenAccount.amount.toString());
   });
-<<<<<<< HEAD
   it('Harvest from Saber', async () => {
     await stablePoolProgram.rpc.harvestFromSaber(
       {
@@ -665,9 +660,6 @@ describe('saber-test', () => {
     console.log("reward.amount =", reward.amount.toString());
     console.log("fee amount =", fee.amount.toString());
   });
-=======
-  
->>>>>>> 361e59c (Deposit LP token to Saber Farm)
 =======
 >>>>>>> 573a60f (Withdraw LP token to Saber)
 });
