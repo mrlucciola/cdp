@@ -660,8 +660,6 @@ describe('saber-test', () => {
     console.log("reward.amount =", reward.amount.toString());
     console.log("fee amount =", fee.amount.toString());
   });
-=======
->>>>>>> 573a60f (Withdraw LP token to Saber)
 });
 
 
