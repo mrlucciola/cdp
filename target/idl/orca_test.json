@@ -200,7 +200,7 @@
       ]
     },
     {
-      "name": "processDepositOrcalp",
+      "name": "depositOrcaLp",
       "accounts": [
         {
           "name": "owner",
@@ -239,6 +239,11 @@
         },
         {
           "name": "rewardTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "ratioRewardTokenAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -300,12 +305,12 @@
       ],
       "args": [
         {
-          "name": "amount",
-          "type": "u64"
-        },
-        {
           "name": "ratioAuthorityBump",
           "type": "u8"
+        },
+        {
+          "name": "amount",
+          "type": "u64"
         }
       ]
     }
