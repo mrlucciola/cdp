@@ -1,6 +1,9 @@
 import * as anchor from '@project-serum/anchor';
+<<<<<<< HEAD
 const serumCmn = require("@project-serum/common");
 
+=======
+>>>>>>> d7ccbd0 (Impl saber farm test code)
 import { StablePool } from '../target/types/stable_pool';
 import {
   PublicKey,
@@ -15,7 +18,11 @@ import { Token, AccountLayout } from "@solana/spl-token";
 import {use as chaiUse, assert} from 'chai'    
 import chaiAsPromised from 'chai-as-promised'
 
+<<<<<<< HEAD
 import { deployNewSwap, ISeedPoolAccountsFn, Fees, DEFAULT_FEE} from '@saberhq/stableswap-sdk';
+=======
+import { deployNewSwap, ISeedPoolAccountsFn, Fees, DEFAULT_FEE, } from '@saberhq/stableswap-sdk';
+>>>>>>> d7ccbd0 (Impl saber farm test code)
 import { SignerWallet, SolanaProvider } from "@saberhq/solana-contrib";
 import {
   createInitMintInstructions,
@@ -34,6 +41,7 @@ import {
 } from "@saberhq/token-utils";
 
 import { deployTestTokens } from '../test-modules/saber/deployTestTokens';
+<<<<<<< HEAD
 import { findMinerAddress, QuarrySDK, QUARRY_ADDRESSES } from '../test-modules/quarry';
 import { isMainThread } from 'worker_threads';
 import { BN } from '@project-serum/anchor';
@@ -123,13 +131,68 @@ describe('saber-test', () => {
   let saberMintToken = null;
   let saberSwapMintKey;
   // Initial amount in each swap token
+=======
+import { QUARRY_ADDRESSES } from '../test-modules/quarry';
+chaiUse(chaiAsPromised)
+
+describe('saber-test', () => {
+
+  const saberSwapProgram = new anchor.web3.PublicKey("SSwpkEEcbUqx4vtoEByFjSkhKdCT862DNVb52nZg1UZ");
+  const saberFarmProgram = new anchor.web3.PublicKey("QMNeHCGYnLVDn1icRAfQZpjPLBNkfGbSKRB83G5d8KB");
+
+
+  // Constants
+  const GLOBAL_STATE_TAG = "golbal-state-seed";
+  const TOKEN_VAULT_TAG = "token-vault-seed";
+  const USER_TROVE_TAG = "user-trove-seed";
+  const USD_MINT_TAG = "usd-mint";
+  const USD_TOKEN_TAG = "usd-token";
+  const TOKEN_VAULT_POOL_TAG = "token-vault-pool";
+
+  // Configure the client to use the local cluster.
+  const provider = anchor.Provider.env();
+  anchor.setProvider(provider);
+
+  const stablePoolProgram = anchor.workspace.StablePool as anchor.Program<StablePool>;
+  const superOwner = anchor.web3.Keypair.generate();
+  const user = anchor.web3.Keypair.generate();
+
+  let userCollKey = null;
+  let userUsdxTokenAccount = null;
+
+  let lpMint = null;
+  const depositAmount = 100_000_000; // 0.1 LPT
+  const USD_DECIMAL = 6;
+
+  console.log("superOwner =", superOwner.publicKey.toBase58());
+  console.log("user =", user.publicKey.toBase58());
+
+  // Initial amount in each swap token
+  const INITIAL_TOKEN_A_AMOUNT = LAMPORTS_PER_SOL;
+  const INITIAL_TOKEN_B_AMOUNT = LAMPORTS_PER_SOL;
+  const AMP_FACTOR = 100;
+  const INITIAL_BASE_AMOUNT = 5000000000000000
+  const DEFAULT_DECIMALS = 6;
+  const DEFAULT_HARD_CAP = 1_000_000_000_000;
+
+  const FEES: Fees = {
+    adminTrade: DEFAULT_FEE,
+    adminWithdraw: DEFAULT_FEE,
+    trade: new Percent(1, 4),
+    withdraw: DEFAULT_FEE,
+  };
+
+>>>>>>> d7ccbd0 (Impl saber farm test code)
   let mine;
   let mintWrapper;
   let rewardsMint;
   let rewardsMintKP;
   let mintWrapperKey;
   let rewardsMintToken;
+<<<<<<< HEAD
   let rewardsTokenMintKey;
+=======
+>>>>>>> d7ccbd0 (Impl saber farm test code)
   let rewarderClaimFeeTokenAccount;
   let minterId;
   let minter;
@@ -139,6 +202,7 @@ describe('saber-test', () => {
   let saberFarmRewarder;
   
   it('Is initialized!', async () => {
+<<<<<<< HEAD
 
     if(usePrevConfigs){
       saberSwapMintKey = new PublicKey('2y3JStod54SRoPC6a9LvAb7iRz4cjbF1N4eNeXsHCKhS');
@@ -174,11 +238,24 @@ describe('saber-test', () => {
     else
     {
       const {mintA, mintB, seedPoolAccounts,} = await deployTestTokens({
+=======
+    // Request Airdrop for superOwner & user
+    await provider.connection.confirmTransaction(
+      await provider.connection.requestAirdrop(superOwner.publicKey, 1000000000),
+      "confirmed"
+    );
+    await provider.connection.confirmTransaction(
+      await provider.connection.requestAirdrop(user.publicKey, 1000000000),
+      "confirmed"
+    );
+    const {mintA, mintB, seedPoolAccounts,} = await deployTestTokens({
+>>>>>>> d7ccbd0 (Impl saber farm test code)
         provider,
         minterSigner: user,
         initialTokenAAmount: INITIAL_TOKEN_A_AMOUNT,
         initialTokenBAmount: INITIAL_TOKEN_B_AMOUNT,
       });
+<<<<<<< HEAD
       const stableSwapAccount = Keypair.generate();
       
       const { swap: newSwap, initializeArgs } = await deployNewSwap({
@@ -399,10 +476,232 @@ describe('saber-test', () => {
   
     }
 
+=======
+    const stableSwapAccount = Keypair.generate();
+    
+    const { swap: newSwap, initializeArgs } = await deployNewSwap({
+      provider,
+      swapProgramID: saberSwapProgram,
+      adminAccount: user.publicKey,
+      tokenAMint: mintA, // wrapped SOL
+      tokenBMint: mintB, // mSOL
+      ampFactor: new u64(AMP_FACTOR),
+      fees: FEES,
+
+      initialLiquidityProvider: user.publicKey,
+      useAssociatedAccountForInitialLP: true,
+      seedPoolAccounts,
+
+      swapAccountSigner: stableSwapAccount,
+    });
+
+    const saberSwapMint = initializeArgs.poolTokenMint;
+    const poolMintToken = SToken.fromMint(saberSwapMint, DEFAULT_DECIMALS);
+    
+    const mintAToken = new SPLToken(
+      provider.connection,
+      initializeArgs.tokenA.mint,
+      TOKEN_PROGRAM_ID,
+      user
+    );
+
+    const mintBToken = new SPLToken(
+      provider.connection,
+      initializeArgs.tokenB.mint,
+      TOKEN_PROGRAM_ID,
+      user
+    );
+    
+    const aToken = await mintAToken.createAccount(user);
+    const bToken = await mintBToken.createAccount(user);
+    await mintAToken.mintTo(aToken, user, [], INITIAL_BASE_AMOUNT);
+    await mintBToken.mintTo(bToken, user, [], INITIAL_BASE_AMOUNT);
+    
+    let sdk: QuarrySDK = QuarrySDK.load({
+      provider,
+    });
+    
+    mintWrapper = sdk.mintWrapper;
+    mine = sdk.mine;
+
+    rewardsMintKP = Keypair.generate();
+    rewardsMint = rewardsMintKP.publicKey;
+
+    let baseToken = SToken.fromMint(rewardsMint, DEFAULT_DECIMALS);
+    // let baseToken = SToken.fromMint(initializeArgs.tokenA.mint, DEFAULT_DECIMALS);
+    let baseHardCap = TokenAmount.parse(baseToken, DEFAULT_HARD_CAP.toString());
+    const { tx, mintWrapper: wrapperKey } = await mintWrapper.newWrapper({
+      hardcap: baseHardCap.toU64(),
+      // tokenMint: initializeArgs.tokenA.mint, // base Mint
+      tokenMint: rewardsMint,
+    });
+
+    let txInitMint = await createInitMintInstructions({
+      provider,
+      mintKP: rewardsMintKP, // Account with signing authority on the original token (baseToken)
+      decimals: DEFAULT_DECIMALS,
+      mintAuthority: wrapperKey,
+      freezeAuthority: wrapperKey,
+    })
+    await txInitMint.confirm();
+    await tx.confirm();
+    mintWrapperKey = wrapperKey;
+    rewardsMintToken = new SPLToken(
+      provider.connection,
+      rewardsMint,
+      TOKEN_PROGRAM_ID,
+      user
+    );
+    const { tx: txRewarder, key: rewarderKey } = await mine.createRewarder({
+      mintWrapper: mintWrapperKey,
+      authority: provider.wallet.publicKey,
+    });
+
+    // await expectTX(tx, "Create new rewarder").to.be.fulfilled;
+    await txRewarder.confirm();
+
+    // let rewarderKey = rewarder;
+    let rewarder = await mine.loadRewarderWrapper(rewarderKey);
+    saberFarmRewarder = rewarderKey;
+
+    rewarderClaimFeeTokenAccount = rewarder.rewarderData.claimFeeTokenAccount;
+    const allowance = new u64(1_000_000);
+    // minterId = Keypair.generate().publicKey;
+
+    // Minter authority is the rewarder itself since the latter distributes quarry rewards
+    minterId = rewarderKey;
+    let txMinter = await mintWrapper.newMinterWithAllowance(mintWrapperKey, minterId, allowance);
+    await txMinter.confirm();
+    [minter] = await anchor.web3.PublicKey.findProgramAddress(
+      [anchor.utils.bytes.utf8.encode("MintWrapperMinter"), mintWrapperKey.toBuffer(), minterId.toBuffer()],
+      QUARRY_ADDRESSES.MintWrapper
+    );
+    const { quarry: quarryKey, tx: txQuarry } = await rewarder.createQuarry({
+      // token: baseToken,
+      token: poolMintToken,
+    });
+    await txQuarry.confirm();
+    
+    let quarry = await rewarder.getQuarry(poolMintToken);
+
+    let txMiner = (await quarry.createMiner()).tx
+    await txMiner.confirm();
+    const minerKey = await quarry.getMinerAddress(user);
+    let miner = await quarry.getMiner(user);
+    const minerVaultKey = miner?.tokenVaultKey;
+    saberFarmQuarry = quarryKey;
+    saberFarmMiner = minerKey;
+    saberFarmMinerVault = minerVaultKey!;
+
+
+    const saberMintToken = new SPLToken(
+      provider.connection,
+      saberSwapMint,
+      TOKEN_PROGRAM_ID,
+      user
+    );
+
+  });
+
+  it('Create Global State', async () => {
+    
+    console.log("stablePoolProgram.programId =", stablePoolProgram.programId.toBase58());
+    
+    const [globalStateKey, globalStateNonce] = 
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(GLOBAL_STATE_TAG)],
+        stablePoolProgram.programId,
+      );
+
+    console.log("globalStateKey =", globalStateKey.toBase58());
+
+    const [mintUsdKey, mintUsdNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(USD_MINT_TAG)],
+        stablePoolProgram.programId,
+      );
+
+    console.log("mintUsdKey =", mintUsdKey.toBase58());
+
+    let data = await provider.connection.getAccountInfo(stablePoolProgram.programId);
+    console.log("data =", data);
+
+    let txHash = await stablePoolProgram.rpc.createGlobalState(
+      globalStateNonce, 
+      mintUsdNonce, 
+      {
+        accounts: {
+          superOwner: superOwner.publicKey,
+          mintUsd: mintUsdKey,
+          globalState: globalStateKey,
+          systemProgram: SystemProgram.programId,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          rent: SYSVAR_RENT_PUBKEY,
+        },
+        signers: [superOwner]
+      }
+    ).catch(e => {
+      console.log("e =", e);
+    });
+    console.log("txHash =", txHash);
+
+    const globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
+
+    assert(globalState.superOwner.toBase58() == superOwner.publicKey.toBase58());
+    assert(globalState.mintUsd.toBase58() == mintUsdKey.toBase58());
+  });
+
+  it('Only the super owner can create token vaults', async () => {
+    const [globalStateKey, globalStateNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(GLOBAL_STATE_TAG)],
+        stablePoolProgram.programId,
+      );
+
+    const [tokenVaultKey, tokenVaultNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(TOKEN_VAULT_TAG), lpMint.publicKey.toBuffer()],
+        stablePoolProgram.programId,
+      );
+
+    const [tokenCollKey, tokenCollNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(TOKEN_VAULT_POOL_TAG), tokenVaultKey.toBuffer()],
+        stablePoolProgram.programId,
+      );
+
+    const riskLevel = 0;
+    
+    const createVaultCall = async ()=>{
+      await stablePoolProgram.rpc.createTokenVault(
+        tokenVaultNonce, 
+        globalStateNonce, 
+        tokenCollNonce, 
+        riskLevel,
+        {
+          accounts: {
+            payer: user.publicKey,
+            tokenVault: tokenVaultKey,
+            globalState: globalStateKey,
+            mintColl: lpMint.publicKey,
+            tokenColl: tokenCollKey,
+            systemProgram: SystemProgram.programId,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            rent: SYSVAR_RENT_PUBKEY,
+          },
+          signers: [user]
+        });
+    };
+
+    await assert.isRejected(createVaultCall(), /A raw constraint was violated/, "No error was thrown when trying to create a vault with a user different than the super owner");
+
+    await assert.isRejected(stablePoolProgram.account.tokenVault.fetch(tokenVaultKey), /Account does not exist /, "Fetching a vault that shouldn't had been created did not throw an error");
+>>>>>>> d7ccbd0 (Impl saber farm test code)
   });
 
   it('Create Token Vault', async () => {
 
+<<<<<<< HEAD
     const globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
     try{
       const tokenVault = await stablePoolProgram.account.tokenVault.fetch(tokenVaultKey);
@@ -546,13 +845,163 @@ describe('saber-test', () => {
             mintColl: saberSwapMintKey,
             tokenProgram: TOKEN_PROGRAM_ID,  
           },
+=======
+    const [globalStateKey, globalStateNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(GLOBAL_STATE_TAG)],
+        stablePoolProgram.programId,
+      );
+    console.log("GlobalStateKey", globalStateKey.toBase58());
+
+    const globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
+    console.log("fetched globalState", globalState);
+
+    const [tokenVaultKey, tokenVaultNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(TOKEN_VAULT_TAG), lpMint.publicKey.toBuffer()],
+        stablePoolProgram.programId,
+      );
+    console.log("tokenVaultKey",tokenVaultKey.toBase58());
+
+    const [tokenCollKey, tokenCollNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(TOKEN_VAULT_POOL_TAG), tokenVaultKey.toBuffer()],
+        stablePoolProgram.programId,
+      );
+      console.log("tokenCollKey",tokenCollKey.toBase58());
+
+    const riskLevel = 0;
+    let txHash = await stablePoolProgram.rpc.createTokenVault(
+        tokenVaultNonce, 
+        globalStateNonce, 
+        tokenCollNonce, 
+        riskLevel,
+        {
+          accounts: {
+            payer: superOwner.publicKey,
+            tokenVault: tokenVaultKey,
+            globalState: globalStateKey,
+            mintColl: lpMint.publicKey,
+            tokenColl: tokenCollKey,
+            systemProgram: SystemProgram.programId,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            rent: SYSVAR_RENT_PUBKEY,
+          },
+          signers: [superOwner]
+        }
+    ).catch(e => {
+      console.log("Creating Vault Error:", e);
+    });
+  
+    console.log("txHash =", txHash);
+
+    let tokenVault = await stablePoolProgram.account.tokenVault.fetch(tokenVaultKey);
+
+    assert(tokenVault.mintColl.toBase58() == lpMint.publicKey.toBase58(), "mintColl mismatch");
+    assert(tokenVault.tokenColl.toBase58() == tokenCollKey.toBase58(), "tokenCollKey mismatch");
+    assert(tokenVault.totalColl == 0, "totalColl mismatch");
+    assert(tokenVault.totalDebt == 0, "totalDebt mismatch");
+    assert(tokenVault.riskLevel == riskLevel, "riskLevel mismatch");
+
+  });
+
+  it('Create User Trove', async () => {
+    const [tokenVaultKey, tokenVaultNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(TOKEN_VAULT_TAG), lpMint.publicKey.toBuffer()],
+        stablePoolProgram.programId,
+      );
+
+    const [userTroveKey, userTroveNonce] =
+    await anchor.web3.PublicKey.findProgramAddress(
+      [Buffer.from(USER_TROVE_TAG), tokenVaultKey.toBuffer(), user.publicKey.toBuffer()],
+      stablePoolProgram.programId,
+    );
+
+    await stablePoolProgram.rpc.createUserTrove(
+      userTroveNonce, 
+      tokenVaultNonce, 
+      {
+        accounts: {
+          troveOwner: user.publicKey,
+          userTrove: userTroveKey,
+          tokenVault: tokenVaultKey,
+          mintColl: lpMint.publicKey,
+          systemProgram: SystemProgram.programId,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          rent: SYSVAR_RENT_PUBKEY,
+        },
+        signers: [user]
+      }
+    ).catch(e => {
+      console.log("Creating UserTrove Error:", e);
+    });
+
+    let userTrove = await stablePoolProgram.account.userTrove.fetch(userTroveKey);
+
+    assert(userTrove.lockedCollBalance == 0, "lockedCollBalance mismatch");
+    assert(userTrove.debt == 0, "debt mismatch");
+  });
+
+  it('Deposit to Saber', async () => {
+
+    const [globalStateKey] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(GLOBAL_STATE_TAG)],
+        stablePoolProgram.programId,
+      );
+    const globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
+    console.log("fetched globalState", globalState);
+
+    const [tokenVaultKey, tokenVaultNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(TOKEN_VAULT_TAG), lpMint.publicKey.toBuffer()],
+        stablePoolProgram.programId,
+      );
+
+    const [tokenCollKey, tokenCollNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(TOKEN_VAULT_POOL_TAG), tokenVaultKey.toBuffer()],
+        stablePoolProgram.programId,
+      );
+
+    const [userTroveKey, userTroveNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(USER_TROVE_TAG), tokenVaultKey.toBuffer(), user.publicKey.toBuffer()],
+        stablePoolProgram.programId,
+      );
+    
+    const transaction = new Transaction()
+    let instructions:TransactionInstruction[] = [];
+    const signers:Keypair[] = [];
+
+    await stablePoolProgram.rpc.depositToSaber(
+      new anchor.BN(depositAmount),
+      tokenVaultNonce,
+      userTroveNonce,
+      tokenCollNonce,
+      {
+        accounts: {
+          owner: user.publicKey,
+          userTrove: userTroveKey,
+          tokenVault: tokenVaultKey,
+          poolTokenColl: tokenCollKey,
+          userTokenColl: userCollKey,
+          mintColl: lpMint.publicKey,
+          tokenProgram: TOKEN_PROGRAM_ID,
+>>>>>>> d7ccbd0 (Impl saber farm test code)
           saberFarm:{
             quarry: saberFarmQuarry,
             miner: saberFarmMiner,
             minerVault: saberFarmMinerVault
           },
+<<<<<<< HEAD
           saberFarmRewarder,
           saberFarmProgram: SABER_FARM_PROGRAM,
+=======
+          sabeFarmRewarder:
+          saberFarmProgram,
+>>>>>>> d7ccbd0 (Impl saber farm test code)
         },
         signers: [user]
       }
@@ -563,15 +1012,27 @@ describe('saber-test', () => {
     let userTrove = await stablePoolProgram.account.userTrove.fetch(userTroveKey);
     let tokenVault = await stablePoolProgram.account.tokenVault.fetch(tokenVaultKey);
 
+<<<<<<< HEAD
     console.log("depositAmount mismatch: totalColl = " + tokenVault.totalColl);
     console.log("lockedCollBalance mismatch: lockedCollBalance = " + userTrove.lockedCollBalance);
     
     let poolLpTokenAccount = await saberMintToken.getAccountInfo(userTroveTokenVaultKey);
     let userLpTokenAccount = await saberMintToken.getAccountInfo(userLPTokenKey);
+=======
+    console.log("depositAmount =", depositAmount);
+    assert(tokenVault.totalColl == depositAmount,
+       "depositAmount mismatch: totalColl = " + tokenVault.totalColl);
+    assert(userTrove.lockedCollBalance == depositAmount, 
+        "lockedCollBalance mismatch: lockedCollBalance = " + userTrove.lockedCollBalance);
+    
+    let poolLpTokenAccount = await lpMint.getAccountInfo(tokenCollKey);
+    let userLpTokenAccount = await lpMint.getAccountInfo(userCollKey);
+>>>>>>> d7ccbd0 (Impl saber farm test code)
 
     console.log("poolLpTokenAccount.amount =", poolLpTokenAccount.amount.toString());
     console.log("userLpTokenAccount.amount =", userLpTokenAccount.amount.toString());
   });
+<<<<<<< HEAD
   it('Withdraw from Saber', async () => {
 
     await stablePoolProgram.rpc.withdrawFromSaber(
@@ -601,19 +1062,87 @@ describe('saber-test', () => {
     ).catch(e => {
       console.log("Deposit Collateral Error:", e);
     });
+=======
+
+  it('Withdraw from Saber', async () => {
+    const [globalStateKey] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(GLOBAL_STATE_TAG)],
+        stablePoolProgram.programId,
+      );
+    const globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
+    console.log("fetched globalState", globalState);
+
+    const [tokenVaultKey, tokenVaultNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(TOKEN_VAULT_TAG), lpMint.publicKey.toBuffer()],
+        stablePoolProgram.programId,
+      );
+
+    const [tokenCollKey, tokenCollNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(TOKEN_VAULT_POOL_TAG), tokenVaultKey.toBuffer()],
+        stablePoolProgram.programId,
+      );
+
+    const [userTroveKey, userTroveNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(USER_TROVE_TAG), tokenVaultKey.toBuffer(), user.publicKey.toBuffer()],
+        stablePoolProgram.programId,
+      );
+
+      await stablePoolProgram.rpc.withdrawFromSaber(
+        new anchor.BN(depositAmount),
+        tokenVaultNonce,
+        userTroveNonce,
+        tokenCollNonce,
+        {
+          accounts: {
+            owner: user.publicKey,
+            userTrove: userTroveKey,
+            tokenVault: tokenVaultKey,
+            poolTokenColl: tokenCollKey,
+            userTokenColl: userCollKey,
+            mintColl: lpMint.publicKey,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            saberFarm:{
+              quarry: saberFarmQuarry,
+              miner: saberFarmMiner,
+              minerVault: saberFarmMinerVault
+            },
+            sabeFarmRewarder:
+            saberFarmProgram,
+          },
+          signers: [user]
+        }
+      ).catch(e => {
+        console.log("Deposit Collateral Error:", e);
+      });
+>>>>>>> d7ccbd0 (Impl saber farm test code)
 
     let userTrove = await stablePoolProgram.account.userTrove.fetch(userTroveKey);
     let tokenVault = await stablePoolProgram.account.tokenVault.fetch(tokenVaultKey);
 
+<<<<<<< HEAD
     console.log( "depositAmount mismatch: totalColl = " + tokenVault.totalColl);
     console.log( "lockedCollBalance mismatch: lockedCollBalance = " + userTrove.lockedCollBalance);
 
     let poolLpTokenAccount = await saberMintToken.getAccountInfo(userTroveTokenVaultKey);
     let userLpTokenAccount = await saberMintToken.getAccountInfo(userLPTokenKey);
+=======
+    assert(tokenVault.totalColl == 0,
+       "depositAmount mismatch: totalColl = " + tokenVault.totalColl);
+    assert(userTrove.lockedCollBalance == 0, 
+        "lockedCollBalance mismatch: lockedCollBalance = " + userTrove.lockedCollBalance);
+
+    let poolLpTokenAccount = await lpMint.getAccountInfo(tokenCollKey);
+    let userLpTokenAccount = await lpMint.getAccountInfo(userCollKey);
+>>>>>>> d7ccbd0 (Impl saber farm test code)
 
     console.log("poolLpTokenAccount.amount =", poolLpTokenAccount.amount.toString());
     console.log("userLpTokenAccount.amount =", userLpTokenAccount.amount.toString());
   });
+<<<<<<< HEAD
   it('Harvest from Saber', async () => {
     await stablePoolProgram.rpc.harvestFromSaber(
       {
@@ -679,3 +1208,85 @@ function loadKeypair(path = process.env.ANCHOR_WALLET){
     )
   );
 }
+=======
+
+  it('Harvest from Saber', async () => {
+    const [globalStateKey] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(GLOBAL_STATE_TAG)],
+        stablePoolProgram.programId,
+      );
+    const globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
+    console.log("fetched globalState", globalState);
+
+    const [tokenVaultKey, tokenVaultNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(TOKEN_VAULT_TAG), lpMint.publicKey.toBuffer()],
+        stablePoolProgram.programId,
+      );
+
+    const [tokenCollKey, tokenCollNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(TOKEN_VAULT_POOL_TAG), tokenVaultKey.toBuffer()],
+        stablePoolProgram.programId,
+      );
+
+    const [userTroveKey, userTroveNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(USER_TROVE_TAG), tokenVaultKey.toBuffer(), user.publicKey.toBuffer()],
+        stablePoolProgram.programId,
+      );
+
+      await stablePoolProgram.rpc.harvestFromSaber(
+        new anchor.BN(depositAmount),
+        tokenVaultNonce,
+        userTroveNonce,
+        tokenCollNonce,
+        {
+          accounts: {
+            owner: user.publicKey,
+            userTrove: userTroveKey,
+            tokenVault: tokenVaultKey,
+            poolTokenColl: tokenCollKey,
+            userTokenColl: userCollKey,
+            mintColl: lpMint.publicKey,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            saberFarm:{
+              quarry: saberFarmQuarry,
+              miner: saberFarmMiner,
+              minerVault: saberFarmMinerVault
+            },
+            sabeFarmRewarder:
+            saberFarmProgram,
+
+            mintWrapper,
+            mintWrapperProgram: QUARRY_ADDRESSES.MintWrapper,
+
+            minter,
+            rewardsTokenMint: rewardsMintToken.publicKey,
+            claimFeeTokenAccount: rewarderClaimFeeTokenAccount,
+          },
+          signers: [user]
+        }
+      ).catch(e => {
+        console.log("Deposit Collateral Error:", e);
+      });
+
+    let userTrove = await stablePoolProgram.account.userTrove.fetch(userTroveKey);
+    let tokenVault = await stablePoolProgram.account.tokenVault.fetch(tokenVaultKey);
+
+    assert(tokenVault.totalColl == 0,
+       "depositAmount mismatch: totalColl = " + tokenVault.totalColl);
+    assert(userTrove.lockedCollBalance == 0, 
+        "lockedCollBalance mismatch: lockedCollBalance = " + userTrove.lockedCollBalance);
+
+    let poolLpTokenAccount = await lpMint.getAccountInfo(tokenCollKey);
+    let userLpTokenAccount = await lpMint.getAccountInfo(userCollKey);
+
+    console.log("poolLpTokenAccount.amount =", poolLpTokenAccount.amount.toString());
+    console.log("userLpTokenAccount.amount =", userLpTokenAccount.amount.toString());
+  });
+
+  
+});
+>>>>>>> d7ccbd0 (Impl saber farm test code)
