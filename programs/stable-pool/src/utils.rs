@@ -76,30 +76,6 @@ pub fn paused<'info>(global_state: &Account<GlobalState>) -> Result<()> {
     Ok(())
 }
 
-pub struct ProcessedAmounts {
-    pub owner_fee: u64,
-    pub new_amount: u64,
-}
-
-pub fn calculate_fee(input_amount: u64, fee_pct: u128) -> Result<ProcessedAmounts> {
-    let mut fee_amount = u128::from(input_amount)
-        .checked_mul(fee_pct)
-        .unwrap()
-        .checked_div(FEE_DENOMINATOR)
-        .unwrap();
-
-    if fee_amount == 0 {
-        fee_amount = 1;
-    }
-
-    let new_amount = u128::from(input_amount).checked_sub(fee_amount).unwrap();
-
-    Ok(ProcessedAmounts {
-        owner_fee: fee_amount.try_into().unwrap(),
-        new_amount: new_amount.try_into().unwrap(),
-    })
-}
-
 pub fn assert_global_debt_ceiling_not_exceeded(
     debt_ceiling: u64,
     total_debt: u64,
@@ -181,6 +157,32 @@ pub fn unstake_from_saber_pda<'info>(
 
     Ok(())
 }
+
+pub struct ProcessedAmounts {
+    pub owner_fee: u64,
+    pub new_amount: u64,
+}
+
+pub fn calculate_fee(
+    input_amount: u64,
+    fee_pct: u128,
+)->Result<ProcessedAmounts>{
+    let mut fee_amount = u128::from(input_amount).checked_mul(fee_pct).unwrap()
+    .checked_div(FEE_DENOMINATOR).unwrap();
+
+    if fee_amount == 0 {
+        fee_amount = 1;
+    }
+
+    let new_amount = u128::from(input_amount).checked_sub(fee_amount).unwrap();
+    
+    Ok(ProcessedAmounts{
+        owner_fee: fee_amount.try_into().unwrap(),
+        new_amount: new_amount.try_into().unwrap(),
+    })
+}
+
+
 pub fn harvest_from_saber_pda<'info>(
     farm_program: AccountInfo<'info>,
     token_program: AccountInfo<'info>,
