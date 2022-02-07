@@ -9,19 +9,11 @@ pub const RATIO_ORCA_AUTH_TAG: &[u8] = b"cdp-orca-auth";
 
 pub const USD_DECIMALS: u8 = 6;
 
-pub enum OrcaInstructions {
-    InitGlobalFarm,
-    InitUserFarm,
-    ConvertTokens,
-    RevertTokens,
-    Harvest,
-    RemoveRewards,
-    SetEmissionsPerSecond,
-}
 pub const USER_TROVE_REWARD_A_TAG: &[u8] = b"user-trove-reward-a";
 pub const USER_TROVE_REWARD_B_TAG: &[u8] = b"user-trove-reward-b";
-pub const HARVEST_FEE_NUMERATOR: u128 = 3;
-pub const FEE_DENOMINATOR: u128 = 1000;
+
+pub const DEFAULT_FEE_NUMERATOR: u128 = 3;
+pub const DEFAULT_FEE_DENOMINATOR: u128 = 1000;
 
 pub const RAYDIUM_USER_ACCOUNT_SIZE: usize = 248;
 pub const DEVNET_MODE: bool = {

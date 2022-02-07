@@ -9,14 +9,11 @@ use anchor_spl::token::{Token, Mint, TokenAccount};
 
 use crate::{states::*, constant::*};
 
-use crate::utils::paused;
-use crate::states::GlobalState;
-
 pub fn process_init_orca_farm(
     ctx: Context<InitRatioUserFarm>,
     ratio_authority_bump: u8
 ) -> ProgramResult {
-    invoke_signed(
+    invoke_signed( 
         &Instruction {
             program_id: ctx.accounts.orca_farm_program.key(),
             data: vec![OrcaInstrunction::InitUserFarm as u8],
@@ -44,7 +41,6 @@ pub fn process_init_orca_farm(
     Ok(())
 }
 
-#[access_control(paused(&ctx.accounts.global_state))]
 pub fn process_create_orca_vault(
     ctx: Context<CreateOrcaVault>, 
     is_dd: u8,
@@ -58,7 +54,6 @@ pub fn process_create_orca_vault(
     Ok(())
 }
 
-#[access_control(paused(&ctx.accounts.global_state))]
 pub fn process_deposit_orcalp(
     ctx: Context<DepositOrcaLP>, 
     amount: u64, 
@@ -124,7 +119,6 @@ pub fn process_deposit_orcalp(
     Ok(())
 }
 
-#[access_control(paused(&ctx.accounts.global_state))]
 pub fn process_withdraw_orcalp(
     ctx: Context<WithdrawOrcaLP>, 
     amount: u64,
@@ -194,8 +188,7 @@ pub fn process_withdraw_orcalp(
     Ok(())
 }
 
-#[access_control(paused(&ctx.accounts.global_state))]
-pub fn process_harvest_reward(
+pub fn process_harvest_orca_reward(
     ctx: Context<HarvestOrcaReward>,
     ratio_authority_bump: u8
 ) -> ProgramResult {
