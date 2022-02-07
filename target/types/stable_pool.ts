@@ -119,6 +119,125 @@ export type StablePool = {
       ]
     },
     {
+      "name": "setHarvestFee",
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalState",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "feeNum",
+          "type": "u64"
+        },
+        {
+          "name": "feeDeno",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "toggleEmerState",
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalState",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "newState",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "changeSuperOwner",
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "newOwner",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "setGlobalDebtCeiling",
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "ceiling",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "setVaultDebtCeiling",
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mintColl",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenVault",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "ceiling",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "createUserTrove",
       "accounts": [
         {
@@ -1031,7 +1150,7 @@ export type StablePool = {
       ]
     },
     {
-      "name": "harvestReward",
+      "name": "harvestFromOrca",
       "accounts": [
         {
           "name": "owner",
@@ -1093,58 +1212,6 @@ export type StablePool = {
         {
           "name": "ratioAuthorityBump",
           "type": "u8"
-        }
-      ]
-    },
-    {
-      "name": "setGlobalDebtCeiling",
-      "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "globalState",
-          "isMut": true,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "ceiling",
-          "type": "u64"
-        }
-      ]
-    },
-    {
-      "name": "setVaultDebtCeiling",
-      "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "globalState",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mintColl",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenVault",
-          "isMut": true,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "ceiling",
-          "type": "u64"
         }
       ]
     },
@@ -1563,6 +1630,14 @@ export type StablePool = {
           {
             "name": "debtCeiling",
             "type": "u64"
+          },
+          {
+            "name": "feeNum",
+            "type": "u128"
+          },
+          {
+            "name": "feeDeno",
+            "type": "u128"
           }
         ]
       }
@@ -1697,35 +1772,6 @@ export type StablePool = {
     }
   ],
   "types": [
-    {
-      "name": "OrcaInstructions",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "InitGlobalFarm"
-          },
-          {
-            "name": "InitUserFarm"
-          },
-          {
-            "name": "ConvertTokens"
-          },
-          {
-            "name": "RevertTokens"
-          },
-          {
-            "name": "Harvest"
-          },
-          {
-            "name": "RemoveRewards"
-          },
-          {
-            "name": "SetEmissionsPerSecond"
-          }
-        ]
-      }
-    },
     {
       "name": "AccountType",
       "type": {
@@ -2016,6 +2062,125 @@ export const IDL: StablePool = {
       ]
     },
     {
+      "name": "setHarvestFee",
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalState",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "feeNum",
+          "type": "u64"
+        },
+        {
+          "name": "feeDeno",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "toggleEmerState",
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalState",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "newState",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "changeSuperOwner",
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "newOwner",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "setGlobalDebtCeiling",
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "ceiling",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "setVaultDebtCeiling",
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mintColl",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenVault",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "ceiling",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "createUserTrove",
       "accounts": [
         {
@@ -2928,7 +3093,7 @@ export const IDL: StablePool = {
       ]
     },
     {
-      "name": "harvestReward",
+      "name": "harvestFromOrca",
       "accounts": [
         {
           "name": "owner",
@@ -2990,58 +3155,6 @@ export const IDL: StablePool = {
         {
           "name": "ratioAuthorityBump",
           "type": "u8"
-        }
-      ]
-    },
-    {
-      "name": "setGlobalDebtCeiling",
-      "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "globalState",
-          "isMut": true,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "ceiling",
-          "type": "u64"
-        }
-      ]
-    },
-    {
-      "name": "setVaultDebtCeiling",
-      "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "globalState",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mintColl",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenVault",
-          "isMut": true,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "ceiling",
-          "type": "u64"
         }
       ]
     },
@@ -3460,6 +3573,14 @@ export const IDL: StablePool = {
           {
             "name": "debtCeiling",
             "type": "u64"
+          },
+          {
+            "name": "feeNum",
+            "type": "u128"
+          },
+          {
+            "name": "feeDeno",
+            "type": "u128"
           }
         ]
       }
@@ -3594,35 +3715,6 @@ export const IDL: StablePool = {
     }
   ],
   "types": [
-    {
-      "name": "OrcaInstructions",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "InitGlobalFarm"
-          },
-          {
-            "name": "InitUserFarm"
-          },
-          {
-            "name": "ConvertTokens"
-          },
-          {
-            "name": "RevertTokens"
-          },
-          {
-            "name": "Harvest"
-          },
-          {
-            "name": "RemoveRewards"
-          },
-          {
-            "name": "SetEmissionsPerSecond"
-          }
-        ]
-      }
-    },
     {
       "name": "AccountType",
       "type": {

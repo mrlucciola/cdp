@@ -92,26 +92,17 @@ describe('ratio', () => {
 
   it('Create Global State', async () => {
     
-    console.log("stablePoolProgram.programId =", stablePoolProgram.programId.toBase58());
-    
     const [globalStateKey, globalStateNonce] = 
       await anchor.web3.PublicKey.findProgramAddress(
         [Buffer.from(GLOBAL_STATE_TAG)],
         stablePoolProgram.programId,
       );
 
-    console.log("globalStateKey =", globalStateKey.toBase58());
-
     const [mintUsdKey, mintUsdNonce] =
       await anchor.web3.PublicKey.findProgramAddress(
         [Buffer.from(USD_MINT_TAG)],
         stablePoolProgram.programId,
       );
-
-    console.log("mintUsdKey =", mintUsdKey.toBase58());
-
-    // let data = await provider.connection.getAccountInfo(stablePoolProgram.programId);
-    // console.log("data =", data);
 
     let txHash = await stablePoolProgram.rpc.createGlobalState(
       globalStateNonce, 
@@ -129,20 +120,14 @@ describe('ratio', () => {
         },
         signers: [superOwner]
       }
-    ).catch(e => {
-      console.log("e =", e);
-    });
-    console.log("txHash =", txHash);
-
+    );
     const globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
-
     assert(globalState.superOwner.toBase58() == superOwner.publicKey.toBase58());
     assert(globalState.mintUsd.toBase58() == mintUsdKey.toBase58());
     assert(globalState.tvlLimit.toNumber() == tvlLimit, "GlobalState TVL Limit: " + globalState.tvlLimit + " TVL Limit: " + tvlLimit);
     assert(globalState.tvl.toNumber() == 0);
     assert(globalState.totalDebt.toNumber() == 0);
     assert(globalState.debtCeiling.toNumber() == globalDebtCeiling, "GlobalState Debt Ceiling: " + globalState.debtCeiling + " Debt Ceiling: " + globalDebtCeiling);
-
   });
  
   it('Only the super owner can create token vaults', async () => {
@@ -177,6 +162,7 @@ describe('ratio', () => {
             tokenVault: tokenVaultKey,
             globalState: globalStateKey,
             mintColl: lpMint.publicKey,
+            rewardMint: lpMint.publicKey,
             systemProgram: SystemProgram.programId,
             tokenProgram: TOKEN_PROGRAM_ID,
             rent: SYSVAR_RENT_PUBKEY,
@@ -222,6 +208,7 @@ describe('ratio', () => {
             tokenVault: tokenVaultKey,
             globalState: globalStateKey,
             mintColl: lpMint.publicKey,
+            rewardMint: lpMint.publicKey,
             systemProgram: SystemProgram.programId,
             tokenProgram: TOKEN_PROGRAM_ID,
             rent: SYSVAR_RENT_PUBKEY,
@@ -264,6 +251,7 @@ describe('ratio', () => {
             tokenVault: tokenVaultKey,
             globalState: globalStateKey,
             mintColl: lpMint.publicKey,
+            rewardMint: lpMint.publicKey,
             systemProgram: SystemProgram.programId,
             tokenProgram: TOKEN_PROGRAM_ID,
             rent: SYSVAR_RENT_PUBKEY,
@@ -339,6 +327,7 @@ describe('ratio', () => {
             tokenVault: tokenVaultKey,
             globalState: globalStateKey,
             mintColl: localLpMint.publicKey,
+            rewardMint: localLpMint.publicKey,
             systemProgram: SystemProgram.programId,
             tokenProgram: TOKEN_PROGRAM_ID,
             rent: SYSVAR_RENT_PUBKEY,
@@ -376,7 +365,7 @@ describe('ratio', () => {
       tokenCollNonce, 
       {
         accounts: {
-          troveOwner: user.publicKey,
+          authority: user.publicKey,
           userTrove: userTroveKey,
           tokenColl: tokenCollKey,
           tokenVault: tokenVaultKey,

@@ -70,9 +70,13 @@ pub fn get_token_balance(token_account: &AccountInfo) -> Result<u64> {
     Ok(u64::from_le_bytes(*amount))
 }
 
-// modifier
-pub fn paused<'info>(global_state: &Account<GlobalState>) -> Result<()> {
+// access control modifier
+pub fn is_secure(global_state: &Account<GlobalState>) -> Result<()> {
     require!(global_state.paused == 0, StablePoolError::NotAllowed);
+    Ok(())
+}
+pub fn is_admin(global_state: &Account<GlobalState>, admin: &AccountInfo) -> Result<()> {
+    require!(global_state.super_owner.eq(&admin.key()), StablePoolError::Unauthorized);
     Ok(())
 }
 
@@ -165,10 +169,11 @@ pub struct ProcessedAmounts {
 
 pub fn calculate_fee(
     input_amount: u64,
-    fee_pct: u128,
+    fee_num: u128,
+    fee_deno: u128,
 )->Result<ProcessedAmounts>{
-    let mut fee_amount = u128::from(input_amount).checked_mul(fee_pct).unwrap()
-    .checked_div(FEE_DENOMINATOR).unwrap();
+    let mut fee_amount = u128::from(input_amount).checked_mul(fee_num).unwrap()
+    .checked_div(fee_deno).unwrap();
 
     if fee_amount == 0 {
         fee_amount = 1;
@@ -248,59 +253,6 @@ pub fn assert_vault_debt_ceiling_not_exceeded(
 pub fn assert_devnet() -> ProgramResult {
     if !DEVNET_MODE {
         return Err(StablePoolError::InvalidCluster.into());
-    }
-    Ok(())
-}
-
-// orca lp integration
-pub fn fn_cpi_invoke<'info, 'a>(
-    accounts: &[AccountInfo<'info>], 
-    cpi_program: AccountInfo<'info>,
-    instruction: u8,
-    amount: u64,
-    is_pda_sign: bool,
-    authority_signer_seeds: Option<&'a[&'a[u8]]>
-) -> ProgramResult {
-    let mut data: Vec<u8> = vec![];
-    data.push(instruction);
-    data.extend(amount.to_le_bytes().to_vec());
-    
-    // Getting AccountMeta Vector
-    let accounts_metas: Vec<AccountMeta> 
-        = accounts.iter().map(
-            |acc| if acc.is_writable == true { AccountMeta::new(*acc.key, acc.is_signer)} 
-                                else {AccountMeta::new_readonly(*acc.key, acc.is_signer)}
-        )
-        .collect();
-
-    //msg!("metas: {:?}", &accounts_metas);
-    // Constructing Instruction
-    let instruction = Instruction {
-        program_id: cpi_program.key(),
-        data,
-        accounts: accounts_metas
-    };
-
-    // Getting Accounts Vector
-    let mut ix_accounts: Vec<AccountInfo> 
-        = accounts.iter().map(|acc| acc.clone())
-        .collect();
-
-    ix_accounts.push(cpi_program.clone()); 
-
-    //msg!("ix_accounts: {:?}", &ix_accounts[0]);
-    // CPI Invoke
-    if is_pda_sign {
-        invoke_signed(
-            &instruction,
-            &ix_accounts,
-            &[authority_signer_seeds.unwrap()]
-        )?;
-    } else {     
-        invoke(
-            &instruction,
-            &ix_accounts
-        )?;
     }
     Ok(())
 }

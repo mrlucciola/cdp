@@ -12,6 +12,8 @@ pub struct GlobalState {
     pub paused: u8,
     pub total_debt: u64,
     pub debt_ceiling: u64,
+    pub fee_num: u128,
+    pub fee_deno: u128
 }
 
 #[account]

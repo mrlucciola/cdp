@@ -76,7 +76,7 @@ impl<'info> HarvestReward<'info> {
     pub fn harvest(&mut self) -> ProgramResult {
         
         self.user_trove_reward.reload()?;
-        let fee_info = calculate_fee(self.user_trove_reward.amount, HARVEST_FEE_NUMERATOR)?;
+        let fee_info = calculate_fee(self.user_trove_reward.amount, self.global_state.fee_num, self.global_state.fee_deno)?;
         
         require!(fee_info.new_amount > 0, StablePoolError::InvalidTransferAmount);
         require!(fee_info.owner_fee > 0, StablePoolError::InvalidTransferAmount);

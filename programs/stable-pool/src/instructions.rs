@@ -14,7 +14,7 @@ use crate::{
 
 #[derive(Accounts)]
 #[instruction(global_state_nonce:u8, mint_usd_nonce:u8, tvl_limit:u64, debt_ceiling:u64)]
-pub struct CreateGlobalState <'info>{
+pub struct CreateGlobalState<'info>{
     #[account(mut)]
     pub super_owner: Signer<'info>,
 
@@ -37,6 +37,43 @@ pub struct CreateGlobalState <'info>{
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub rent: Sysvar<'info, Rent>,
+}
+
+#[derive(Accounts)]
+pub struct SetHarvestFee<'info>{
+    #[account(mut)]
+    pub payer: Signer<'info>,
+
+    #[account(
+        seeds = [GLOBAL_STATE_TAG],
+        bump = global_state.global_state_nonce,
+    )]
+    pub global_state: Account<'info, GlobalState>,
+}
+
+#[derive(Accounts)]
+pub struct ToggleEmerState<'info>{
+    #[account(mut)]
+    pub payer: Signer<'info>,
+
+    #[account(
+        seeds = [GLOBAL_STATE_TAG],
+        bump = global_state.global_state_nonce,
+    )]
+    pub global_state: Account<'info, GlobalState>,
+}
+
+#[derive(Accounts)]
+pub struct ChangeSuperOwner<'info>{
+    #[account(mut)]
+    pub payer: Signer<'info>,
+
+    #[account(
+        seeds = [GLOBAL_STATE_TAG],
+        bump = global_state.global_state_nonce,
+    )]
+    pub global_state: Account<'info, GlobalState>,
+    pub new_owner: AccountInfo<'info>,
 }
 
 #[derive(Accounts)]
