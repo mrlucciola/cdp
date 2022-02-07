@@ -8,8 +8,6 @@ pub mod error;
 pub mod instructions;
 ///processor
 pub mod processor;
-/// pyth
-pub mod pyth;
 /// raydium
 pub mod raydium;
 /// states
