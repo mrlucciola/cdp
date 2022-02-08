@@ -1017,7 +1017,7 @@ describe('ratio', () => {
       localTokenCollNonce, 
       {
         accounts: {
-          troveOwner: localUser.publicKey,
+          authority: localUser.publicKey,
           userTrove: localUserTroveKey,
           tokenColl: localTokenCollKey,
           tokenVault: tokenVaultKey,
@@ -1362,7 +1362,7 @@ describe('ratio', () => {
       localTokenCollNonce, 
       {
         accounts: {
-          troveOwner: localUser.publicKey,
+          authority: localUser.publicKey,
           userTrove: localUserTroveKey,
           tokenColl: localTokenCollKey,
           tokenVault: tokenVaultKey,

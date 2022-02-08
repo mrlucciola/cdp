@@ -76,7 +76,7 @@ pub fn is_secure(global_state: &Account<GlobalState>) -> Result<()> {
     Ok(())
 }
 pub fn is_admin(global_state: &Account<GlobalState>, admin: &AccountInfo) -> Result<()> {
-    require!(global_state.super_owner.eq(&admin.key()), StablePoolError::Unauthorized);
+    require!(global_state.authority.eq(&admin.key()), StablePoolError::Unauthorized);
     Ok(())
 }
 

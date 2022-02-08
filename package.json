@@ -7,7 +7,7 @@
         "@quarryprotocol/quarry-sdk": "^1.10.6",
         "@saberhq/anchor-contrib": "^1.10.4",
         "@saberhq/stableswap-sdk": "^1.10.3",
-        "@saberhq/token-utils": "^1.10.4",
+        "@saberhq/token-utils": "^1.10.8",
         "jsbi": "^4.1.0",
         "decimal.js": "^10.3.1",
         "@orca-so/sdk": "^1.2.21"

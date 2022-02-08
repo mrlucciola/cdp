@@ -106,7 +106,7 @@ describe('orca-integration', function() {
       //console.log("e =", e);
     });
     const globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
-    assert(globalState.superOwner.toBase58() == superOwner.publicKey.toBase58());
+    assert(globalState.authority.toBase58() == superOwner.publicKey.toBase58());
     assert(globalState.mintUsd.toBase58() == mintUsdKey.toBase58());
     assert(globalState.tvlLimit.toNumber() == tvlLimit, "GlobalState TVL Limit: " + globalState.tvlLimit + " TVL Limit: " + tvlLimit);
     assert(globalState.tvl.toNumber() == 0);
@@ -128,7 +128,7 @@ describe('orca-integration', function() {
         new anchor.BN(vaultDebtCeiling),
         {
           accounts: {
-            payer: superOwner.publicKey,
+            authority: superOwner.publicKey,
             tokenVault: tokenVaultKey,
             globalState: globalStateKey,
             mintColl: lpMint,
@@ -172,7 +172,7 @@ describe('orca-integration', function() {
       tokenCollNonce, 
       {
         accounts: {
-          troveOwner: user.publicKey,
+          authority: user.publicKey,
           userTrove: userTroveKey,
           tokenColl: tokenCollKey,
           tokenVault: tokenVaultKey,

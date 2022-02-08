@@ -16,7 +16,7 @@ pub mod states;
 pub mod utils;
 use crate::{instructions::*, processor::*, utils::*};
 
-declare_id!("FqS3DWMYNUJcFujkrHCWA7C6HgCXFZhHUKaPuDs8rqXY");
+declare_id!("4wfMwqGyCTtLjKmKaPNX5kN7eKyvtRbeWhz8LHDExHEL");
 pub mod site_fee_owner {
     anchor_lang::declare_id!("2Pv5mjmKYAtXNpr3mcsXf7HjtS3fieJeFoWPATVT5rWa");
 }
@@ -32,8 +32,7 @@ pub mod stable_pool {
         tvl_limit: u64,
         debt_ceiling: u64,
     ) -> ProgramResult {
-        process_create_global_state(
-            ctx,
+        ctx.accounts.create(
             global_state_nonce,
             mint_usd_nonce,
             tvl_limit,
@@ -41,7 +40,7 @@ pub mod stable_pool {
         )
     }
     
-    #[access_control(is_admin(&ctx.accounts.global_state, &ctx.accounts.payer))]
+    #[access_control(is_admin(&ctx.accounts.global_state, &ctx.accounts.authority))]
     pub fn create_token_vault(
         ctx: Context<CreateTokenVault>,
         token_vault_nonce: u8,
@@ -49,7 +48,7 @@ pub mod stable_pool {
         is_dual: u8,
         debt_ceiling: u64,
     ) -> ProgramResult {
-        process_create_token_vault(ctx, token_vault_nonce, risk_level, is_dual, debt_ceiling)
+        ctx.accounts.create( token_vault_nonce, risk_level, is_dual, debt_ceiling)
     }
 
     #[access_control(is_admin(&ctx.accounts.global_state, &ctx.accounts.payer))]
@@ -81,15 +80,14 @@ pub mod stable_pool {
         ctx: Context<SetGlobalDebtCeiling>,
         ceiling: u64,
     ) -> ProgramResult {
-        process_set_global_debt_ceiling(ctx, ceiling)
+        ctx.accounts.set( ceiling)
     }
-
     #[access_control(is_admin(&ctx.accounts.global_state, &ctx.accounts.payer))]
     pub fn set_vault_debt_ceiling(
         ctx: Context<SetVaultDebtCeiling>,
         ceiling: u64,
     ) -> ProgramResult {
-        process_set_vault_debt_ceiling(ctx, ceiling)
+        ctx.accounts.set(ceiling)
     }
 
     // user section
@@ -98,8 +96,15 @@ pub mod stable_pool {
         user_trove_nonce: u8,
         token_coll_nonce: u8,
     ) -> ProgramResult {
-        process_create_user_trove(ctx, user_trove_nonce, token_coll_nonce)
+        ctx.accounts.create(user_trove_nonce, token_coll_nonce)
     }
+    pub fn create_user_reward_vault(
+        ctx: Context<CreateUserRewardVault>,
+        reward_vault_nonce: u8
+    ) -> ProgramResult {
+        ctx.accounts.create()
+    }
+    
 
     #[access_control(is_secure(&ctx.accounts.global_state))]
     pub fn deposit_collateral(ctx: Context<RatioStaker>, amount: u64) -> ProgramResult {
@@ -117,12 +122,12 @@ pub mod stable_pool {
         amount: u64,
         user_usd_token_nonce: u8,
     ) -> ProgramResult {
-        process_borrow_usd(ctx, amount, user_usd_token_nonce)
+        ctx.accounts.borrow( amount, user_usd_token_nonce)
     }
 
     #[access_control(is_secure(&ctx.accounts.global_state))]
     pub fn repay_usd(ctx: Context<RepayUsd>, amount: u64) -> ProgramResult {
-        process_repay_usd(ctx, amount)
+        ctx.accounts.repay(amount)
     }
 
     pub fn create_raydium_v5_reward_vaults(
