@@ -35,10 +35,16 @@ pub enum StablePoolError {
 
     #[msg("TVL Exceeded")]
     TVLExceeded,
+
     #[msg("Global Debt Ceiling Exceeded")]
     GlobalDebtCeilingExceeded,
+
     #[msg("Vault Debt Ceiling Exceeded")]
     VaultDebtCeilingExceeded,
+
+    #[msg("User Debt Ceiling Exceeded")]
+    UserDebtCeilingExceeded,
+
     #[msg("Transfer amount is invalid")]
     InvalidTransferAmount,
 }

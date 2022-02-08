@@ -43,7 +43,6 @@ pub fn process_change_super_owner(ctx: Context<ChangeSuperOwner>) -> ProgramResu
 
 
 impl<'info> SetGlobalDebtCeiling<'info> {
-  /// Claims rewards from saber farm
   pub fn set(&mut self, ceiling:u64 ) -> ProgramResult {
       self.global_state.debt_ceiling = ceiling;
       Ok(())
@@ -51,15 +50,20 @@ impl<'info> SetGlobalDebtCeiling<'info> {
 }
 
 impl<'info> SetVaultDebtCeiling<'info> {
-  /// Claims rewards from saber farm
   pub fn set(&mut self, ceiling:u64 ) -> ProgramResult {
       self.token_vault.debt_ceiling = ceiling;
       Ok(())
   }
 }
 
+impl<'info> SetUserDebtCeiling<'info> {
+  pub fn set(&mut self, ceiling:u64 ) -> ProgramResult {
+      self.user_trove.debt_ceiling = ceiling;
+      Ok(())
+  }
+}
+
 impl<'info> CreateTokenVault<'info> {
-  /// Claims rewards from saber farm
   pub fn create(&mut self, token_vault_nonce:u8, risk_level: u8, is_dual: u8, debt_ceiling: u64) -> ProgramResult {
 
       self.token_vault.mint_coll = self.mint_coll.key();
