@@ -271,7 +271,7 @@ pub struct CreateOrcaVault<'info> {
         seeds = [ORCA_VAULT_TAG, lp_mint.key().as_ref()],
         bump = orca_vault_nonce,
         payer = payer,
-        constraint = payer.key() == global_state.super_owner)]
+        constraint = payer.key() == global_state.authority)]
     pub orca_vault: Account<'info, RatioOrcaVault>,
 
     #[account(mut,

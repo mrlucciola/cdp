@@ -105,7 +105,7 @@ describe('user1_actions', () => {
         tokenCollNonce, 
         {
           accounts: {
-            troveOwner: user1.publicKey,
+            authority: user1.publicKey,
             userTrove: userTroveKey,
             tokenColl: tokenCollKey,
             tokenVault: tokenVaultKey,

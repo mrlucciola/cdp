@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 #[account]
 #[derive(Default)]
 pub struct GlobalState {
-    pub super_owner: Pubkey,
+    pub authority: Pubkey,
     pub mint_usd: Pubkey,
     pub global_state_nonce: u8,
     pub mint_usd_nonce: u8,
@@ -23,12 +23,24 @@ pub struct TokenVault {
     pub reward_mint_a: Pubkey,
     pub reward_mint_b: Pubkey,
     pub is_dual: u8,
-    pub reward_mint: Pubkey,
     pub total_coll: u64,
     pub total_debt: u64,
     pub debt_ceiling: u64,
     pub risk_level: u8,
     pub token_vault_nonce: u8,
+    
+    pub platform_type: u8,
+    pub farm_info: Pubkey,
+}
+
+#[account]
+#[derive(Default)]
+pub struct SaberFarmAccount {
+    pub quarry: Pubkey,
+    pub rewarder: Pubkey,
+    pub mint_wrapper: Pubkey,
+    pub minter: Pubkey,
+    pub claim_fee_token_account: Pubkey,
 }
 
 #[account]

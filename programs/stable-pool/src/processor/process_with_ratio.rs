@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self,  Transfer};
+use anchor_spl::token::{self,  Transfer, MintTo, Burn};
 
 use crate::{
     instructions::*,
@@ -7,6 +7,31 @@ use crate::{
     constant::*,
     error::*,
 };
+
+impl<'info> CreateUserTrove<'info> {
+    /// Claims rewards from saber farm
+    pub fn create(&mut self, 
+        user_trove_nonce: u8,
+        token_coll_nonce: u8, 
+    ) -> ProgramResult {
+        self.user_trove.locked_coll_balance = 0;
+        self.user_trove.debt = 0;
+        self.user_trove.user_trove_nonce = user_trove_nonce;
+        self.user_trove.token_coll_nonce = token_coll_nonce;
+
+        Ok(())
+    }
+}
+
+impl<'info> CreateUserRewardVault<'info> {
+    /// Claims rewards from saber farm
+    pub fn create(&mut self
+    ) -> ProgramResult {
+
+        self.token_vault.reward_mint_a = self.reward_mint.key();
+        Ok(())
+    }
+}
 
 impl<'info> RatioStaker<'info> {
     /// Claims rewards from saber farm
@@ -109,3 +134,82 @@ impl<'info> HarvestReward<'info> {
         Ok(())
     }
 }
+
+impl<'info> BorrowUsd<'info> {
+    pub fn borrow(&mut self,
+        amount: u64,
+        user_usd_token_nonce: u8,
+    ) -> ProgramResult {
+
+        assert_debt_allowed(self.user_trove.locked_coll_balance, self.user_trove.debt, amount, self.token_vault.risk_level)?;
+        assert_vault_debt_ceiling_not_exceeded(self.token_vault.debt_ceiling, self.token_vault.total_debt, amount)?;
+        assert_global_debt_ceiling_not_exceeded(self.global_state.debt_ceiling, self.global_state.total_debt, amount)?;
+        
+        let cur_timestamp = self.clock.unix_timestamp as u64;
+
+        assert_limit_mint(cur_timestamp, self.user_trove.last_mint_time)?;
+        // mint to user
+        let cpi_accounts = MintTo {
+            mint: self.mint_usd.to_account_info().clone(),
+            to: self.user_token_usd.to_account_info().clone(),
+            authority: self.global_state.to_account_info().clone(),
+        };
+
+        let cpi_program = self.token_program.to_account_info().clone();
+
+        let signer_seeds = &[
+            GLOBAL_STATE_TAG,
+            &[self.global_state.global_state_nonce],
+        ];
+        let signer = &[&signer_seeds[..]];
+
+        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
+        token::mint_to(cpi_ctx, amount)?;
+
+        self.token_vault.total_debt += amount;
+        self.global_state.total_debt += amount;
+        self.user_trove.debt += amount;
+        self.user_trove.last_mint_time = cur_timestamp;
+        self.user_trove.user_usd_nonce = user_usd_token_nonce;
+
+        Ok(())
+    }
+}
+
+
+impl<'info> RepayUsd<'info> {
+    pub fn repay(&mut self,
+        amount: u64,
+    ) -> ProgramResult {
+        let mut _amount = amount;
+        if self.user_trove.debt < amount {
+            _amount = self.user_trove.debt;
+        }
+        // burn
+        let cpi_accounts = Burn {
+            mint: self.mint_usd.to_account_info().clone(),
+            to: self.user_token_usd.to_account_info().clone(),
+            authority: self.owner.to_account_info().clone(),
+        };
+
+        let cpi_program = self.token_program.to_account_info().clone();
+
+        let signer_seeds = &[
+            GLOBAL_STATE_TAG,
+            &[self.global_state.global_state_nonce],
+        ];
+        let signer = &[&signer_seeds[..]];
+
+        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
+
+        token::burn(cpi_ctx, _amount)?;
+
+        self.token_vault.total_debt -= _amount;
+        self.global_state.total_debt -= _amount;
+        self.user_trove.debt -= _amount;
+
+        Ok(())
+    }
+}
+
+
