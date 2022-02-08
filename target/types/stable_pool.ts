@@ -59,7 +59,7 @@ export type StablePool = {
       "name": "createTokenVault",
       "accounts": [
         {
-          "name": "payer",
+          "name": "authority",
           "isMut": true,
           "isSigner": true
         },
@@ -75,11 +75,6 @@ export type StablePool = {
         },
         {
           "name": "mintColl",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rewardMint",
           "isMut": false,
           "isSigner": false
         },
@@ -266,6 +261,51 @@ export type StablePool = {
           "isSigner": false
         },
         {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "userTroveNonce",
+          "type": "u8"
+        },
+        {
+          "name": "tokenCollNonce",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "createUserRewardVault",
+      "accounts": [
+        {
+          "name": "tokenVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userTrove",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
           "name": "rewardVault",
           "isMut": true,
           "isSigner": false
@@ -293,11 +333,7 @@ export type StablePool = {
       ],
       "args": [
         {
-          "name": "userTroveNonce",
-          "type": "u8"
-        },
-        {
-          "name": "tokenCollNonce",
+          "name": "rewardVaultNonce",
           "type": "u8"
         }
       ]
@@ -1596,7 +1632,7 @@ export type StablePool = {
         "kind": "struct",
         "fields": [
           {
-            "name": "superOwner",
+            "name": "authority",
             "type": "publicKey"
           },
           {
@@ -1664,10 +1700,6 @@ export type StablePool = {
             "type": "u8"
           },
           {
-            "name": "rewardMint",
-            "type": "publicKey"
-          },
-          {
             "name": "totalColl",
             "type": "u64"
           },
@@ -1686,6 +1718,42 @@ export type StablePool = {
           {
             "name": "tokenVaultNonce",
             "type": "u8"
+          },
+          {
+            "name": "platformType",
+            "type": "u8"
+          },
+          {
+            "name": "farmInfo",
+            "type": "publicKey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "saberFarmAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "quarry",
+            "type": "publicKey"
+          },
+          {
+            "name": "rewarder",
+            "type": "publicKey"
+          },
+          {
+            "name": "mintWrapper",
+            "type": "publicKey"
+          },
+          {
+            "name": "minter",
+            "type": "publicKey"
+          },
+          {
+            "name": "claimFeeTokenAccount",
+            "type": "publicKey"
           }
         ]
       }
@@ -1772,71 +1840,6 @@ export type StablePool = {
     }
   ],
   "types": [
-    {
-      "name": "AccountType",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "Unknown"
-          },
-          {
-            "name": "Mapping"
-          },
-          {
-            "name": "Product"
-          },
-          {
-            "name": "Price"
-          }
-        ]
-      }
-    },
-    {
-      "name": "PriceStatus",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "Unknown"
-          },
-          {
-            "name": "Trading"
-          },
-          {
-            "name": "Halted"
-          },
-          {
-            "name": "Auction"
-          }
-        ]
-      }
-    },
-    {
-      "name": "CorpAction",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "NoCorpAct"
-          }
-        ]
-      }
-    },
-    {
-      "name": "PriceType",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "Unknown"
-          },
-          {
-            "name": "Price"
-          }
-        ]
-      }
-    },
     {
       "name": "OrcaInstrunction",
       "type": {
@@ -2002,7 +2005,7 @@ export const IDL: StablePool = {
       "name": "createTokenVault",
       "accounts": [
         {
-          "name": "payer",
+          "name": "authority",
           "isMut": true,
           "isSigner": true
         },
@@ -2018,11 +2021,6 @@ export const IDL: StablePool = {
         },
         {
           "name": "mintColl",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rewardMint",
           "isMut": false,
           "isSigner": false
         },
@@ -2209,6 +2207,51 @@ export const IDL: StablePool = {
           "isSigner": false
         },
         {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "userTroveNonce",
+          "type": "u8"
+        },
+        {
+          "name": "tokenCollNonce",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "createUserRewardVault",
+      "accounts": [
+        {
+          "name": "tokenVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userTrove",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
           "name": "rewardVault",
           "isMut": true,
           "isSigner": false
@@ -2236,11 +2279,7 @@ export const IDL: StablePool = {
       ],
       "args": [
         {
-          "name": "userTroveNonce",
-          "type": "u8"
-        },
-        {
-          "name": "tokenCollNonce",
+          "name": "rewardVaultNonce",
           "type": "u8"
         }
       ]
@@ -3539,7 +3578,7 @@ export const IDL: StablePool = {
         "kind": "struct",
         "fields": [
           {
-            "name": "superOwner",
+            "name": "authority",
             "type": "publicKey"
           },
           {
@@ -3607,10 +3646,6 @@ export const IDL: StablePool = {
             "type": "u8"
           },
           {
-            "name": "rewardMint",
-            "type": "publicKey"
-          },
-          {
             "name": "totalColl",
             "type": "u64"
           },
@@ -3629,6 +3664,42 @@ export const IDL: StablePool = {
           {
             "name": "tokenVaultNonce",
             "type": "u8"
+          },
+          {
+            "name": "platformType",
+            "type": "u8"
+          },
+          {
+            "name": "farmInfo",
+            "type": "publicKey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "saberFarmAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "quarry",
+            "type": "publicKey"
+          },
+          {
+            "name": "rewarder",
+            "type": "publicKey"
+          },
+          {
+            "name": "mintWrapper",
+            "type": "publicKey"
+          },
+          {
+            "name": "minter",
+            "type": "publicKey"
+          },
+          {
+            "name": "claimFeeTokenAccount",
+            "type": "publicKey"
           }
         ]
       }
@@ -3715,71 +3786,6 @@ export const IDL: StablePool = {
     }
   ],
   "types": [
-    {
-      "name": "AccountType",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "Unknown"
-          },
-          {
-            "name": "Mapping"
-          },
-          {
-            "name": "Product"
-          },
-          {
-            "name": "Price"
-          }
-        ]
-      }
-    },
-    {
-      "name": "PriceStatus",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "Unknown"
-          },
-          {
-            "name": "Trading"
-          },
-          {
-            "name": "Halted"
-          },
-          {
-            "name": "Auction"
-          }
-        ]
-      }
-    },
-    {
-      "name": "CorpAction",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "NoCorpAct"
-          }
-        ]
-      }
-    },
-    {
-      "name": "PriceType",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "Unknown"
-          },
-          {
-            "name": "Price"
-          }
-        ]
-      }
-    },
     {
       "name": "OrcaInstrunction",
       "type": {
