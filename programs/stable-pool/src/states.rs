@@ -51,6 +51,7 @@ pub struct UserTrove {
     pub reward_token_b: Pubkey,
     pub locked_coll_balance: u64,
     pub debt: u64,
+    pub debt_ceiling: u64,
     pub last_mint_time: u64,
     pub user_trove_nonce: u8,
     pub wallet_nonce: u8, // because of raydium

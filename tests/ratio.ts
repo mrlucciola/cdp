@@ -46,6 +46,7 @@ describe('ratio', () => {
   const tvlLimit = 1_000_000_000;
   const globalDebtCeiling = 15_000_000;
   const vaultDebtCeiling = 10_000_000;
+  const userDebtCeiling = 0;
   const USD_DECIMAL = 6;
 
   console.log("superOwner =", superOwner.publicKey.toBase58());
@@ -362,7 +363,8 @@ describe('ratio', () => {
       );
     await stablePoolProgram.rpc.createUserTrove(
       userTroveNonce, 
-      tokenCollNonce, 
+      tokenCollNonce,
+      new anchor.BN(userDebtCeiling),
       {
         accounts: {
           authority: user.publicKey,
@@ -748,6 +750,68 @@ describe('ratio', () => {
     assert(tokenVault.debtCeiling.toNumber() == vaultDebtCeiling, "Vault Debt Ceiling: " + tokenVault.debtCeiling.toNumber() + " Expected Debt Ceiling: " + vaultDebtCeiling);
   });
 
+  it('Set User Debt Ceiling', async () => {
+    const newUserDebtCeiling = 5_000_000;
+    const [globalStateKey, globalStateNonce] =
+    await anchor.web3.PublicKey.findProgramAddress(
+      [Buffer.from(GLOBAL_STATE_TAG)],
+      stablePoolProgram.programId,
+    );
+    const [tokenVaultKey, tokenVaultNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(TOKEN_VAULT_TAG), lpMint.publicKey.toBuffer()],
+        stablePoolProgram.programId,
+    );
+    const [userTroveKey, userTroveNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(USER_TROVE_TAG), tokenVaultKey.toBuffer(), user.publicKey.toBuffer()],
+        stablePoolProgram.programId,
+    );
+
+    let txHash = await stablePoolProgram.rpc.setUserDebtCeiling(
+      new anchor.BN(newUserDebtCeiling),
+      {
+        accounts: {
+          payer: superOwner.publicKey,
+          user: user.publicKey,
+          globalState: globalStateKey,
+          mintColl: lpMint.publicKey,
+          tokenVault: tokenVaultKey,
+          userTrove: userTroveKey,
+        },
+        signers: [superOwner]
+      }
+    ).catch(e => {
+      console.log("Setting User Debt Ceiling Error:", e);
+    });
+
+    let userTrove = await stablePoolProgram.account.userTrove.fetch(userTroveKey);
+
+    assert(userTrove.debtCeiling.toNumber() == newUserDebtCeiling, "Vault Debt Ceiling: " + userTrove.debtCeiling.toNumber() + " Expected Debt Ceiling: " + newUserDebtCeiling);
+
+    // Reverting to original vault debt ceiling
+    txHash = await stablePoolProgram.rpc.setUserDebtCeiling(
+      new anchor.BN(userDebtCeiling),
+      {
+        accounts: {
+          payer: superOwner.publicKey,
+          user: user.publicKey,
+          globalState: globalStateKey,
+          mintColl: lpMint.publicKey,
+          tokenVault: tokenVaultKey,
+          userTrove: userTroveKey,
+        },
+        signers: [superOwner]
+      }
+    ).catch(e => {
+      console.log("Setting User Debt Ceiling Error:", e);
+    });
+
+    userTrove = await stablePoolProgram.account.userTrove.fetch(userTroveKey);
+
+    assert(userTrove.debtCeiling.toNumber() == userDebtCeiling, "User Debt Ceiling: " + userTrove.debtCeiling.toNumber() + " Expected Debt Ceiling: " + userDebtCeiling);
+  });
+
   it('Set Global Debt Ceiling Fails If Not Called By Super Owner', async () => {
     const newGlobalDebtCeiling = 5_000_000;
     const [globalStateKey, globalStateNonce] =
@@ -808,6 +872,47 @@ describe('ratio', () => {
     let tokenVault = await stablePoolProgram.account.tokenVault.fetch(tokenVaultKey);
 
     assert(tokenVault.debtCeiling.toNumber() == vaultDebtCeiling, "Vault Debt Ceiling: " + tokenVault.debtCeiling.toNumber() + " Expected Global Debt Ceiling: " + vaultDebtCeiling);
+  });
+
+  it('Set User Debt Ceiling Fails If Not Called By Super Owner', async () => {
+    const newUserDebtCeiling = 5_000_000;
+    const [globalStateKey, globalStateNonce] =
+    await anchor.web3.PublicKey.findProgramAddress(
+      [Buffer.from(GLOBAL_STATE_TAG)],
+      stablePoolProgram.programId,
+    );
+    const [tokenVaultKey, tokenVaultNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(TOKEN_VAULT_TAG), lpMint.publicKey.toBuffer()],
+        stablePoolProgram.programId,
+    );
+    const [userTroveKey, userTroveNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(USER_TROVE_TAG), tokenVaultKey.toBuffer(), user.publicKey.toBuffer()],
+        stablePoolProgram.programId,
+    );
+
+    const callSetUserDebtCeiling = async ()=>{
+      await stablePoolProgram.rpc.setUserDebtCeiling(
+        new anchor.BN(newUserDebtCeiling),
+        {
+          accounts: {
+            payer: user.publicKey,
+            user: user.publicKey,
+            globalState: globalStateKey,
+            mintColl: lpMint.publicKey,
+            tokenVault: tokenVaultKey,
+            userTrove: userTroveKey,
+          },
+          signers: [user]
+        });
+    };
+
+    await expect(callSetUserDebtCeiling(),"No error was thrown when trying to set the user debt ceiling from non super owner acount").is.rejected;
+
+    let userTrove = await stablePoolProgram.account.userTrove.fetch(userTroveKey);
+
+    assert(userTrove.debtCeiling.toNumber() == userDebtCeiling, "User Debt Ceiling: " + userTrove.debtCeiling.toNumber() + " Expected Debt Ceiling: " + userDebtCeiling);
   });
 
   it('TVL Limit', async () => {
@@ -1014,7 +1119,8 @@ describe('ratio', () => {
     
     await stablePoolProgram.rpc.createUserTrove(
       localUserTroveNonce, 
-      localTokenCollNonce, 
+      localTokenCollNonce,
+      new anchor.BN(userDebtCeiling),
       {
         accounts: {
           authority: localUser.publicKey,
@@ -1359,7 +1465,8 @@ describe('ratio', () => {
 
     await stablePoolProgram.rpc.createUserTrove(
       localUserTroveNonce, 
-      localTokenCollNonce, 
+      localTokenCollNonce,
+      new anchor.BN(userDebtCeiling),
       {
         accounts: {
           authority: localUser.publicKey,
@@ -1548,5 +1655,273 @@ describe('ratio', () => {
     assert(globalState.tvl.toNumber() == 0,
         "tvl mistmatch: tvl = " + globalState.tvl);
 
+  });
+
+  
+  it("User can't borrow if user debt ceiling is exceeded", async () => {
+    let userDepositAmount = 200_000_000;
+    let userBorrowAmount = 4_000_000;
+    let newUserDebtCeiling = 5_000_000;
+
+    const [globalStateKey, globalStateNonce] =
+    await anchor.web3.PublicKey.findProgramAddress(
+      [Buffer.from(GLOBAL_STATE_TAG)],
+      stablePoolProgram.programId,
+    );
+    let globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
+
+    let [tokenVaultKey, tokenVaultNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(TOKEN_VAULT_TAG), lpMint.publicKey.toBuffer()],
+        stablePoolProgram.programId,
+      );
+
+    let [userTroveKey, userTroveNonce] =
+    await anchor.web3.PublicKey.findProgramAddress(
+      [Buffer.from(USER_TROVE_TAG), tokenVaultKey.toBuffer(), user.publicKey.toBuffer()],
+      stablePoolProgram.programId,
+    );
+
+    // Reset global debt ceiling to 15_000_000
+    let txHash = await stablePoolProgram.rpc.setGlobalDebtCeiling(
+      new anchor.BN(globalDebtCeiling),
+      {
+        accounts: {
+          payer: superOwner.publicKey,
+          globalState: globalStateKey,
+        },
+        signers: [superOwner]
+      }
+    ).catch(e => {
+      console.log("Setting Global Debt Ceiling Error:", e);
+    });
+
+    globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
+
+    assert(globalState.debtCeiling.toNumber() == globalDebtCeiling, "Global Debt Ceiling: " + globalState.debtCeiling.toNumber() + " Expected Debt Ceiling: " + globalDebtCeiling);
+
+    // Set user debt ceiling to 5_000_000
+    txHash = await stablePoolProgram.rpc.setUserDebtCeiling(
+      new anchor.BN(newUserDebtCeiling),
+      {
+        accounts: {
+          payer: superOwner.publicKey,
+          user: user.publicKey,
+          globalState: globalStateKey,
+          mintColl: lpMint.publicKey,
+          tokenVault: tokenVaultKey,
+          userTrove: userTroveKey,
+        },
+        signers: [superOwner]
+      }
+    ).catch(e => {
+      console.log("Setting User Debt Ceiling Error:", e);
+    });
+
+    let userTrove = await stablePoolProgram.account.userTrove.fetch(userTroveKey);
+
+    assert(userTrove.debtCeiling.toNumber() == newUserDebtCeiling, "User Debt Ceiling: " + userTrove.debtCeiling.toNumber() + " Expected Debt Ceiling: " + newUserDebtCeiling);
+
+    let [tokenCollKey, tokenCollNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(USER_TROVE_POOL_TAG), userTroveKey.toBuffer()],
+        stablePoolProgram.programId,
+      );
+
+    let [mintUsdKey, mintUsdNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(USD_MINT_TAG)],
+        stablePoolProgram.programId,
+      );
+
+    let [userUsdKey, userUsdNonce] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from(USD_TOKEN_TAG), user.publicKey.toBuffer(), mintUsdKey.toBuffer()],
+        stablePoolProgram.programId,
+      );      
+
+    await stablePoolProgram.rpc.depositCollateral(
+      new anchor.BN(userDepositAmount),
+      {
+        accounts: {
+          owner: user.publicKey,
+          userTrove: userTroveKey,
+          tokenVault: tokenVaultKey,
+          poolTokenColl: tokenCollKey,
+          userTokenColl: userCollKey,
+          mintColl: lpMint.publicKey,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          globalState: globalStateKey,
+        },
+        signers: [user]
+      }
+    ).catch(e => {
+      console.log("Deposit Collateral Error:", e);
+    });
+
+    userTrove = await stablePoolProgram.account.userTrove.fetch(userTroveKey);
+    let tokenVault = await stablePoolProgram.account.tokenVault.fetch(tokenVaultKey);
+    globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
+
+    assert(tokenVault.totalColl.toNumber() == userDepositAmount,
+      "depositAmount mismatch: totalColl = " + tokenVault.totalColl);
+    assert(userTrove.lockedCollBalance.toNumber() == userDepositAmount, 
+        "lockedCollBalance mismatch: lockedCollBalance = " + userTrove.lockedCollBalance);
+    assert(globalState.tvl.toNumber() == userDepositAmount,
+        "tvl mistmatch: tvl = " + globalState.tvl);
+
+    // First borrow should succeed since userBorrowAmount < userTrove.debtCeiling
+    txHash = await stablePoolProgram.rpc.borrowUsd(
+      new anchor.BN(userBorrowAmount), 
+      userUsdNonce,
+      {
+        accounts: {
+          owner: user.publicKey,
+          tokenVault: tokenVaultKey,
+          userTrove: userTroveKey,
+          globalState: globalStateKey,
+          mintUsd: mintUsdKey,
+          userTokenUsd: userUsdKey,
+          mintColl: lpMint.publicKey,
+          systemProgram: SystemProgram.programId,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          rent: SYSVAR_RENT_PUBKEY,
+          clock: SYSVAR_CLOCK_PUBKEY,
+        },
+        signers: [user]
+      }
+    ).catch(e => {
+      console.log("Borrow USD Error:", e);
+    });
+
+    userTrove = await stablePoolProgram.account.userTrove.fetch(userTroveKey);
+    tokenVault = await stablePoolProgram.account.tokenVault.fetch(tokenVaultKey);
+    globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
+
+    assert(tokenVault.totalDebt.toNumber() == userBorrowAmount, "Vault Total Debt: " + tokenVault.totalDebt + " Expected Debt: " + userBorrowAmount);
+    assert(globalState.totalDebt.toNumber() == userBorrowAmount, "Global Total Debt: " + tokenVault.totalDebt + " Expected Debt: " + userBorrowAmount);
+    assert(userTrove.debt.toNumber() == userBorrowAmount, "User Trove Debt: " + userTrove.debt + " Expected Debt: " + userBorrowAmount);
+    assert(tokenVault.totalDebt.lt(tokenVault.debtCeiling), "Vault Total Debt should be less than Vault Debt Ceiling. Vault Debt ceiling not functional");
+    assert(globalState.totalDebt.lt(globalState.debtCeiling), "Global Total Debt should be less than Global Debt Ceiling. Global Debt ceiling not functional");
+    assert(userTrove.debt.lt(userTrove.debtCeiling), "User Total Debt should be less than User Debt Ceiling. User Debt ceiling not functional");
+
+    const borrowUsd = async ()=>{
+      await stablePoolProgram.rpc.borrowUsd(
+        new anchor.BN(userBorrowAmount), 
+        userUsdNonce,
+        {
+          accounts: {
+            owner: user.publicKey,
+            tokenVault: tokenVaultKey,
+            userTrove: userTroveKey,
+            globalState: globalStateKey,
+            mintUsd: mintUsdKey,
+            userTokenUsd: userUsdKey,
+            mintColl: lpMint.publicKey,
+            systemProgram: SystemProgram.programId,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            rent: SYSVAR_RENT_PUBKEY,
+            clock: SYSVAR_CLOCK_PUBKEY,
+          },
+          signers: [user]
+        });
+    };
+
+    await expect(borrowUsd(),"No error was thrown when trying borrow an amount above user debt ceiling").is.rejected;
+
+    userTrove = await stablePoolProgram.account.userTrove.fetch(userTroveKey);
+    tokenVault = await stablePoolProgram.account.tokenVault.fetch(tokenVaultKey);
+    globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
+
+    // Confirm variables haven't been changed when user debt ceiling is attempted to be exceeded (ie confirm borrow failed)
+    assert(tokenVault.totalDebt.toNumber() == userBorrowAmount, "Vault Total Debt: " + tokenVault.totalDebt + " Expected Debt: " + userBorrowAmount);
+    assert(globalState.totalDebt.toNumber() == userBorrowAmount, "Global Total Debt: " + tokenVault.totalDebt + " Expected Debt: " + userBorrowAmount);
+    assert(userTrove.debt.toNumber() == userBorrowAmount, "User Trove Debt: " + userTrove.debt + " Expected Debt: " + userBorrowAmount);
+    assert(tokenVault.totalDebt.lt(tokenVault.debtCeiling), "Vault Total Debt should be less than Vault Debt Ceiling. Vault Debt ceiling not functional");
+    assert(globalState.totalDebt.lt(globalState.debtCeiling), "Global Total Debt should be less than Global Debt Ceiling. Global Debt ceiling not functional");
+    assert(userTrove.debt.lt(userTrove.debtCeiling), "User Total Debt should be less than User Debt Ceiling. User Debt ceiling not functional");
+
+    // Clean up (repay debt, withdraw deposits)
+
+    txHash = await stablePoolProgram.rpc.repayUsd(
+      new anchor.BN(userDepositAmount), 
+      {
+        accounts: {
+          owner: user.publicKey,
+          tokenVault: tokenVaultKey,
+          userTrove: userTroveKey,
+          globalState: globalStateKey,
+          mintUsd: mintUsdKey,
+          userTokenUsd: userUsdKey,
+          mintColl: lpMint.publicKey,
+          tokenProgram: TOKEN_PROGRAM_ID,
+        },
+        signers: [user]
+      }
+    ).catch(e => {
+      console.log("Repay USD Error:", e);
+    });
+
+    userTrove = await stablePoolProgram.account.userTrove.fetch(userTroveKey);
+    tokenVault = await stablePoolProgram.account.tokenVault.fetch(tokenVaultKey);
+    globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
+
+    assert(tokenVault.totalDebt.toNumber() == 0, "Vault Total Debt: " + tokenVault.totalDebt + " Expected Debt: " + 0);
+    assert(globalState.totalDebt.toNumber() == 0, "Global Total Debt: " + tokenVault.totalDebt + " Expected Debt: " + 0);
+    assert(userTrove.debt.toNumber() == 0, "User Trove Debt: " + userTrove.debt + " Expected Debt: " + 0);
+    assert(tokenVault.totalDebt.lt(tokenVault.debtCeiling), "Vault Total Debt should be less than Vault Debt Ceiling. Vault Debt ceiling not functional");
+    assert(globalState.totalDebt.lt(globalState.debtCeiling), "Global Total Debt should be less than Global Debt Ceiling. Global Debt ceiling not functional");
+    assert(userTrove.debt.lt(userTrove.debtCeiling), "User Total Debt should be less than User Debt Ceiling. User Debt ceiling not functional");
+
+    txHash = await stablePoolProgram.rpc.withdrawCollateral(
+      new anchor.BN(userDepositAmount), 
+      {
+        accounts: {
+          owner: user.publicKey,
+          userTrove: userTroveKey,
+          tokenVault: tokenVaultKey,
+          poolTokenColl: tokenCollKey,
+          userTokenColl: userCollKey,
+          mintColl: lpMint.publicKey,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          globalState: globalStateKey,
+        },
+        signers: [user]
+      }
+    ).catch(e => {
+      console.log("Withdraw Collateral Error:", e);
+    });
+
+    userTrove = await stablePoolProgram.account.userTrove.fetch(userTroveKey);
+    tokenVault = await stablePoolProgram.account.tokenVault.fetch(tokenVaultKey);
+    globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
+
+    assert(tokenVault.totalColl.toNumber() == 0,
+        "depositAmount mismatch: totalColl = " + tokenVault.totalColl);
+    assert(userTrove.lockedCollBalance.toNumber() == 0, 
+        "lockedCollBalance mismatch: lockedCollBalance = " + userTrove.lockedCollBalance);
+    assert(globalState.tvl.toNumber() == 0,
+        "tvl mistmatch: tvl = " + globalState.tvl);
+
+    txHash = await stablePoolProgram.rpc.setUserDebtCeiling(
+      new anchor.BN(userDebtCeiling),
+      {
+        accounts: {
+          payer: superOwner.publicKey,
+          user: user.publicKey,
+          globalState: globalStateKey,
+          mintColl: lpMint.publicKey,
+          tokenVault: tokenVaultKey,
+          userTrove: userTroveKey,
+        },
+        signers: [superOwner]
+      }
+    ).catch(e => {
+      console.log("Setting User Debt Ceiling Error:", e);
+    });
+
+    userTrove = await stablePoolProgram.account.userTrove.fetch(userTroveKey);
+
+    assert(userTrove.debtCeiling.toNumber() == userDebtCeiling, "User Debt Ceiling: " + userTrove.debtCeiling.toNumber() + " Expected Debt Ceiling: " + userDebtCeiling);
   });
 });

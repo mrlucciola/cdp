@@ -456,6 +456,7 @@ describe('saber-test', () => {
       const tx1 = await stablePoolProgram.transaction.createUserTrove(
         userTroveNonce, 
         userTroveTokenVaultNonce, 
+        new anchor.BN(0),
         {
           accounts: {
             tokenVault: tokenVaultKey,

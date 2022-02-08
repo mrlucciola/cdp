@@ -13,11 +13,13 @@ impl<'info> CreateUserTrove<'info> {
     pub fn create(&mut self, 
         user_trove_nonce: u8,
         token_coll_nonce: u8, 
+        ceiling: u64,
     ) -> ProgramResult {
         self.user_trove.locked_coll_balance = 0;
         self.user_trove.debt = 0;
         self.user_trove.user_trove_nonce = user_trove_nonce;
         self.user_trove.token_coll_nonce = token_coll_nonce;
+        self.user_trove.debt_ceiling = ceiling;
 
         Ok(())
     }
@@ -144,6 +146,7 @@ impl<'info> BorrowUsd<'info> {
         assert_debt_allowed(self.user_trove.locked_coll_balance, self.user_trove.debt, amount, self.token_vault.risk_level)?;
         assert_vault_debt_ceiling_not_exceeded(self.token_vault.debt_ceiling, self.token_vault.total_debt, amount)?;
         assert_global_debt_ceiling_not_exceeded(self.global_state.debt_ceiling, self.global_state.total_debt, amount)?;
+        assert_user_debt_ceiling_not_exceeded(self.user_trove.debt_ceiling, self.user_trove.debt, amount)?;
         
         let cur_timestamp = self.clock.unix_timestamp as u64;
 

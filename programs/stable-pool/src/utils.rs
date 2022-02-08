@@ -250,6 +250,21 @@ pub fn assert_vault_debt_ceiling_not_exceeded(
     Ok(())
 }
 
+pub fn assert_user_debt_ceiling_not_exceeded(
+    debt_ceiling: u64,
+    total_debt: u64,
+    amount: u64,
+) -> ProgramResult {
+    // Debt ceiling of 0 means unlimited
+    if debt_ceiling == 0 {
+        return Ok(());
+    }
+    if debt_ceiling < total_debt + amount {
+        return Err(StablePoolError::UserDebtCeilingExceeded.into());
+    }
+    Ok(())
+}
+
 pub fn assert_devnet() -> ProgramResult {
     if !DEVNET_MODE {
         return Err(StablePoolError::InvalidCluster.into());

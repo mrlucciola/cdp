@@ -567,8 +567,7 @@ pub struct SetGlobalDebtCeiling<'info>{
 
     #[account(mut,
         seeds = [GLOBAL_STATE_TAG],
-        bump = global_state.global_state_nonce,
-        constraint = payer.key() == global_state.authority)]
+        bump = global_state.global_state_nonce)]
     pub global_state: Account<'info, GlobalState>,
 }
 
@@ -592,9 +591,38 @@ pub struct SetVaultDebtCeiling<'info>{
             TOKEN_VAULT_TAG,
             mint_coll.key().as_ref()
         ],
-        bump = token_vault.token_vault_nonce,
-        constraint = payer.key() == global_state.authority)]
+        bump = token_vault.token_vault_nonce,)]
     pub token_vault:Account<'info, TokenVault>,
+}
+
+#[derive(Accounts)]
+#[instruction(ceiling: u64)]
+pub struct SetUserDebtCeiling<'info>{
+    #[account(mut)]
+    pub payer: Signer<'info>,
+    pub user: AccountInfo<'info>,
+
+    #[account(mut,
+        seeds = [GLOBAL_STATE_TAG],
+        bump = global_state.global_state_nonce,)]
+    pub global_state: Account<'info, GlobalState>,
+
+    #[account(mut,
+        constraint = mint_coll.key() == token_vault.mint_coll)]
+    pub mint_coll: Account<'info, Mint>,
+
+    #[account(mut,
+        seeds = [
+            TOKEN_VAULT_TAG,
+            mint_coll.key().as_ref()
+        ],
+        bump = token_vault.token_vault_nonce)]
+    pub token_vault: Account<'info, TokenVault>,
+
+    #[account(mut,
+        seeds = [USER_TROVE_TAG,token_vault.key().as_ref(), user.key().as_ref()],
+        bump = user_trove.user_trove_nonce)]
+    pub user_trove:Account<'info, UserTrove>,
 }
 
 #[derive(Accounts)]

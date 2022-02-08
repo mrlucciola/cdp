@@ -89,14 +89,22 @@ pub mod stable_pool {
     ) -> ProgramResult {
         ctx.accounts.set(ceiling)
     }
+    #[access_control(is_admin(&ctx.accounts.global_state, &ctx.accounts.payer))]
+    pub fn set_user_debt_ceiling(
+        ctx: Context<SetUserDebtCeiling>,
+        ceiling: u64,
+    ) -> ProgramResult {
+        ctx.accounts.set(ceiling)
+    }
 
     // user section
     pub fn create_user_trove(
         ctx: Context<CreateUserTrove>,
         user_trove_nonce: u8,
         token_coll_nonce: u8,
+        ceiling: u64,
     ) -> ProgramResult {
-        ctx.accounts.create(user_trove_nonce, token_coll_nonce)
+        ctx.accounts.create(user_trove_nonce, token_coll_nonce, ceiling)
     }
     pub fn create_user_reward_vault(
         ctx: Context<CreateUserRewardVault>,
