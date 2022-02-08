@@ -14,7 +14,7 @@ stable_pool_faucet = "HBdT3RTpVY86wcvYXxetNmLcUczAjSr9JuenadoY8dEV"
 url = "https://anchor.projectserum.com"
 
 [provider]
-cluster = "localnet"
+cluster = "devnet"
 wallet = "./.config/test-keypair.json"
 
 [scripts]
