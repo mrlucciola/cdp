@@ -572,6 +572,18 @@ pub struct WithdrawRaydiumV5Collateral<'info> {
 }
 
 #[derive(Accounts)]
+#[instruction(limit:u64)]
+pub struct SetGlobalTvlLimit<'info>{
+    #[account(mut)]
+    pub payer:  Signer<'info>,
+
+    #[account(mut,
+        seeds = [GLOBAL_STATE_TAG],
+        bump = global_state.global_state_nonce)]
+    pub global_state: Account<'info, GlobalState>,
+}
+
+#[derive(Accounts)]
 #[instruction(ceiling:u64)]
 pub struct SetGlobalDebtCeiling<'info>{
     #[account(mut)]

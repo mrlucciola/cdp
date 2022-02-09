@@ -48,6 +48,13 @@ impl<'info> ChangeSuperOwner<'info> {
   }
 }
 
+impl<'info> SetGlobalTvlLimit<'info> {
+  pub fn set(&mut self, limit:u64 ) -> ProgramResult {
+      self.global_state.tvl_limit = limit;
+      Ok(())
+  }
+}
+
 impl<'info> SetGlobalDebtCeiling<'info> {
   pub fn set(&mut self, ceiling:u64 ) -> ProgramResult {
       self.global_state.debt_ceiling = ceiling;
