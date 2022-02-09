@@ -64,6 +64,18 @@ pub struct ToggleEmerState<'info>{
 }
 
 #[derive(Accounts)]
+pub struct SetCollateralRatio<'info>{
+    #[account(mut)]
+    pub payer: Signer<'info>,
+
+    #[account(
+        seeds = [GLOBAL_STATE_TAG],
+        bump = global_state.global_state_nonce,
+    )]
+    pub global_state: Account<'info, GlobalState>,
+}
+
+#[derive(Accounts)]
 pub struct ChangeSuperOwner<'info>{
     #[account(mut)]
     pub payer: Signer<'info>,

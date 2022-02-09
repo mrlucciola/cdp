@@ -1,6 +1,18 @@
 export type StablePool = {
   "version": "0.1.0",
   "name": "stable_pool",
+  "constants": [
+    {
+      "name": "RISK_TYPE_COUNT",
+      "type": "u8",
+      "value": "10"
+    },
+    {
+      "name": "RATIO_DENOMINATOR",
+      "type": "u64",
+      "value": "100_000"
+    }
+  ],
   "instructions": [
     {
       "name": "createGlobalState",
@@ -233,6 +245,73 @@ export type StablePool = {
       ]
     },
     {
+      "name": "setUserDebtCeiling",
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "user",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mintColl",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userTrove",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "ceiling",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "setCollaterialRatio",
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalState",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "ratios",
+          "type": {
+            "array": [
+              "u64",
+              10
+            ]
+          }
+        }
+      ]
+    },
+    {
       "name": "createUserTrove",
       "accounts": [
         {
@@ -284,6 +363,10 @@ export type StablePool = {
         {
           "name": "tokenCollNonce",
           "type": "u8"
+        },
+        {
+          "name": "ceiling",
+          "type": "u64"
         }
       ]
     },
@@ -1674,6 +1757,15 @@ export type StablePool = {
           {
             "name": "feeDeno",
             "type": "u128"
+          },
+          {
+            "name": "collPerRisklv",
+            "type": {
+              "array": [
+                "u64",
+                10
+              ]
+            }
           }
         ]
       }
@@ -1784,6 +1876,10 @@ export type StablePool = {
             "type": "u64"
           },
           {
+            "name": "debtCeiling",
+            "type": "u64"
+          },
+          {
             "name": "lastMintTime",
             "type": "u64"
           },
@@ -1868,6 +1964,44 @@ export type StablePool = {
           }
         ]
       }
+    },
+    {
+      "name": "RiskLevel",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "AAA"
+          },
+          {
+            "name": "AA"
+          },
+          {
+            "name": "A"
+          },
+          {
+            "name": "BBB"
+          },
+          {
+            "name": "BB"
+          },
+          {
+            "name": "B"
+          },
+          {
+            "name": "CCC"
+          },
+          {
+            "name": "CC"
+          },
+          {
+            "name": "C"
+          },
+          {
+            "name": "D"
+          }
+        ]
+      }
     }
   ],
   "errors": [
@@ -1938,6 +2072,11 @@ export type StablePool = {
     },
     {
       "code": 6013,
+      "name": "UserDebtCeilingExceeded",
+      "msg": "User Debt Ceiling Exceeded"
+    },
+    {
+      "code": 6014,
       "name": "InvalidTransferAmount",
       "msg": "Transfer amount is invalid"
     }
@@ -1947,6 +2086,18 @@ export type StablePool = {
 export const IDL: StablePool = {
   "version": "0.1.0",
   "name": "stable_pool",
+  "constants": [
+    {
+      "name": "RISK_TYPE_COUNT",
+      "type": "u8",
+      "value": "10"
+    },
+    {
+      "name": "RATIO_DENOMINATOR",
+      "type": "u64",
+      "value": "100_000"
+    }
+  ],
   "instructions": [
     {
       "name": "createGlobalState",
@@ -2179,6 +2330,73 @@ export const IDL: StablePool = {
       ]
     },
     {
+      "name": "setUserDebtCeiling",
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "user",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mintColl",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userTrove",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "ceiling",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "setCollaterialRatio",
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalState",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "ratios",
+          "type": {
+            "array": [
+              "u64",
+              10
+            ]
+          }
+        }
+      ]
+    },
+    {
       "name": "createUserTrove",
       "accounts": [
         {
@@ -2230,6 +2448,10 @@ export const IDL: StablePool = {
         {
           "name": "tokenCollNonce",
           "type": "u8"
+        },
+        {
+          "name": "ceiling",
+          "type": "u64"
         }
       ]
     },
@@ -3620,6 +3842,15 @@ export const IDL: StablePool = {
           {
             "name": "feeDeno",
             "type": "u128"
+          },
+          {
+            "name": "collPerRisklv",
+            "type": {
+              "array": [
+                "u64",
+                10
+              ]
+            }
           }
         ]
       }
@@ -3730,6 +3961,10 @@ export const IDL: StablePool = {
             "type": "u64"
           },
           {
+            "name": "debtCeiling",
+            "type": "u64"
+          },
+          {
             "name": "lastMintTime",
             "type": "u64"
           },
@@ -3814,6 +4049,44 @@ export const IDL: StablePool = {
           }
         ]
       }
+    },
+    {
+      "name": "RiskLevel",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "AAA"
+          },
+          {
+            "name": "AA"
+          },
+          {
+            "name": "A"
+          },
+          {
+            "name": "BBB"
+          },
+          {
+            "name": "BB"
+          },
+          {
+            "name": "B"
+          },
+          {
+            "name": "CCC"
+          },
+          {
+            "name": "CC"
+          },
+          {
+            "name": "C"
+          },
+          {
+            "name": "D"
+          }
+        ]
+      }
     }
   ],
   "errors": [
@@ -3884,6 +4157,11 @@ export const IDL: StablePool = {
     },
     {
       "code": 6013,
+      "name": "UserDebtCeilingExceeded",
+      "msg": "User Debt Ceiling Exceeded"
+    },
+    {
+      "code": 6014,
       "name": "InvalidTransferAmount",
       "msg": "Transfer amount is invalid"
     }

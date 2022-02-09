@@ -1,240 +1,276 @@
 use anchor_lang::{
     prelude::*,
     solana_program::{
-        program::{invoke_signed},
+        program::{invoke, invoke_signed},
         instruction::{AccountMeta, Instruction},
+        system_instruction
     }
 };
 use anchor_spl::token::{Token, Mint, TokenAccount};
 
 use crate::{states::*, constant::*};
 
-pub fn process_init_orca_farm(
-    ctx: Context<InitRatioUserFarm>,
-    ratio_authority_bump: u8
-) -> ProgramResult {
-    invoke_signed( 
-        &Instruction {
-            program_id: ctx.accounts.orca_farm_program.key(),
-            data: vec![OrcaInstrunction::InitUserFarm as u8],
-            accounts: vec![
-                // global farm
-                AccountMeta::new_readonly(ctx.accounts.global_farm.key(), false),
-                // user farm
-                AccountMeta::new(ctx.accounts.ratio_user_farm.key(), false),
-                // farm owner
-                AccountMeta::new(ctx.accounts.ratio_orca_authority.key(), true),
-                AccountMeta::new_readonly(ctx.accounts.system_program.key(), false),
-            ]
-        },
-        &[
-            ctx.accounts.global_farm.to_account_info().clone(),
-            ctx.accounts.ratio_user_farm.to_account_info().clone(),
-            ctx.accounts.ratio_orca_authority.to_account_info().clone(),
-            ctx.accounts.system_program.to_account_info().clone(),
-            ctx.accounts.orca_farm_program.to_account_info().clone()
-        ],
-        &[&[
-            RATIO_ORCA_AUTH_TAG, ctx.accounts.payer.key().as_ref(), &[ratio_authority_bump]
-        ]]
-    )?;
-    Ok(())
+impl<'info> InitRatioUserFarm<'info> {
+    pub fn init(
+        &mut self,
+        ratio_authority_bump: u8
+    ) -> ProgramResult {
+        // todo: Have a test if the ratio_orca_authority is going to die
+        let rent = Rent::get()?;
+        if self.ratio_orca_authority.data_is_empty() {
+            let required_lamports = 
+                rent.minimum_balance(ORCA_USER_FARM_SIZE as usize)
+                .max(1)
+                .saturating_sub(self.ratio_orca_authority.lamports());
+            msg!("required lamports {:?}", required_lamports);
+            if required_lamports > 0 {
+                invoke(
+                    &system_instruction::transfer(
+                        &self.payer.key(),
+                        &self.ratio_orca_authority.key(),
+                        required_lamports
+                    ),
+                    &[
+                        self.payer.to_account_info(),
+                        self.ratio_orca_authority.to_account_info(),
+                        self.system_program.to_account_info()
+                    ]
+                )?;
+            }
+        }
+        invoke_signed( 
+            &Instruction {
+                program_id: self.orca_farm_program.key(),
+                data: vec![OrcaInstrunction::InitUserFarm as u8],
+                accounts: vec![
+                    // global farm
+                    AccountMeta::new_readonly(self.global_farm.key(), false),
+                    // user farm
+                    AccountMeta::new(self.ratio_user_farm.key(), false),
+                    // farm owner
+                    AccountMeta::new(self.ratio_orca_authority.key(), true),
+                    AccountMeta::new_readonly(self.system_program.key(), false),
+                ]
+            },
+            &[
+                self.global_farm.to_account_info().clone(),
+                self.ratio_user_farm.to_account_info().clone(),
+                self.ratio_orca_authority.to_account_info().clone(),
+                self.system_program.to_account_info().clone(),
+                self.orca_farm_program.to_account_info().clone()
+            ],
+            &[&[
+                RATIO_ORCA_AUTH_TAG, self.payer.key().as_ref(), &[ratio_authority_bump]
+            ]]
+        )?;
+        Ok(())
+    }
 }
 
-pub fn process_create_orca_vault(
-    ctx: Context<CreateOrcaVault>, 
-    is_dd: u8,
-    orca_vault_nonce: u8
-) -> ProgramResult {
-    let orca_vault = &mut ctx.accounts.orca_vault;
-    orca_vault.base_mint = ctx.accounts.base_mint.key();
-    orca_vault.lp_mint = ctx.accounts.lp_mint.key();
-    orca_vault.dd_mint = ctx.accounts.dd_mint.key();
-    orca_vault.is_dd = is_dd;
-    Ok(())
+impl<'info> CreateOrcaVault<'info> {
+    pub fn create_vault(
+        &mut self, 
+        is_dd: u8,
+        orca_vault_nonce: u8
+    ) -> ProgramResult {
+        let orca_vault = &mut self.orca_vault;
+        orca_vault.base_mint = self.base_mint.key();
+        orca_vault.lp_mint = self.lp_mint.key();
+        orca_vault.dd_mint = self.dd_mint.key();
+        orca_vault.is_dd = is_dd;
+        Ok(())
+    }       
 }
 
-pub fn process_deposit_orcalp(
-    ctx: Context<DepositOrcaLP>, 
-    amount: u64, 
-    ratio_authority_bump : u8,
-) -> ProgramResult {
-    let mut data: Vec<u8> = vec![];
-    data.push(OrcaInstrunction::ConvertTokens as u8);
-    data.extend(amount.to_le_bytes().to_vec());
-    invoke_signed(
-        &Instruction {
-            program_id: ctx.accounts.orca_farm_program.key(),
-            data,
-            accounts: vec![
-                // farm owner
-                AccountMeta::new(ctx.accounts.ratio_authority.key(), true),
-                // base token account
-                AccountMeta::new(ctx.accounts.ratio_base_token_account.key(), false),
-                // orca base vault
-                AccountMeta::new(ctx.accounts.orca_base_vault.key(), false),
-                // transfer authority
-                AccountMeta::new(ctx.accounts.ratio_authority.key(), true),
-                // pool token mint
-                AccountMeta::new(ctx.accounts.pool_token_mint.key(), false),
-                // pool token account
-                AccountMeta::new(ctx.accounts.ratio_pool_token_account.key(), false),
-                // global farm
-                AccountMeta::new(ctx.accounts.global_farm.key(), false),
-                // user farm
-                AccountMeta::new(ctx.accounts.ratio_user_farm.key(), false),
-                // orca reward vault
-                AccountMeta::new(ctx.accounts.orca_reward_vault.key(), false),
-                // reward_token_account
-                AccountMeta::new(ctx.accounts.ratio_reward_token_account.key(), false),
-                // orca farm authority
-                AccountMeta::new_readonly(ctx.accounts.authority.key(), false),
-                // token program
-                AccountMeta::new_readonly(ctx.accounts.token_program.key(), false),
-            ]
-        },
-        &[
-            ctx.accounts.ratio_authority.to_account_info().clone(),
-            ctx.accounts.ratio_base_token_account.to_account_info().clone(),
-            ctx.accounts.orca_base_vault.to_account_info().clone(),
-            ctx.accounts.ratio_authority.to_account_info().clone(),
-            ctx.accounts.pool_token_mint.to_account_info().clone(),
-            ctx.accounts.ratio_pool_token_account.to_account_info().clone(),
-            ctx.accounts.global_farm.clone(),
-            ctx.accounts.ratio_user_farm.clone(),
-            ctx.accounts.orca_reward_vault.to_account_info().clone(),
-            ctx.accounts.ratio_reward_token_account.to_account_info().clone(),
-            ctx.accounts.authority.clone(),
-            ctx.accounts.token_program.to_account_info().clone(),
-            ctx.accounts.orca_farm_program.to_account_info().clone()
-        ],
-        &[&[
-            RATIO_ORCA_AUTH_TAG, ctx.accounts.owner.key().as_ref(), &[ratio_authority_bump]
-        ]]
-    )?;
-
-
-    ctx.accounts.user_trove.locked_coll_balance += amount;
-    ctx.accounts.token_vault.total_coll += amount;
-    Ok(())
-}
-
-pub fn process_withdraw_orcalp(
-    ctx: Context<WithdrawOrcaLP>, 
-    amount: u64,
-    ratio_authority_bump : u8
-) -> ProgramResult {
-    ///
-    /// First, Unstake Ratio's LP tokens to baseToken
-    let mut data: Vec<u8> = vec![];
-    data.push(OrcaInstrunction::RevertTokens as u8);
-    data.extend(amount.to_le_bytes().to_vec());
-
-    invoke_signed(
-        &Instruction {
-            program_id: ctx.accounts.orca_farm_program.key(),
-            data,
-            accounts: vec![
-                // farm owner
-                AccountMeta::new(ctx.accounts.ratio_authority.key(), true),
-                // base token account
-                AccountMeta::new(ctx.accounts.user_base_token_account.key(), false),
-                // orca base vault
-                AccountMeta::new(ctx.accounts.orca_base_vault.key(), false),
-                // pool token mint
-                AccountMeta::new(ctx.accounts.pool_token_mint.key(), false),
-                // pool token account
-                AccountMeta::new(ctx.accounts.ratio_pool_token_account.key(), false),
-                // burn authority
-                //AccountMeta::new_readonly(ctx.accounts.owner.key(), true),
-                AccountMeta::new(ctx.accounts.ratio_authority.key(), true),
-                // global farm
-                AccountMeta::new(ctx.accounts.global_farm.key(), false),
-                // user farm
-                AccountMeta::new(ctx.accounts.ratio_user_farm.key(), false),
-                // orca reward vault
-                AccountMeta::new(ctx.accounts.orca_reward_vault.key(), false),
-                // reward_token_account
-                AccountMeta::new(ctx.accounts.user_reward_token_account.key(), false),
-                // orca farm authority
-                AccountMeta::new_readonly(ctx.accounts.authority.key(), false),
-                // token program
-                AccountMeta::new_readonly(ctx.accounts.token_program.key(), false),
-            ]
-        },
-        &[
-            ctx.accounts.ratio_authority.clone(),
-            ctx.accounts.user_base_token_account.to_account_info().clone(),
-            ctx.accounts.orca_base_vault.to_account_info().clone(),
-            ctx.accounts.pool_token_mint.to_account_info().clone(),
-            ctx.accounts.ratio_pool_token_account.to_account_info().clone(),
-            ctx.accounts.ratio_authority.clone(),
-            ctx.accounts.global_farm.clone(),
-            ctx.accounts.ratio_user_farm.clone(),
-            ctx.accounts.orca_reward_vault.to_account_info().clone(),
-            ctx.accounts.user_reward_token_account.to_account_info().clone(),
-            ctx.accounts.authority.clone(),
-            ctx.accounts.token_program.to_account_info().clone(),
-            ctx.accounts.orca_farm_program.to_account_info().clone()
-        ],
-        &[&[
-            RATIO_ORCA_AUTH_TAG, ctx.accounts.owner.key().as_ref(), &[ratio_authority_bump]
-        ]]
-    )?;
+impl<'info> DepositOrcaLP<'info> {
+    pub fn deposit(
+        &mut self, 
+        amount: u64, 
+        ratio_authority_bump : u8,
+    ) -> ProgramResult {
+        let mut data: Vec<u8> = vec![];
+        data.push(OrcaInstrunction::ConvertTokens as u8);
+        data.extend(amount.to_le_bytes().to_vec());
+        invoke_signed(
+            &Instruction {
+                program_id: self.orca_farm_program.key(),
+                data,
+                accounts: vec![
+                    // farm owner
+                    AccountMeta::new(self.ratio_authority.key(), true),
+                    // base token account
+                    AccountMeta::new(self.ratio_base_token_account.key(), false),
+                    // orca base vault
+                    AccountMeta::new(self.orca_base_vault.key(), false),
+                    // transfer authority
+                    AccountMeta::new(self.ratio_authority.key(), true),
+                    // pool token mint
+                    AccountMeta::new(self.pool_token_mint.key(), false),
+                    // pool token account
+                    AccountMeta::new(self.ratio_pool_token_account.key(), false),
+                    // global farm
+                    AccountMeta::new(self.global_farm.key(), false),
+                    // user farm
+                    AccountMeta::new(self.ratio_user_farm.key(), false),
+                    // orca reward vault
+                    AccountMeta::new(self.orca_reward_vault.key(), false),
+                    // reward_token_account
+                    AccountMeta::new(self.ratio_reward_token_account.key(), false),
+                    // orca farm authority
+                    AccountMeta::new_readonly(self.authority.key(), false),
+                    // token program
+                    AccountMeta::new_readonly(self.token_program.key(), false),
+                ]
+            },
+            &[
+                self.ratio_authority.to_account_info().clone(),
+                self.ratio_base_token_account.to_account_info().clone(),
+                self.orca_base_vault.to_account_info().clone(),
+                self.ratio_authority.to_account_info().clone(),
+                self.pool_token_mint.to_account_info().clone(),
+                self.ratio_pool_token_account.to_account_info().clone(),
+                self.global_farm.clone(),
+                self.ratio_user_farm.clone(),
+                self.orca_reward_vault.to_account_info().clone(),
+                self.ratio_reward_token_account.to_account_info().clone(),
+                self.authority.clone(),
+                self.token_program.to_account_info().clone(),
+                self.orca_farm_program.to_account_info().clone()
+            ],
+            &[&[
+                RATIO_ORCA_AUTH_TAG, self.owner.key().as_ref(), &[ratio_authority_bump]
+            ]]
+        )?;
     
-    ctx.accounts.user_trove.locked_coll_balance -= amount;
-    ctx.accounts.token_vault.total_coll -= amount;
-
-    Ok(())
+        self.user_trove.locked_coll_balance += amount;
+        self.token_vault.total_coll += amount;
+        Ok(())
+    }
+    
 }
 
-pub fn process_harvest_orca_reward(
-    ctx: Context<HarvestOrcaReward>,
-    ratio_authority_bump: u8
-) -> ProgramResult {
-    let mut data: Vec<u8> = vec![];
-    data.push(OrcaInstrunction::Harvest as u8);
+impl<'info> WithdrawOrcaLP<'info> {
+    pub fn withdraw(
+        &mut self, 
+        amount: u64,
+        ratio_authority_bump : u8
+    ) -> ProgramResult {
+    
+        // First, Unstake Ratio's LP tokens to baseToken
+        let mut data: Vec<u8> = vec![];
+        data.push(OrcaInstrunction::RevertTokens as u8);
+        data.extend(amount.to_le_bytes().to_vec());
+    
+        invoke_signed(
+            &Instruction {
+                program_id: self.orca_farm_program.key(),
+                data,
+                accounts: vec![
+                    // farm owner
+                    AccountMeta::new(self.ratio_authority.key(), true),
+                    // base token account
+                    AccountMeta::new(self.user_base_token_account.key(), false),
+                    // orca base vault
+                    AccountMeta::new(self.orca_base_vault.key(), false),
+                    // pool token mint
+                    AccountMeta::new(self.pool_token_mint.key(), false),
+                    // pool token account
+                    AccountMeta::new(self.ratio_pool_token_account.key(), false),
+                    // burn authority
+                    //AccountMeta::new_readonly(self.owner.key(), true),
+                    AccountMeta::new(self.ratio_authority.key(), true),
+                    // global farm
+                    AccountMeta::new(self.global_farm.key(), false),
+                    // user farm
+                    AccountMeta::new(self.ratio_user_farm.key(), false),
+                    // orca reward vault
+                    AccountMeta::new(self.orca_reward_vault.key(), false),
+                    // reward_token_account
+                    AccountMeta::new(self.user_reward_token_account.key(), false),
+                    // orca farm authority
+                    AccountMeta::new_readonly(self.authority.key(), false),
+                    // token program
+                    AccountMeta::new_readonly(self.token_program.key(), false),
+                ]
+            },
+            &[
+                self.ratio_authority.clone(),
+                self.user_base_token_account.to_account_info().clone(),
+                self.orca_base_vault.to_account_info().clone(),
+                self.pool_token_mint.to_account_info().clone(),
+                self.ratio_pool_token_account.to_account_info().clone(),
+                self.ratio_authority.clone(),
+                self.global_farm.clone(),
+                self.ratio_user_farm.clone(),
+                self.orca_reward_vault.to_account_info().clone(),
+                self.user_reward_token_account.to_account_info().clone(),
+                self.authority.clone(),
+                self.token_program.to_account_info().clone(),
+                self.orca_farm_program.to_account_info().clone()
+            ],
+            &[&[
+                RATIO_ORCA_AUTH_TAG, self.owner.key().as_ref(), &[ratio_authority_bump]
+            ]]
+        )?;
+        
+        self.user_trove.locked_coll_balance -= amount;
+        self.token_vault.total_coll -= amount;
+    
+        Ok(())
+    }
+    
+}
 
-    invoke_signed(
-        &Instruction {
-            program_id: ctx.accounts.orca_farm_program.key(),
-            data,
-            accounts: vec![
-                // farm owner
-                AccountMeta::new(ctx.accounts.ratio_authority.key(), true),
-                // global farm
-                AccountMeta::new(ctx.accounts.global_farm.key(), false),
-                // user farm
-                AccountMeta::new(ctx.accounts.ratio_user_farm.key(), false),
-                // orca base vault
-                AccountMeta::new_readonly(ctx.accounts.orca_base_vault.key(), false),
-                // orca reward vault
-                AccountMeta::new(ctx.accounts.orca_reward_vault.key(), false),
-                // reward_token_account
-                AccountMeta::new(ctx.accounts.user_reward_token_account.key(), false),
-                // orca farm authority
-                AccountMeta::new_readonly(ctx.accounts.authority.key(), false),
-                // token program
-                AccountMeta::new_readonly(ctx.accounts.token_program.key(), false),
-            ]
-        },
-        &[
-            ctx.accounts.ratio_authority.to_account_info().clone(),
-            ctx.accounts.global_farm.clone(),
-            ctx.accounts.ratio_user_farm.clone(),
-            ctx.accounts.orca_base_vault.to_account_info().clone(),
-            ctx.accounts.orca_reward_vault.to_account_info().clone(),
-            ctx.accounts.user_reward_token_account.to_account_info().clone(),
-            ctx.accounts.authority.clone(),
-            ctx.accounts.token_program.to_account_info().clone(),
-            ctx.accounts.orca_farm_program.to_account_info().clone()
-        ],
-        &[&[
-            RATIO_ORCA_AUTH_TAG, ctx.accounts.owner.key().as_ref(), &[ratio_authority_bump]
-        ]]
-    )?;
-
-    Ok(())
+impl<'info> HarvestOrcaReward<'info> {
+    pub fn harvest(
+        &mut self,
+        ratio_authority_bump: u8
+    ) -> ProgramResult {
+        let mut data: Vec<u8> = vec![];
+        data.push(OrcaInstrunction::Harvest as u8);
+    
+        invoke_signed(
+            &Instruction {
+                program_id: self.orca_farm_program.key(),
+                data,
+                accounts: vec![
+                    // farm owner
+                    AccountMeta::new(self.ratio_authority.key(), true),
+                    // global farm
+                    AccountMeta::new(self.global_farm.key(), false),
+                    // user farm
+                    AccountMeta::new(self.ratio_user_farm.key(), false),
+                    // orca base vault
+                    AccountMeta::new_readonly(self.orca_base_vault.key(), false),
+                    // orca reward vault
+                    AccountMeta::new(self.orca_reward_vault.key(), false),
+                    // reward_token_account
+                    AccountMeta::new(self.user_reward_token_account.key(), false),
+                    // orca farm authority
+                    AccountMeta::new_readonly(self.authority.key(), false),
+                    // token program
+                    AccountMeta::new_readonly(self.token_program.key(), false),
+                ]
+            },
+            &[
+                self.ratio_authority.to_account_info().clone(),
+                self.global_farm.clone(),
+                self.ratio_user_farm.clone(),
+                self.orca_base_vault.to_account_info().clone(),
+                self.orca_reward_vault.to_account_info().clone(),
+                self.user_reward_token_account.to_account_info().clone(),
+                self.authority.clone(),
+                self.token_program.to_account_info().clone(),
+                self.orca_farm_program.to_account_info().clone()
+            ],
+            &[&[
+                RATIO_ORCA_AUTH_TAG, self.owner.key().as_ref(), &[ratio_authority_bump]
+            ]]
+        )?;
+    
+        Ok(())
+    }
+    
 }
 
 #[derive(Accounts)]
@@ -342,7 +378,7 @@ pub struct DepositOrcaLP<'info> {
     pub ratio_pool_token_account: Box<Account<'info, TokenAccount>>,
 
     #[account(mut)]
-    pub pool_token_mint: Account<'info, Mint>,
+    pub pool_token_mint: Box<Account<'info, Mint>>,
 
     #[account(
         mut,

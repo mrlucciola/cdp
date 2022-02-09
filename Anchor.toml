@@ -20,6 +20,7 @@ wallet = "./.config/test-keypair.json"
 [scripts]
 analyze = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 analyze/analyze.ts"
 orca-test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/orca-integration.spec.ts"
+admin-panel = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/admin-panel.spec.ts"
 raysuper = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/raydium-mainnet-test/super_owner_actions.ts"
 rayuser1 = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/raydium-mainnet-test/user1_actions.ts"
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/ratio.ts"

@@ -356,13 +356,6 @@ describe('orca-integration', function() {
       // init User Farm
       if (!ratioUserFarmData || !ratioUserFarmData.isInitialized) {
 
-          let ORCA_FARM_SIZE = 110;
-          arrIx.push(SystemProgram.transfer({
-            fromPubkey: user.publicKey,
-            toPubkey: ratioAuthority,
-            lamports: await provider.connection.getMinimumBalanceForRentExemption(ORCA_FARM_SIZE)
-          }));
-
           arrIx.push(stablePoolProgram.instruction.initOrcaFarm(
             ratioAuthorityBump, {
                 accounts: {

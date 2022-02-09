@@ -16,7 +16,7 @@ pub mod states;
 pub mod utils;
 use crate::{instructions::*, processor::*, utils::*};
 
-declare_id!("4wfMwqGyCTtLjKmKaPNX5kN7eKyvtRbeWhz8LHDExHEL");
+declare_id!("2Zq5Q3koNri6Tq32WLB1SZ85aLT95hJC7aKkmNb4Rj9m");
 pub mod site_fee_owner {
     anchor_lang::declare_id!("2Pv5mjmKYAtXNpr3mcsXf7HjtS3fieJeFoWPATVT5rWa");
 }
@@ -57,7 +57,7 @@ pub mod stable_pool {
         fee_num: u64,
         fee_deno: u64
     ) -> ProgramResult {
-        process_set_harvest_fee(ctx, fee_num, fee_deno)
+        ctx.accounts.set_fee(fee_num, fee_deno)
     }
 
     #[access_control(is_admin(&ctx.accounts.global_state, &ctx.accounts.payer))]
@@ -65,14 +65,14 @@ pub mod stable_pool {
         ctx: Context<ToggleEmerState>,
         new_state: u8
     ) -> ProgramResult {
-        process_toggle_emer_state(ctx, new_state)
+        ctx.accounts.toggle_state(new_state)
     }
 
     #[access_control(is_admin(&ctx.accounts.global_state, &ctx.accounts.payer))]
     pub fn change_super_owner(
         ctx: Context<ChangeSuperOwner>
     ) -> ProgramResult {
-        process_change_super_owner(ctx)
+        ctx.accounts.change_owner()
     }
     
     #[access_control(is_admin(&ctx.accounts.global_state, &ctx.accounts.payer))]
@@ -95,6 +95,14 @@ pub mod stable_pool {
         ceiling: u64,
     ) -> ProgramResult {
         ctx.accounts.set(ceiling)
+    }
+
+    #[access_control(is_admin(&ctx.accounts.global_state, &ctx.accounts.payer))]
+    pub fn set_collaterial_ratio(
+        ctx: Context<SetCollateralRatio>,
+        ratios: [u64; 10]
+    ) -> ProgramResult {
+        ctx.accounts.set_ratio(&ratios)
     }
 
     // user section
@@ -180,7 +188,7 @@ pub mod stable_pool {
         is_dd: u8,
         orca_vault_nonce: u8,
     ) -> ProgramResult {
-        process_create_orca_vault(ctx, is_dd, orca_vault_nonce)
+        ctx.accounts.create_vault(is_dd, orca_vault_nonce)
     }
 
     // no need to control access
@@ -188,7 +196,7 @@ pub mod stable_pool {
         ctx: Context<InitRatioUserFarm>,
         ratio_authority_bump: u8,
     ) -> ProgramResult {
-        process_init_orca_farm(ctx, ratio_authority_bump)
+        ctx.accounts.init(ratio_authority_bump)
     }
 
     #[access_control(is_secure(&ctx.accounts.global_state))]
@@ -197,7 +205,7 @@ pub mod stable_pool {
         amount: u64,
         ratio_authority_bump: u8,
     ) -> ProgramResult {
-        process_deposit_orcalp(ctx, amount, ratio_authority_bump)
+        ctx.accounts.deposit(amount, ratio_authority_bump)
     }
 
     #[access_control(is_secure(&ctx.accounts.global_state))]
@@ -206,7 +214,7 @@ pub mod stable_pool {
         amount: u64,
         ratio_authority_bump: u8,
     ) -> ProgramResult {
-        process_withdraw_orcalp(ctx, amount, ratio_authority_bump)
+        ctx.accounts.withdraw(amount, ratio_authority_bump)
     }
 
     #[access_control(is_secure(&ctx.accounts.global_state))]
@@ -214,7 +222,7 @@ pub mod stable_pool {
         ctx: Context<HarvestOrcaReward>,
         ratio_authority_bump: u8,
     ) -> ProgramResult {
-        process_harvest_orca_reward(ctx, ratio_authority_bump)
+        ctx.accounts.harvest(ratio_authority_bump)
     }
 
     pub fn create_quarry_miner(
