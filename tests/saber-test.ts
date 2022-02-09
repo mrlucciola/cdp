@@ -648,7 +648,7 @@ describe('saber-test', () => {
         signers: [user]
       }
     ).catch(e => {
-      console.log("Deposit Collateral Error:", e);
+      console.log("Withdraw Collateral Error:", e);
     });
 
     let userTrove = await stablePoolProgram.account.userTrove.fetch(userTroveKey);
@@ -699,9 +699,8 @@ describe('saber-test', () => {
         signers: [user]
       }
     ).catch(e => {
-      console.log("Deposit Collateral Error:", e);
+      console.log("Harvest Reward Error:", e);
     });
-
 
     let reward = await rewardsMintToken.getAccountInfo(userRewardKey);
     let fee = await rewardsMintToken.getAccountInfo(feeCollectorKey);
