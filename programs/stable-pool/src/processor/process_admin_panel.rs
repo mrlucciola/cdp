@@ -49,28 +49,28 @@ impl<'info> ChangeSuperOwner<'info> {
 }
 
 impl<'info> SetGlobalTvlLimit<'info> {
-  pub fn set(&mut self, limit:u64 ) -> ProgramResult {
+  pub fn set(&mut self, limit: u64) -> ProgramResult {
       self.global_state.tvl_limit = limit;
       Ok(())
   }
 }
 
 impl<'info> SetGlobalDebtCeiling<'info> {
-  pub fn set(&mut self, ceiling:u64 ) -> ProgramResult {
+  pub fn set(&mut self, ceiling: u64) -> ProgramResult {
       self.global_state.debt_ceiling = ceiling;
       Ok(())
   }
 }
 
 impl<'info> SetVaultDebtCeiling<'info> {
-  pub fn set(&mut self, ceiling:u64 ) -> ProgramResult {
+  pub fn set(&mut self, ceiling: u64) -> ProgramResult {
       self.token_vault.debt_ceiling = ceiling;
       Ok(())
   }
 }
 
 impl<'info> SetUserDebtCeiling<'info> {
-  pub fn set(&mut self, ceiling:u64 ) -> ProgramResult {
+  pub fn set(&mut self, ceiling: u64) -> ProgramResult {
       self.user_trove.debt_ceiling = ceiling;
       Ok(())
   }
