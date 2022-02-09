@@ -18,29 +18,35 @@ impl<'info> CreateGlobalState<'info> {
       self.global_state.tvl = 0;
       self.global_state.total_debt = 0;
       self.global_state.debt_ceiling = debt_ceiling;
+      self.global_state.fee_num = DEFAULT_FEE_NUMERATOR;
+      self.global_state.fee_deno = DEFAULT_FEE_DENOMINATOR;
       
       Ok(())
   }
 }
 
-
-pub fn process_set_harvest_fee(ctx: Context<SetHarvestFee>, fee_num: u64, fee_deno: u64) -> ProgramResult {
-  ctx.accounts.global_state.fee_num = fee_num as u128;
-  ctx.accounts.global_state.fee_deno = fee_deno as u128;
-  Ok(())
+impl<'info> SetHarvestFee<'info> {
+  pub fn set_fee(&mut self, fee_num: u64, fee_deno: u64) -> ProgramResult {
+    self.global_state.fee_num = fee_num as u128;
+    self.global_state.fee_deno = fee_deno as u128;
+    Ok(())
+  }
 }
 
-pub fn process_toggle_emer_state(ctx: Context<ToggleEmerState>, new_state: u8) -> ProgramResult {
-  require!(ctx.accounts.global_state.paused != new_state, StablePoolError::NotAllowed);
-  ctx.accounts.global_state.paused = new_state;
-  Ok(())
+impl<'info> ToggleEmerState<'info> {
+  pub fn toggle_state(&mut self, new_state: u8) -> ProgramResult {
+    require!(self.global_state.paused != new_state, StablePoolError::NotAllowed);
+    self.global_state.paused = new_state;
+    Ok(())
+  }
 }
 
-pub fn process_change_super_owner(ctx: Context<ChangeSuperOwner>) -> ProgramResult {
-  ctx.accounts.global_state.authority = ctx.accounts.new_owner.key();
-  Ok(())
+impl<'info> ChangeSuperOwner<'info> {
+  pub fn change_owner(&mut self) -> ProgramResult {
+    self.global_state.authority = self.new_owner.key();
+    Ok(())
+  }
 }
-
 
 impl<'info> SetGlobalDebtCeiling<'info> {
   pub fn set(&mut self, ceiling:u64 ) -> ProgramResult {
@@ -77,5 +83,16 @@ impl<'info> CreateTokenVault<'info> {
       Ok(())
   }
 }
+
+impl<'info> SetCollateralRatio<'info> {
+  pub fn set_ratio(&mut self, ratios: &[u64]) -> ProgramResult {
+    for item in ratios.iter().enumerate() {
+      let (i, ratio_val) = item;
+      self.global_state.coll_per_risklv[i] = *ratio_val;
+    }
+    Ok(())
+  }
+}
+
 
 

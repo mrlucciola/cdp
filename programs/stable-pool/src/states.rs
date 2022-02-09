@@ -13,7 +13,8 @@ pub struct GlobalState {
     pub total_debt: u64,
     pub debt_ceiling: u64,
     pub fee_num: u128,
-    pub fee_deno: u128
+    pub fee_deno: u128,
+    pub coll_per_risklv: [u64; 10]
 }
 
 #[account]
@@ -83,4 +84,12 @@ pub enum OrcaInstrunction {
     Harvest,
     RemoveRewards,
     SetEmissionsPerSecond,
+}
+
+// Risk Level
+pub enum RiskLevel {
+    AAA, AA, A,
+    BBB, BB, B,
+    CCC, CC, C,
+    D,
 }
