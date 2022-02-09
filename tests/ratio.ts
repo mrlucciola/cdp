@@ -650,6 +650,53 @@ describe('ratio', () => {
     console.log("userLpTokenAccount.amount =", userLpTokenAccount.amount.toString());
   });
 
+  it('Set Global TVL Limit', async () => {
+    const newTVLLimit = 5_000_000;
+    const [globalStateKey, globalStateNonce] =
+    await anchor.web3.PublicKey.findProgramAddress(
+      [Buffer.from(GLOBAL_STATE_TAG)],
+      stablePoolProgram.programId,
+    );
+    let globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
+
+    let txHash = await stablePoolProgram.rpc.setGlobalTvlLimit(
+      new anchor.BN(newTVLLimit),
+      {
+        accounts: {
+          payer: superOwner.publicKey,
+          globalState: globalStateKey,
+        },
+        signers: [superOwner]
+      }
+    ).catch(e => {
+      console.log("Setting Global TVL Limit Error:", e);
+    });
+
+    globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
+
+    assert(globalState.tvlLimit.toNumber() == newTVLLimit, "Global Debt Ceiling: " + globalState.tvlLimit.toNumber() + " Expected Debt Ceiling: " + newTVLLimit);
+
+    // Reverting to original global debt ceiling
+    globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
+
+    txHash = await stablePoolProgram.rpc.setGlobalTvlLimit(
+      new anchor.BN(tvlLimit),
+      {
+        accounts: {
+          payer: superOwner.publicKey,
+          globalState: globalStateKey,
+        },
+        signers: [superOwner]
+      }
+    ).catch(e => {
+      console.log("Setting Global TVL Limit Error:", e);
+    });
+
+    globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
+
+    assert(globalState.tvlLimit.toNumber() == tvlLimit, "Global Debt Ceiling: " + globalState.tvlLimit.toNumber() + " Expected Debt Ceiling: " + tvlLimit);
+  });
+
   it('Set Global Debt Ceiling', async () => {
     const newGlobalDebtCeiling = 5_000_000;
     const [globalStateKey, globalStateNonce] =
@@ -810,6 +857,34 @@ describe('ratio', () => {
     userTrove = await stablePoolProgram.account.userTrove.fetch(userTroveKey);
 
     assert(userTrove.debtCeiling.toNumber() == userDebtCeiling, "User Debt Ceiling: " + userTrove.debtCeiling.toNumber() + " Expected Debt Ceiling: " + userDebtCeiling);
+  });
+
+  it('Set Global TVL Limit Fails If Not Called By Super Owner', async () => {
+    const newTVLLimit = 5_000_000;
+    const [globalStateKey, globalStateNonce] =
+    await anchor.web3.PublicKey.findProgramAddress(
+      [Buffer.from(GLOBAL_STATE_TAG)],
+      stablePoolProgram.programId,
+    );
+
+    const callSetGlobalTvlLimit = async ()=>{
+      await stablePoolProgram.rpc.setGlobalTvlLimit(
+        new anchor.BN(newTVLLimit),
+        {
+          accounts: {
+            payer: user.publicKey,
+            globalState: globalStateKey,
+          },
+          signers: [user]
+        });
+    };
+
+    await expect(callSetGlobalTvlLimit(),"No error was thrown when trying to set the global tvl limit from non super owner acount").is.rejected;
+
+    let globalState = await stablePoolProgram.account.globalState.fetch(globalStateKey);
+
+    assert(globalState.tvlLimit.toNumber() == tvlLimit, "Global Debt Ceiling: " + globalState.tvlLimit.toNumber() + " Expected Global Debt Ceiling: " + tvlLimit);
+
   });
 
   it('Set Global Debt Ceiling Fails If Not Called By Super Owner', async () => {

@@ -74,13 +74,20 @@ pub mod stable_pool {
     ) -> ProgramResult {
         ctx.accounts.change_owner()
     }
-    
+
+    #[access_control(is_admin(&ctx.accounts.global_state, &ctx.accounts.payer))]
+    pub fn set_global_tvl_limit(
+        ctx: Context<SetGlobalTvlLimit>,
+        limit: u64,
+    ) -> ProgramResult {
+        ctx.accounts.set(limit)
+    }
     #[access_control(is_admin(&ctx.accounts.global_state, &ctx.accounts.payer))]
     pub fn set_global_debt_ceiling(
         ctx: Context<SetGlobalDebtCeiling>,
         ceiling: u64,
     ) -> ProgramResult {
-        ctx.accounts.set( ceiling)
+        ctx.accounts.set(ceiling)
     }
     #[access_control(is_admin(&ctx.accounts.global_state, &ctx.accounts.payer))]
     pub fn set_vault_debt_ceiling(
