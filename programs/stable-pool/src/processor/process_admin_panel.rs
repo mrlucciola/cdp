@@ -3,7 +3,8 @@ use anchor_lang::prelude::*;
 use crate::{
     instructions::*,
     constant::*,
-    error::*
+    error::*,
+    states::PlatformType
 };
 
 impl<'info> CreateGlobalState<'info> {
@@ -77,7 +78,7 @@ impl<'info> SetUserDebtCeiling<'info> {
 }
 
 impl<'info> CreateTokenVault<'info> {
-  pub fn create(&mut self, token_vault_nonce:u8, risk_level: u8, is_dual: u8, debt_ceiling: u64) -> ProgramResult {
+  pub fn create(&mut self, token_vault_nonce:u8, risk_level: u8, is_dual: u8, debt_ceiling: u64, platform_type: u8) -> ProgramResult {
 
       self.token_vault.mint_coll = self.mint_coll.key();
       msg!("Token Vault Nonce {}", token_vault_nonce);
@@ -87,6 +88,10 @@ impl<'info> CreateTokenVault<'info> {
       self.token_vault.token_vault_nonce = token_vault_nonce;
       self.token_vault.is_dual = is_dual;
       self.token_vault.debt_ceiling = debt_ceiling;
+      
+      require!(platform_type >= 0 && platform_type < PlatformType::Unknown as u8, StablePoolError:: InvalidPlatformType);
+      self.token_vault.platform_type = platform_type;
+      
       Ok(())
   }
 }
