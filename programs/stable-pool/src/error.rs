@@ -51,7 +51,7 @@ pub enum StablePoolError {
     #[msg("Invalid platform type")]
     InvalidPlatformType,
 
-    #[msg("Invalid platform type")]
+    #[msg("Invalid saber platform")]
     InvalidSaberPlatform,
 
     

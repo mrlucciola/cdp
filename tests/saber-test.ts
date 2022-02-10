@@ -41,6 +41,13 @@ chaiUse(chaiAsPromised)
 
 const usePrevConfigs = true;
 
+export declare type PlatformType = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+export declare const TYPE_ID_RAYDIUM: PlatformType;
+export declare const TYPE_ID_ORCA: PlatformType;
+export declare const TYPE_ID_SABER: PlatformType;
+export declare const TYPE_ID_MERCURIAL: PlatformType;
+export declare const TYPE_ID_UNKNOWN: PlatformType;
+
 const defaultAccounts = {
   tokenProgram: TOKEN_PROGRAM_ID,
   clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
@@ -419,6 +426,7 @@ describe('saber-test', () => {
           riskLevel,
           isDual,
           new BN(100_000_000_000_000),
+          TYPE_ID_SABER,
           {
             accounts: {
               authority: superAuthority.publicKey,
@@ -525,10 +533,17 @@ describe('saber-test', () => {
     try{
       let sdk: QuarrySDK = QuarrySDK.load({provider});
       let rewarder = await sdk.mine.loadRewarderWrapper(saberFarmRewarder);
+      console.log("Setting Annual Rate");
+      const tx = rewarder.setAnnualRewards({
+        newAnnualRate: new u64(1000),
+      });
+      await tx.confirm();
+
       
       const poolMintToken = SToken.fromMint(saberSwapMintKey, DEFAULT_DECIMALS);
       console.log("Quarry Token", poolMintToken, poolMintToken.mintAccount);
       let quarry = await rewarder.getQuarry(poolMintToken);
+      
       console.log("Quarry", quarry);
       
       const minerKey = await quarry.getMinerAddress(userTroveKey);
