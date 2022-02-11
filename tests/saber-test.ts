@@ -534,14 +534,7 @@ describe('saber-test', () => {
     try{
       let sdk: QuarrySDK = QuarrySDK.load({provider});
       let rewarder = await sdk.mine.loadRewarderWrapper(saberFarmRewarder);
-      console.log("Minter add");
-      const whitelist_tx = mintWrapper.newMinterWithAllowance(
-          mintWrapperKey,
-          rewarder,
-          new u64(100_000_000_000000)
-        )
       console.log("Setting Annual Rate");
-
       const tx = rewarder.setAnnualRewards({
         newAnnualRate: new u64(1000),
       });
