@@ -8,7 +8,7 @@ use crate::{
 
 impl<'info> CreateGlobalState<'info> {
   /// Claims rewards from saber farm
-  pub fn create(&mut self, global_state_nonce:u8, mint_usd_nonce:u8, tvl_limit:u64, debt_ceiling:u64 ) -> ProgramResult {
+  pub fn create(&mut self, global_state_nonce: u8, mint_usd_nonce: u8, tvl_limit: u64, debt_ceiling: u64 ) -> ProgramResult {
       
       self.global_state.authority = self.super_owner.key();
       self.global_state.mint_usd = self.mint_usd.key();
@@ -20,7 +20,7 @@ impl<'info> CreateGlobalState<'info> {
       self.global_state.debt_ceiling = debt_ceiling;
       self.global_state.fee_num = DEFAULT_FEE_NUMERATOR;
       self.global_state.fee_deno = DEFAULT_FEE_DENOMINATOR;
-      
+      self.global_state.coll_per_risklv = DEFAULT_RATIOS;
       Ok(())
   }
 }
