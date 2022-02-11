@@ -4,7 +4,7 @@ stable_pool_faucet = "HBdT3RTpVY86wcvYXxetNmLcUczAjSr9JuenadoY8dEV"
 
 [programs.devnet]
 stable_pool = "4wfMwqGyCTtLjKmKaPNX5kN7eKyvtRbeWhz8LHDExHEL"
-stable_pool_faucet = "HBdT3RTpVY86wcvYXxetNmLcUczAjSr9JuenadoY8dEV"
+stable_pool_faucet = "J7UG1WFxyh7EPjKaksaoWYFAymU2gyG2VHQ9mm75X4Tk"
 
 [programs.mainnet]
 stable_pool = "4wfMwqGyCTtLjKmKaPNX5kN7eKyvtRbeWhz8LHDExHEL"
