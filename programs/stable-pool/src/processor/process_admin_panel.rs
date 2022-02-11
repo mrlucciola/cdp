@@ -8,8 +8,7 @@ use crate::{
 };
 
 impl<'info> CreateGlobalState<'info> {
-  /// Claims rewards from saber farm
-  pub fn create(&mut self, global_state_nonce: u8, mint_usd_nonce: u8, tvl_limit: u64, debt_ceiling: u64 ) -> ProgramResult {
+  pub fn create_state(&mut self, global_state_nonce:u8, mint_usd_nonce:u8, tvl_limit:u64, debt_ceiling:u64 ) -> ProgramResult {
       
       self.global_state.authority = self.super_owner.key();
       self.global_state.mint_usd = self.mint_usd.key();
@@ -50,7 +49,7 @@ impl<'info> ChangeSuperOwner<'info> {
 }
 
 impl<'info> SetGlobalTvlLimit<'info> {
-  pub fn set(&mut self, limit: u64) -> ProgramResult {
+  pub fn set_tvL_limit(&mut self, limit: u64) -> ProgramResult {
       self.global_state.tvl_limit = limit;
       Ok(())
   }
@@ -78,7 +77,7 @@ impl<'info> SetUserDebtCeiling<'info> {
 }
 
 impl<'info> CreateTokenVault<'info> {
-  pub fn create(&mut self, token_vault_nonce:u8, risk_level: u8, is_dual: u8, debt_ceiling: u64, platform_type: u8) -> ProgramResult {
+  pub fn create_vault(&mut self, token_vault_nonce:u8, risk_level: u8, is_dual: u8, debt_ceiling: u64, platform_type: u8) -> ProgramResult {
 
       self.token_vault.mint_coll = self.mint_coll.key();
       msg!("Token Vault Nonce {}", token_vault_nonce);

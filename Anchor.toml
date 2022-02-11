@@ -1,13 +1,13 @@
 [programs.localnet]
-stable_pool = "4wfMwqGyCTtLjKmKaPNX5kN7eKyvtRbeWhz8LHDExHEL"
+stable_pool = "7ikNrDUaBf1Vk6KUagXzRvEz1Nhsep1PjixcqJH4vdSk"
 stable_pool_faucet = "HBdT3RTpVY86wcvYXxetNmLcUczAjSr9JuenadoY8dEV"
 
 [programs.devnet]
-stable_pool = "4wfMwqGyCTtLjKmKaPNX5kN7eKyvtRbeWhz8LHDExHEL"
+stable_pool = "7ikNrDUaBf1Vk6KUagXzRvEz1Nhsep1PjixcqJH4vdSk"
 stable_pool_faucet = "HBdT3RTpVY86wcvYXxetNmLcUczAjSr9JuenadoY8dEV"
 
 [programs.mainnet]
-stable_pool = "4wfMwqGyCTtLjKmKaPNX5kN7eKyvtRbeWhz8LHDExHEL"
+stable_pool = "7ikNrDUaBf1Vk6KUagXzRvEz1Nhsep1PjixcqJH4vdSk"
 stable_pool_faucet = "HBdT3RTpVY86wcvYXxetNmLcUczAjSr9JuenadoY8dEV"
 
 [registry]

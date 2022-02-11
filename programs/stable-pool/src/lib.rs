@@ -16,7 +16,7 @@ pub mod states;
 pub mod utils;
 use crate::{instructions::*, processor::*, utils::*};
 
-declare_id!("2Zq5Q3koNri6Tq32WLB1SZ85aLT95hJC7aKkmNb4Rj9m");
+declare_id!("7ikNrDUaBf1Vk6KUagXzRvEz1Nhsep1PjixcqJH4vdSk");
 pub mod site_fee_owner {
     anchor_lang::declare_id!("2Pv5mjmKYAtXNpr3mcsXf7HjtS3fieJeFoWPATVT5rWa");
 }
@@ -32,7 +32,7 @@ pub mod stable_pool {
         tvl_limit: u64,
         debt_ceiling: u64,
     ) -> ProgramResult {
-        ctx.accounts.create(
+        ctx.accounts.create_state(
             global_state_nonce,
             mint_usd_nonce,
             tvl_limit,
@@ -49,7 +49,7 @@ pub mod stable_pool {
         debt_ceiling: u64,
         platform_type: u8
     ) -> ProgramResult {
-        ctx.accounts.create( token_vault_nonce, risk_level, is_dual, debt_ceiling, platform_type)
+        ctx.accounts.create_vault( token_vault_nonce, risk_level, is_dual, debt_ceiling, platform_type)
     }
 
     #[access_control(is_admin(&ctx.accounts.global_state, &ctx.accounts.payer))]
@@ -81,7 +81,7 @@ pub mod stable_pool {
         ctx: Context<SetGlobalTvlLimit>,
         limit: u64,
     ) -> ProgramResult {
-        ctx.accounts.set(limit)
+        ctx.accounts.set_tvL_limit(limit)
     }
     #[access_control(is_admin(&ctx.accounts.global_state, &ctx.accounts.payer))]
     pub fn set_global_debt_ceiling(

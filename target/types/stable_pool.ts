@@ -139,7 +139,7 @@ export type StablePool = {
         },
         {
           "name": "globalState",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         }
       ],
@@ -2282,7 +2282,7 @@ export const IDL: StablePool = {
         },
         {
           "name": "globalState",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         }
       ],
