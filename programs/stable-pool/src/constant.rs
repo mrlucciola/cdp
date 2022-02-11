@@ -23,18 +23,18 @@ pub const ORCA_USER_FARM_SIZE: usize = 106;
 #[constant]
 pub const RISK_TYPE_COUNT: u8 = 10;
 #[constant]
-pub const RATIO_DENOMINATOR: u64 = 100_000;
+pub const RATIO_DENOMINATOR: u64 = 100_000_000;
 pub const DEFAULT_RATIOS: [u64; 10] = [
-    102_500,    // AAA
-    120_500,    // AA
-    150_000,    // A
-    175_500,    // BBB
-    190_900,    // BB
-    205_000,    // B
-    250_000,    // CCC
-    300_000,    // CC
-    370_000,    // C
-    500_000,    // D
+    99009901,    // AAA
+    97799511,    // AA
+    96618357,    // A
+    95011876,    // BBB
+    93023256,    // BB
+    91116173,    // B
+    90090090,    // CCC
+    89086860,    // CC
+    88105727,    // C
+    86206897,    // D
 ];
 
 pub const DEVNET_MODE: bool = {
