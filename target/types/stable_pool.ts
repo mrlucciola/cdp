@@ -122,6 +122,10 @@ export type StablePool = {
         {
           "name": "debtCeiling",
           "type": "u64"
+        },
+        {
+          "name": "platformType",
+          "type": "u8"
         }
       ]
     },
@@ -191,6 +195,27 @@ export type StablePool = {
         }
       ],
       "args": []
+    },
+    {
+      "name": "setGlobalTvlLimit",
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "limit",
+          "type": "u64"
+        }
+      ]
     },
     {
       "name": "setGlobalDebtCeiling",
@@ -2002,6 +2027,29 @@ export type StablePool = {
           }
         ]
       }
+    },
+    {
+      "name": "PlatformType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Raydium"
+          },
+          {
+            "name": "Orca"
+          },
+          {
+            "name": "Saber"
+          },
+          {
+            "name": "Mercurial"
+          },
+          {
+            "name": "Unknown"
+          }
+        ]
+      }
     }
   ],
   "errors": [
@@ -2079,6 +2127,16 @@ export type StablePool = {
       "code": 6014,
       "name": "InvalidTransferAmount",
       "msg": "Transfer amount is invalid"
+    },
+    {
+      "code": 6015,
+      "name": "InvalidPlatformType",
+      "msg": "Invalid platform type"
+    },
+    {
+      "code": 6016,
+      "name": "InvalidSaberPlatform",
+      "msg": "Invalid saber platform"
     }
   ]
 };
@@ -2207,6 +2265,10 @@ export const IDL: StablePool = {
         {
           "name": "debtCeiling",
           "type": "u64"
+        },
+        {
+          "name": "platformType",
+          "type": "u8"
         }
       ]
     },
@@ -2276,6 +2338,27 @@ export const IDL: StablePool = {
         }
       ],
       "args": []
+    },
+    {
+      "name": "setGlobalTvlLimit",
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "limit",
+          "type": "u64"
+        }
+      ]
     },
     {
       "name": "setGlobalDebtCeiling",
@@ -4087,6 +4170,29 @@ export const IDL: StablePool = {
           }
         ]
       }
+    },
+    {
+      "name": "PlatformType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Raydium"
+          },
+          {
+            "name": "Orca"
+          },
+          {
+            "name": "Saber"
+          },
+          {
+            "name": "Mercurial"
+          },
+          {
+            "name": "Unknown"
+          }
+        ]
+      }
     }
   ],
   "errors": [
@@ -4164,6 +4270,16 @@ export const IDL: StablePool = {
       "code": 6014,
       "name": "InvalidTransferAmount",
       "msg": "Transfer amount is invalid"
+    },
+    {
+      "code": 6015,
+      "name": "InvalidPlatformType",
+      "msg": "Invalid platform type"
+    },
+    {
+      "code": 6016,
+      "name": "InvalidSaberPlatform",
+      "msg": "Invalid saber platform"
     }
   ]
 };

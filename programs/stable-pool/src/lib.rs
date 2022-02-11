@@ -47,8 +47,9 @@ pub mod stable_pool {
         risk_level: u8,
         is_dual: u8,
         debt_ceiling: u64,
+        platform_type: u8
     ) -> ProgramResult {
-        ctx.accounts.create( token_vault_nonce, risk_level, is_dual, debt_ceiling)
+        ctx.accounts.create( token_vault_nonce, risk_level, is_dual, debt_ceiling, platform_type)
     }
 
     #[access_control(is_admin(&ctx.accounts.global_state, &ctx.accounts.payer))]

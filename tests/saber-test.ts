@@ -31,6 +31,7 @@ import {
   createMintToInstruction,
   getTokenAccount,
   ZERO,
+  sleep,
 } from "@saberhq/token-utils";
 
 import { deployTestTokens } from './saber-utils/deployTestTokens';
@@ -40,6 +41,13 @@ import { BN } from '@project-serum/anchor';
 chaiUse(chaiAsPromised)
 
 const usePrevConfigs = true;
+
+export declare type PlatformType = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+export declare const TYPE_ID_RAYDIUM: PlatformType;
+export declare const TYPE_ID_ORCA: PlatformType;
+export declare const TYPE_ID_SABER: PlatformType;
+export declare const TYPE_ID_MERCURIAL: PlatformType;
+export declare const TYPE_ID_UNKNOWN: PlatformType;
 
 const defaultAccounts = {
   tokenProgram: TOKEN_PROGRAM_ID,
@@ -419,6 +427,7 @@ describe('saber-test', () => {
           riskLevel,
           isDual,
           new BN(100_000_000_000_000),
+          TYPE_ID_SABER,
           {
             accounts: {
               authority: superAuthority.publicKey,
@@ -525,10 +534,24 @@ describe('saber-test', () => {
     try{
       let sdk: QuarrySDK = QuarrySDK.load({provider});
       let rewarder = await sdk.mine.loadRewarderWrapper(saberFarmRewarder);
+      console.log("Minter add");
+      const whitelist_tx = mintWrapper.newMinterWithAllowance(
+          mintWrapperKey,
+          rewarder,
+          new u64(100_000_000_000000)
+        )
+      console.log("Setting Annual Rate");
+
+      const tx = rewarder.setAnnualRewards({
+        newAnnualRate: new u64(1000),
+      });
+      await tx.confirm();
+
       
       const poolMintToken = SToken.fromMint(saberSwapMintKey, DEFAULT_DECIMALS);
       console.log("Quarry Token", poolMintToken, poolMintToken.mintAccount);
       let quarry = await rewarder.getQuarry(poolMintToken);
+      
       console.log("Quarry", quarry);
       
       const minerKey = await quarry.getMinerAddress(userTroveKey);
@@ -621,49 +644,8 @@ describe('saber-test', () => {
     console.log("poolLpTokenAccount.amount =", poolLpTokenAccount.amount.toString());
     console.log("userLpTokenAccount.amount =", userLpTokenAccount.amount.toString());
   });
-  it('Withdraw from Saber', async () => {
-
-    await stablePoolProgram.rpc.withdrawFromSaber(
-      new BN(depositAmount),
-      {
-        accounts: {
-          ratioStaker:{
-            globalState: globalStateKey,
-            tokenVault: tokenVaultKey,
-            userTrove: userTroveKey,
-            owner: user.publicKey,
-            poolTokenColl: userTroveTokenVaultKey,
-            userTokenColl: userLPTokenKey,
-            mintColl: saberSwapMintKey,
-            tokenProgram: TOKEN_PROGRAM_ID,  
-          },
-          saberFarm:{
-            quarry: saberFarmQuarry,
-            miner: saberFarmMiner,
-            minerVault: saberFarmMinerVault
-          },
-          saberFarmRewarder,
-          saberFarmProgram: SABER_FARM_PROGRAM,
-        },
-        signers: [user]
-      }
-    ).catch(e => {
-      console.log("Deposit Collateral Error:", e);
-    });
-
-    let userTrove = await stablePoolProgram.account.userTrove.fetch(userTroveKey);
-    let tokenVault = await stablePoolProgram.account.tokenVault.fetch(tokenVaultKey);
-
-    console.log( "depositAmount mismatch: totalColl = " + tokenVault.totalColl);
-    console.log( "lockedCollBalance mismatch: lockedCollBalance = " + userTrove.lockedCollBalance);
-
-    let poolLpTokenAccount = await saberMintToken.getAccountInfo(userTroveTokenVaultKey);
-    let userLpTokenAccount = await saberMintToken.getAccountInfo(userLPTokenKey);
-
-    console.log("poolLpTokenAccount.amount =", poolLpTokenAccount.amount.toString());
-    console.log("userLpTokenAccount.amount =", userLpTokenAccount.amount.toString());
-  });
   it('Harvest from Saber', async () => {
+    await sleep(5000);
     await stablePoolProgram.rpc.harvestFromSaber(
       {
         accounts: {
@@ -699,9 +681,8 @@ describe('saber-test', () => {
         signers: [user]
       }
     ).catch(e => {
-      console.log("Deposit Collateral Error:", e);
+      console.log("Harvest Reward Error:", e);
     });
-
 
     let reward = await rewardsMintToken.getAccountInfo(userRewardKey);
     let fee = await rewardsMintToken.getAccountInfo(feeCollectorKey);
@@ -709,6 +690,49 @@ describe('saber-test', () => {
     console.log("reward.amount =", reward.amount.toString());
     console.log("fee amount =", fee.amount.toString());
   });
+  it('Withdraw from Saber', async () => {
+
+    await stablePoolProgram.rpc.withdrawFromSaber(
+      new BN(depositAmount),
+      {
+        accounts: {
+          ratioStaker:{
+            globalState: globalStateKey,
+            tokenVault: tokenVaultKey,
+            userTrove: userTroveKey,
+            owner: user.publicKey,
+            poolTokenColl: userTroveTokenVaultKey,
+            userTokenColl: userLPTokenKey,
+            mintColl: saberSwapMintKey,
+            tokenProgram: TOKEN_PROGRAM_ID,  
+          },
+          saberFarm:{
+            quarry: saberFarmQuarry,
+            miner: saberFarmMiner,
+            minerVault: saberFarmMinerVault
+          },
+          saberFarmRewarder,
+          saberFarmProgram: SABER_FARM_PROGRAM,
+        },
+        signers: [user]
+      }
+    ).catch(e => {
+      console.log("Withdraw Collateral Error:", e);
+    });
+
+    let userTrove = await stablePoolProgram.account.userTrove.fetch(userTroveKey);
+    let tokenVault = await stablePoolProgram.account.tokenVault.fetch(tokenVaultKey);
+
+    console.log( "depositAmount mismatch: totalColl = " + tokenVault.totalColl);
+    console.log( "lockedCollBalance mismatch: lockedCollBalance = " + userTrove.lockedCollBalance);
+
+    let poolLpTokenAccount = await saberMintToken.getAccountInfo(userTroveTokenVaultKey);
+    let userLpTokenAccount = await saberMintToken.getAccountInfo(userLPTokenKey);
+
+    console.log("poolLpTokenAccount.amount =", poolLpTokenAccount.amount.toString());
+    console.log("userLpTokenAccount.amount =", userLpTokenAccount.amount.toString());
+  });
+
 });
 
 
