@@ -2136,7 +2136,7 @@
     {
       "code": 6016,
       "name": "InvalidSaberPlatform",
-      "msg": "Invalid saber platform"
+      "msg": "Invalid platform type"
     }
   ],
   "metadata": {

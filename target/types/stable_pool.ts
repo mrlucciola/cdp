@@ -2136,7 +2136,7 @@ export type StablePool = {
     {
       "code": 6016,
       "name": "InvalidSaberPlatform",
-      "msg": "Invalid saber platform"
+      "msg": "Invalid platform type"
     }
   ]
 };
@@ -4279,7 +4279,7 @@ export const IDL: StablePool = {
     {
       "code": 6016,
       "name": "InvalidSaberPlatform",
-      "msg": "Invalid saber platform"
+      "msg": "Invalid platform type"
     }
   ]
 };
