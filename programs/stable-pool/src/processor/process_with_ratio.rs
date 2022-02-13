@@ -103,16 +103,19 @@ impl<'info> HarvestReward<'info> {
     pub fn harvest(&mut self) -> ProgramResult {
         
         self.user_trove_reward.reload()?;
+        msg!("Harvest amount {}", self.user_trove_reward.amount);
         let fee_info = calculate_fee(self.user_trove_reward.amount, self.global_state.fee_num, self.global_state.fee_deno)?;
         
         require!(fee_info.new_amount > 0, StablePoolError::InvalidTransferAmount);
         require!(fee_info.owner_fee > 0, StablePoolError::InvalidTransferAmount);
 
-        let user_trove = &mut self.user_trove;
-        let trove_key = user_trove.key();
-        
-        let authority_seeds = &[USER_TROVE_POOL_TAG.as_ref(), trove_key.as_ref(), &[user_trove.token_coll_nonce]];
-
+        let authority_seeds = &[
+            USER_TROVE_TAG,
+            self.token_vault.to_account_info().key.as_ref(), 
+            self.authority.to_account_info().key.as_ref(),
+            &[self.user_trove.user_trove_nonce],
+        ];
+        msg!("rewards To user {}", fee_info.new_amount);
         token::transfer(CpiContext::new(
             self.token_program.to_account_info(), 
             Transfer {
@@ -123,6 +126,7 @@ impl<'info> HarvestReward<'info> {
             fee_info.new_amount
         )?;
 
+        msg!("rewards To site owner {}", fee_info.owner_fee);
         token::transfer(CpiContext::new(
             self.token_program.to_account_info(), 
             Transfer {

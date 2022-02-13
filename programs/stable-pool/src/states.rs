@@ -93,3 +93,12 @@ pub enum RiskLevel {
     CCC, CC, C,
     D,
 }
+
+pub enum PlatformType{
+    Raydium,
+    Orca,
+    Saber,
+    Mercurial,
+
+    Unknown
+}

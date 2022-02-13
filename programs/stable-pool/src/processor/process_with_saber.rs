@@ -10,6 +10,8 @@ use crate::{
         harvest_from_saber_pda
     },
     constant::*,
+    error::*,
+    states::PlatformType,
 };
 use quarry_mine::cpi::{
     create_miner, 
@@ -22,6 +24,9 @@ impl<'info> CreateQuarryMiner<'info> {
     pub fn create(&mut self, miner_bump:u8, miner_vault_bump: u8) -> ProgramResult {
 
         let token_vault = &mut self.token_vault;
+
+        require!(token_vault.platform_type == PlatformType::Saber as u8, StablePoolError::InvalidSaberPlatform);
+
         let user_trove = &mut self.user_trove;
 
         let token_vault_key = token_vault.key();
@@ -55,6 +60,7 @@ impl<'info> SaberStaker<'info> {
 
         let token_vault = &mut self.ratio_staker.token_vault;
         let user_trove = &mut self.ratio_staker.user_trove;
+        require!(token_vault.platform_type == PlatformType::Saber as u8, StablePoolError::InvalidSaberPlatform);
 
         let token_vault_key = token_vault.key();
         let owner_key = self.ratio_staker.owner.key();
@@ -77,6 +83,7 @@ impl<'info> SaberStaker<'info> {
 
         let token_vault = &mut self.ratio_staker.token_vault;
         let user_trove = &mut self.ratio_staker.user_trove;
+        require!(token_vault.platform_type == PlatformType::Saber as u8, StablePoolError::InvalidSaberPlatform);
 
         let token_vault_key = token_vault.key();
         let owner_key = self.ratio_staker.owner.key();
@@ -105,6 +112,7 @@ impl<'info> HarvestFromSaber<'info> {
 
         let token_vault = &mut self.ratio_harvester.token_vault;
         let user_trove = &mut self.ratio_harvester.user_trove;
+        require!(token_vault.platform_type == PlatformType::Saber as u8, StablePoolError::InvalidSaberPlatform);
         
         let token_vault_key = token_vault.key();
         let owner_key = self.ratio_harvester.authority.key();

@@ -47,4 +47,12 @@ pub enum StablePoolError {
 
     #[msg("Transfer amount is invalid")]
     InvalidTransferAmount,
+
+    #[msg("Invalid platform type")]
+    InvalidPlatformType,
+
+    #[msg("Invalid saber platform")]
+    InvalidSaberPlatform,
+
+    
 }

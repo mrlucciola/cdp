@@ -45,6 +45,7 @@ pub struct SetHarvestFee<'info>{
     pub payer: Signer<'info>,
 
     #[account(
+        mut,
         seeds = [GLOBAL_STATE_TAG],
         bump = global_state.global_state_nonce,
     )]
@@ -89,7 +90,7 @@ pub struct ChangeSuperOwner<'info>{
 }
 
 #[derive(Accounts)]
-#[instruction(token_vault_nonce:u8, risk_level: u8, is_dual: u8, debt_ceiling: u64)]
+#[instruction(token_vault_nonce:u8, risk_level: u8, is_dual: u8, debt_ceiling: u64, platform_type: u8)]
 pub struct CreateTokenVault<'info> {
     #[account(mut)]
     pub authority:  Signer<'info>,
