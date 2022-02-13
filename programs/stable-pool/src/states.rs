@@ -62,30 +62,6 @@ pub struct UserTrove {
     pub user_trove_reward_token_b_nonce: u8,
 }
 
-#[account]
-#[derive(Default)]
-pub struct RatioOrcaVault {
-    // base token mint
-    pub base_mint: Pubkey,
-    // staked token mint
-    pub lp_mint: Pubkey,
-    // double-dip token mint
-    pub dd_mint: Pubkey,
-    // if support double-dip
-    pub is_dd: u8,
-}
-
-// orca lp integration
-pub enum OrcaInstrunction {
-    InitGlobalFarm,
-    InitUserFarm,
-    ConvertTokens,
-    RevertTokens,
-    Harvest,
-    RemoveRewards,
-    SetEmissionsPerSecond,
-}
-
 // Risk Level
 pub enum RiskLevel {
     AAA, AA, A,
@@ -95,10 +71,9 @@ pub enum RiskLevel {
 }
 
 pub enum PlatformType{
-    Raydium,
-    Orca,
     Saber,
-    Mercurial,
-
+    // Raydium,
+    // Orca,
+    // Mercurial,
     Unknown
 }

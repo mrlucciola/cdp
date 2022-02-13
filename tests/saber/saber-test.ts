@@ -34,7 +34,7 @@ import {
   sleep,
 } from "@saberhq/token-utils";
 
-import { deployTestTokens } from './saber-utils/deployTestTokens';
+import { deployTestTokens } from './deployTestTokens';
 import { findMinerAddress, QuarrySDK, QUARRY_ADDRESSES } from '@quarryprotocol/quarry-sdk';
 import { isMainThread } from 'worker_threads';
 import { BN } from '@project-serum/anchor';
@@ -43,10 +43,10 @@ chaiUse(chaiAsPromised)
 const usePrevConfigs = true;
 
 export declare type PlatformType = 0| 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
-export const TYPE_ID_RAYDIUM: PlatformType = 0;
-export const TYPE_ID_ORCA: PlatformType = 1;
+// export const TYPE_ID_RAYDIUM: PlatformType = 0; // TODO: Add in another ticket. jkap 2/13/22
+// export const TYPE_ID_ORCA: PlatformType = 1; // TODO: Add in another ticket. jkap 2/13/22
 export const TYPE_ID_SABER: PlatformType = 2;
-export const TYPE_ID_MERCURIAL: PlatformType = 3;
+// export const TYPE_ID_MERCURIAL: PlatformType = 3; // TODO: Add in another ticket. jkap 2/13/22
 export const TYPE_ID_UNKNOWN: PlatformType = 4;
 
 const defaultAccounts = {

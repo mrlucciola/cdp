@@ -116,31 +116,6 @@ pub struct CreateTokenVault<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(user_trove_nonce: u8)]
-pub struct CreateRaydiumUserAccount<'info> {
-    pub owner:  Signer<'info>,
-    #[account(mut,
-        seeds = [USER_TROVE_TAG,token_vault.key().as_ref(), owner.key().as_ref()],
-        bump = user_trove_nonce,
-    )]
-    pub user_trove:AccountInfo<'info>,
-    #[account(mut,
-        seeds = [TOKEN_VAULT_TAG,token_vault.mint_coll.as_ref()],
-        bump = token_vault.token_vault_nonce
-    )]
-    pub token_vault:Account<'info, TokenVault>,
-
-    pub raydium_program_id: AccountInfo<'info>,
-    #[account(mut)]
-    pub raydium_pool_id: AccountInfo<'info>,
-    #[account(mut)]
-    pub user_trove_associated_info_account: AccountInfo<'info>,
-
-    pub system_program: Program<'info, System>,
-    pub rent: Sysvar<'info, Rent>,
-}
-
-#[derive(Accounts)]
 #[instruction(user_trove_nonce:u8, token_coll_nonce:u8)]
 pub struct CreateUserTrove<'info> {
 
@@ -401,178 +376,6 @@ pub struct RepayUsd<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(user_trove_reward_token_a_nonce: u8, user_trove_reward_token_b_nonce: u8)]
-pub struct CreateRaydiumV5RewardVaults<'info> {
-    pub owner:  Signer<'info>,
-    #[account(mut,
-        seeds = [USER_TROVE_TAG,token_vault.key().as_ref(), owner.key().as_ref()],
-        bump = user_trove.user_trove_nonce,
-    )]
-    pub user_trove: Box<Account<'info, UserTrove>>,
-    #[account(mut,
-        seeds = [TOKEN_VAULT_TAG,token_vault.mint_coll.as_ref()],
-        bump = token_vault.token_vault_nonce,
-    )]
-    pub token_vault: Box<Account<'info, TokenVault>>,
-
-    pub reward_mint_a: Box<Account<'info, Mint>>,
-
-    #[account(
-        init_if_needed,
-        token::mint = reward_mint_a,
-        token::authority = user_trove,
-        seeds = [
-            USER_TROVE_REWARD_A_TAG, 
-            user_trove.key().as_ref(), 
-        ],
-        bump = user_trove_reward_token_a_nonce,
-        payer = owner
-    )]
-    pub user_trove_reward_token_a: Box<Account<'info, TokenAccount>>,
-
-    pub reward_mint_b:Account<'info, Mint>,
-
-    #[account(
-        init_if_needed,
-        token::mint = reward_mint_b,
-        token::authority = user_trove,
-        seeds = [
-            USER_TROVE_REWARD_B_TAG, 
-            user_trove.key().as_ref(), 
-        ],
-        bump = user_trove_reward_token_b_nonce,
-        payer = owner
-    )]
-    pub user_trove_reward_token_b: Box<Account<'info, TokenAccount>>,
-
-    pub system_program: Program<'info, System>,
-    pub rent: Sysvar<'info, Rent>,
-    pub token_program: Program<'info, Token>,
-}
-
-#[derive(Accounts)]
-#[instruction(amount: u64)]
-pub struct DepositRaydiumV5Collateral<'info> {
-    pub owner:  Signer<'info>,
-    #[account(mut,
-        seeds = [USER_TROVE_TAG,token_vault.key().as_ref(), owner.key().as_ref()],
-        bump = user_trove.user_trove_nonce,
-    )]
-    pub user_trove: Box<Account<'info, UserTrove>>,
-    #[account(mut,
-        seeds = [TOKEN_VAULT_TAG,token_vault.mint_coll.as_ref()],
-        bump = token_vault.token_vault_nonce,
-    )]
-    pub token_vault: Box<Account<'info, TokenVault>>,
-    #[account(mut)]
-    pub user_trove_token_coll: AccountInfo<'info>, 
-    #[account(mut)]
-    pub user_token_coll: AccountInfo<'info>,
-
-    #[account(
-        mut,
-        seeds = [
-            USER_TROVE_REWARD_A_TAG, 
-            user_trove.key().as_ref(), 
-        ],
-        bump = user_trove.user_trove_reward_token_a_nonce,
-    )]
-    pub user_trove_reward_token_a: Box<Account<'info, TokenAccount>>,
-
-    #[account(
-        mut,
-        seeds = [
-            USER_TROVE_REWARD_B_TAG, 
-            user_trove.key().as_ref(), 
-        ],
-        bump = user_trove.user_trove_reward_token_b_nonce,
-    )]
-    pub user_trove_reward_token_b: Box<Account<'info, TokenAccount>>,
-
-    pub raydium_program_id: AccountInfo<'info>,
-    #[account(mut)]
-    pub raydium_pool_id: AccountInfo<'info>,
-    pub raydium_pool_authority: AccountInfo<'info>,
-    #[account(mut)]
-    pub user_trove_associated_info_account: AccountInfo<'info>,
-    #[account(mut)]
-    pub raydium_pool_lp_account: AccountInfo<'info>,
-    #[account(mut)]
-    pub raydium_pool_reward_token_a_account: AccountInfo<'info>,
-    #[account(mut)]
-    pub raydium_pool_reward_token_b_account: AccountInfo<'info>,
-    #[account(mut)]
-    pub user_reward_token_a_account: AccountInfo<'info>,
-    #[account(mut)]
-    pub user_reward_token_b_account: AccountInfo<'info>,
-
-    pub system_program: Program<'info, System>,
-    pub rent: Sysvar<'info, Rent>,
-    pub token_program: Program<'info, Token>,
-    pub clock: AccountInfo<'info>,
-}
-
-#[derive(Accounts)]
-#[instruction(amount: u64)]
-pub struct WithdrawRaydiumV5Collateral<'info> {
-    pub owner: Signer<'info>,
-    #[account(mut,
-        seeds = [USER_TROVE_TAG,token_vault.key().as_ref(), owner.key().as_ref()],
-        bump = user_trove.user_trove_nonce,
-    )]
-    pub user_trove: Box<Account<'info, UserTrove>>,
-    #[account(mut,
-        seeds = [TOKEN_VAULT_TAG,token_vault.mint_coll.as_ref()],
-        bump = token_vault.token_vault_nonce
-    )]
-    pub token_vault: Box<Account<'info, TokenVault>>,
-    #[account(mut)]
-    pub user_trove_token_coll: AccountInfo<'info>, 
-    #[account(mut)]
-    pub user_token_coll: AccountInfo<'info>,
-
-    #[account(
-        mut,
-        seeds = [
-            USER_TROVE_REWARD_A_TAG, 
-            user_trove.key().as_ref(), 
-        ],
-        bump = user_trove.user_trove_reward_token_a_nonce,
-    )]
-    pub user_trove_reward_token_a: Box<Account<'info, TokenAccount>>,
-
-    #[account(
-        mut,
-        seeds = [
-            USER_TROVE_REWARD_B_TAG, 
-            user_trove.key().as_ref(), 
-        ],
-        bump = user_trove.user_trove_reward_token_b_nonce,
-    )]
-    pub user_trove_reward_token_b: Box<Account<'info, TokenAccount>>,
-
-    pub raydium_program_id: AccountInfo<'info>,
-    #[account(mut)]
-    pub raydium_pool_id: AccountInfo<'info>,
-    pub raydium_pool_authority: AccountInfo<'info>,
-    #[account(mut)]
-    pub user_trove_associated_info_account: AccountInfo<'info>,
-    #[account(mut)]
-    pub raydium_pool_lp_account: AccountInfo<'info>,
-    #[account(mut)]
-    pub raydium_pool_reward_token_a_account: AccountInfo<'info>,
-    #[account(mut)]
-    pub raydium_pool_reward_token_b_account: AccountInfo<'info>,
-    #[account(mut)]
-    pub user_reward_token_a_account: AccountInfo<'info>,
-    #[account(mut)]
-    pub user_reward_token_b_account: AccountInfo<'info>,
-
-    pub token_program: Program<'info, Token>,
-    pub clock: AccountInfo<'info>,
-}
-
-#[derive(Accounts)]
 pub struct SetGlobalTvlLimit<'info>{
     #[account(mut)]
     pub payer:  Signer<'info>,
@@ -642,7 +445,8 @@ pub struct SetUserDebtCeiling<'info>{
 
     #[account(mut,
         seeds = [USER_TROVE_TAG,token_vault.key().as_ref(), user.key().as_ref()],
-        bump = user_trove.user_trove_nonce)]
+        bump = user_trove.user_trove_nonce,
+    )]
     pub user_trove:Account<'info, UserTrove>,
 }
 
@@ -660,35 +464,38 @@ pub struct CreateQuarryMiner<'info> {
         seeds = [
             USER_TROVE_TAG,
             token_vault.key().as_ref(), 
-            payer.key().as_ref()
+            payer.key().as_ref(),
         ],
-        bump = user_trove.user_trove_nonce)]
+        bump = user_trove.user_trove_nonce,
+    )]
     pub user_trove: Box<Account<'info, UserTrove>>,
 
     #[account(mut)]
-    pub payer:  Signer<'info>,
+    pub payer: Signer<'info>,
 
     #[account(mut)]
-    pub miner:AccountInfo<'info>,
+    pub miner: AccountInfo<'info>,
 
     #[account(mut)]
-    pub quarry:AccountInfo<'info>,
-    pub rewarder:AccountInfo<'info>,
-    pub token_mint:AccountInfo<'info>,
+    pub quarry: AccountInfo<'info>,
+    pub rewarder: AccountInfo<'info>,
+    pub token_mint: AccountInfo<'info>,
+
     #[account(init,
         token::mint = token_mint,
         token::authority = miner,
         seeds = [
             b"Miner-Vault".as_ref(), 
             miner.key().as_ref(), 
-            token_mint.key().key().as_ref()
+            token_mint.key().key().as_ref(),
         ],
         bump = miner_vault_bump,
-        payer = payer)]
+        payer = payer,
+    )]
     pub miner_vault: Box<Account<'info, TokenAccount>>,
 
-    pub quarry_program:AccountInfo<'info>,
-    pub token_program:Program<'info, Token>,
+    pub quarry_program: AccountInfo<'info>,
+    pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
     pub rent: Sysvar<'info, Rent>,
 }

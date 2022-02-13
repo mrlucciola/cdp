@@ -1,8 +1,0 @@
-==============================================================================
-pubkey: 4LBHCFi1tQns7pe5AYDSj1n3pcsmfyqrokZ6wMcDKxtB
-==============================================================================
-Save this seed phrase and your BIP39 passphrase to recover your new keypair:
-federal judge crystal fatigue defense blush cash bronze cart key various glide
-==============================================================================
-
-no password

@@ -1,8 +1,0 @@
-========================================================================    
-pubkey: 7J3kDDgVtskTQWLGUJLwxstfd6wEnnLRMpNMCtTXHdiw
-========================================================================    
-Save this seed phrase and your BIP39 passphrase to recover your new keypair:
-birth wild involve pond under extend salmon forest salt floor same quote    
-======================================================================== 
-
-no password
