@@ -25,17 +25,16 @@ use std::convert::TryInto;
 // local
 use crate::{constant::*, error::*, instructions::SaberFarm, states::GlobalState};
 
-pub fn get_market_price_devnet(risk_level: u8) -> u64 {
-    return 10_000_000_000;
-}
+// pub fn get_market_price_devnet(risk_level: u8) -> u64 {
+//     return 10_000_000_000;
+// }
 pub fn assert_debt_allowed(
     locked_coll_balance: u64,
     user_debt: u64,
     amount: u64,
-    risk_level: u8,
+    lp_price: u64,
 ) -> ProgramResult {
-    let market_price = get_market_price_devnet(risk_level);
-    let debt_limit = market_price * locked_coll_balance / 100_000_000_000;
+    let debt_limit = lp_price * locked_coll_balance / RATIO_DENOMINATOR;
 
     if debt_limit < user_debt + amount {
         return Err(StablePoolError::NotAllowed.into());
@@ -270,4 +269,62 @@ pub fn assert_devnet() -> ProgramResult {
         return Err(StablePoolError::InvalidCluster.into());
     }
     Ok(())
+}
+
+
+//StableUsdcPair
+pub fn calc_stable_usdc_pair_lp_price(
+    lp_supply: u64, 
+    pair_a_origin_amount: u64, 
+    pair_a_decimals: u8,
+    pair_b_origin_amount: u64, // usdc
+    pair_b_decimals: u8,
+) -> u64 {
+    let amount_a = pair_a_origin_amount as u128;
+    let decimals_a = 10u64.pow(pair_a_decimals as u32) as u128;
+    let amount_b = pair_b_origin_amount as u128;
+    let decimals_b = 10u64.pow(pair_b_decimals as u32) as u128;
+    let supply = lp_supply as u128;
+
+    let lp_price = amount_b
+        .checked_mul(decimals_a).unwrap()
+        .checked_div(decimals_b).unwrap()
+        .checked_add(amount_a).unwrap()
+        .checked_mul(RATIO_DENOMINATOR as u128).unwrap()
+        .checked_div(supply).unwrap();
+
+    return lp_price.try_into().unwrap();
+}
+
+//StableUsdc3Pair
+pub fn calc_stable_usdc_3pair_lp_price(
+    lp_supply: u64, 
+    pair_a_origin_amount: u64, 
+    pair_a_decimals: u8,
+    pair_b_origin_amount: u64, 
+    pair_b_decimals: u8,
+    pair_c_origin_amount: u64, // usdc
+    pair_c_decimals: u8,
+) -> u64 {
+    let amount_a = pair_a_origin_amount as u128;
+    let decimals_a = 10u64.pow(pair_a_decimals as u32) as u128;
+    let amount_b = pair_b_origin_amount as u128;
+    let decimals_b = 10u64.pow(pair_b_decimals as u32) as u128;
+    let amount_c = pair_c_origin_amount as u128;
+    let decimals_c = 10u64.pow(pair_c_decimals as u32) as u128;
+    let supply = lp_supply as u128;
+
+    let lp_price = amount_c
+    .checked_mul(decimals_a).unwrap()
+    .checked_div(decimals_c).unwrap()
+    .checked_add(
+        amount_b
+        .checked_mul(decimals_a).unwrap()
+        .checked_div(decimals_b).unwrap()
+    ).unwrap()
+    .checked_add(amount_a).unwrap()
+    .checked_mul(RATIO_DENOMINATOR as u128).unwrap()
+    .checked_div(supply).unwrap();
+
+    return lp_price.try_into().unwrap();
 }

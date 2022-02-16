@@ -6,6 +6,7 @@ pub const USER_TROVE_TAG: &[u8] = b"user-trove";
 pub const USD_MINT_TAG: &[u8] = b"usd-mint";
 pub const USER_USD_TOKEN_TAG: &[u8] = b"usd-token";
 pub const USER_TROVE_POOL_TAG: &[u8] = b"user-trove-pool";
+pub const PRICE_FEED_TAG: &[u8] = b"price-feed";
 
 pub const USD_DECIMALS: u8 = 6;
 

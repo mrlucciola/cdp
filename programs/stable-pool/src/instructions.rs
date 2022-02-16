@@ -297,6 +297,11 @@ pub struct BorrowUsd<'info> {
         bump = token_vault.token_vault_nonce,
     )]
     pub token_vault: Box<Account<'info, TokenVault>>,
+    #[account(
+        seeds = [PRICE_FEED_TAG,token_vault.mint_coll.as_ref()],
+        bump,
+    )]
+    pub price_feed: Box<Account<'info, PriceFeed>>,
     #[account(mut,
         seeds = [USER_TROVE_TAG,token_vault.key().as_ref(), owner.key().as_ref()],
         bump = user_trove.user_trove_nonce)]
@@ -556,4 +561,82 @@ pub struct HarvestFromSaber<'info> {
     
     #[account(mut)]
     pub claim_fee_token_account: Box<Account<'info, TokenAccount>>,
+}
+
+
+#[derive(Accounts)]
+#[instruction(pair_count: u8)]
+pub struct CreatePriceFeed<'info> {
+    #[account(
+        seeds = [GLOBAL_STATE_TAG],
+        bump,
+        has_one = authority)]
+    pub global_state: Box<Account<'info, GlobalState>>,
+
+    #[account(
+        seeds = [TOKEN_VAULT_TAG,mint_coll.key().as_ref()],
+        bump,
+    )]
+    pub token_vault: Box<Account<'info, TokenVault>>,
+
+    #[account(
+        init,
+        seeds = [PRICE_FEED_TAG,token_vault.mint_coll.as_ref()],
+        bump,
+        payer = authority
+    )]
+    pub price_feed: Box<Account<'info, PriceFeed>>,
+
+    pub mint_coll: Box<Account<'info, Mint>>,
+    pub mint_a: Box<Account<'info, Mint>>,
+    pub mint_b: Box<Account<'info, Mint>>,
+    pub mint_c: Box<Account<'info, Mint>>,
+
+    #[account(mut,
+        constraint = vault_a.mint == mint_a.key()
+    )]
+    pub vault_a: Box<Account<'info, TokenAccount>>,
+    #[account(mut,
+        constraint = vault_b.mint == mint_b.key()
+    )]
+    pub vault_b: Box<Account<'info, TokenAccount>>,
+    #[account(mut,
+        constraint = vault_c.mint == mint_c.key()
+    )]
+    pub vault_c: Box<Account<'info, TokenAccount>>,
+
+    #[account(mut)]
+    pub authority:  Signer<'info>,
+    pub system_program: Program<'info, System>,
+    pub token_program: Program<'info, Token>,
+    pub rent: Sysvar<'info, Rent>,
+    pub clock: Sysvar<'info, Clock>,
+}
+
+#[derive(Accounts)]
+#[instruction()]
+pub struct UpdatePriceFeed<'info> {
+    #[account(
+        mut,
+        seeds = [PRICE_FEED_TAG,mint_coll.key().as_ref()],
+        bump,
+    )]
+    pub price_feed: Box<Account<'info, PriceFeed>>,
+
+    pub mint_coll: Box<Account<'info, Mint>>,
+
+    #[account(mut,
+        constraint = vault_a.mint == price_feed.mint_a
+    )]
+    pub vault_a: Box<Account<'info, TokenAccount>>,
+    #[account(mut,
+        constraint = vault_b.mint == price_feed.mint_b
+    )]
+    pub vault_b: Box<Account<'info, TokenAccount>>,
+    #[account(mut,
+        constraint = vault_c.mint == price_feed.mint_c
+    )]
+    pub vault_c: Box<Account<'info, TokenAccount>>,
+
+    pub clock: Sysvar<'info, Clock>,
 }
