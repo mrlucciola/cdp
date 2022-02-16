@@ -146,8 +146,8 @@ impl<'info> BorrowUsd<'info> {
         amount: u64,
         user_usd_token_nonce: u8,
     ) -> ProgramResult {
-
-        assert_debt_allowed(self.user_trove.locked_coll_balance, self.user_trove.debt, amount, self.token_vault.risk_level)?;
+        let lp_price = self.price_feed.price;
+        assert_debt_allowed(self.user_trove.locked_coll_balance, self.user_trove.debt, amount, lp_price)?;
         assert_vault_debt_ceiling_not_exceeded(self.token_vault.debt_ceiling, self.token_vault.total_debt, amount)?;
         assert_global_debt_ceiling_not_exceeded(self.global_state.debt_ceiling, self.global_state.total_debt, amount)?;
         assert_user_debt_ceiling_not_exceeded(self.user_trove.debt_ceiling, self.user_trove.debt, amount)?;
@@ -214,6 +214,92 @@ impl<'info> RepayUsd<'info> {
         self.token_vault.total_debt -= _amount;
         self.global_state.total_debt -= _amount;
         self.user_trove.debt -= _amount;
+
+        Ok(())
+    }
+}
+
+
+
+impl<'info> CreatePriceFeed<'info> {
+    pub fn create_price_feed(&mut self,
+        pair_count: u8,
+    ) -> ProgramResult {
+        let price_feed = &mut self.price_feed;
+        price_feed.mint_coll = self.mint_coll.key();
+        price_feed.mint_a = self.mint_a.key();
+        price_feed.mint_b = self.mint_b.key();
+        price_feed.mint_c = self.mint_c.key();
+        price_feed.vault_a = self.vault_a.key();
+        price_feed.vault_b = self.vault_b.key();
+        price_feed.vault_c = self.vault_c.key();
+        price_feed.decimals_a = self.mint_a.decimals;
+        price_feed.decimals_b = self.mint_b.decimals;
+        price_feed.decimals_c = self.mint_c.decimals;
+        price_feed.pair_count = pair_count;
+        price_feed.last_updated_time = self.clock.unix_timestamp as u64;
+
+        let mut lp_price = 0;
+        if pair_count == 2 {
+            lp_price = calc_stable_usdc_pair_lp_price(
+                self.mint_coll.supply, 
+                self.vault_a.amount, 
+                price_feed.decimals_a, 
+                self.vault_b.amount, 
+                price_feed.decimals_b
+            );
+        }
+        else if pair_count == 3 {
+            lp_price = calc_stable_usdc_3pair_lp_price(
+                self.mint_coll.supply, 
+                self.vault_a.amount, 
+                price_feed.decimals_a, 
+                self.vault_b.amount, 
+                price_feed.decimals_b,
+                self.vault_c.amount, 
+                price_feed.decimals_c
+            );
+        }
+        else {
+            return Err(StablePoolError::NotAllowed.into());
+        }
+        price_feed.price = lp_price;
+
+        Ok(())
+    }
+}
+
+impl<'info> UpdatePriceFeed<'info> {
+    pub fn update_price_feed(&mut self,
+    ) -> ProgramResult {
+        let price_feed = &mut self.price_feed;
+        price_feed.last_updated_time = self.clock.unix_timestamp as u64;
+
+        let mut lp_price = 0;
+        if price_feed.pair_count == 2 {
+            lp_price = calc_stable_usdc_pair_lp_price(
+                self.mint_coll.supply, 
+                self.vault_a.amount, 
+                price_feed.decimals_a, 
+                self.vault_b.amount, 
+                price_feed.decimals_b
+            );
+        }
+        else if price_feed.pair_count == 3 {
+            lp_price = calc_stable_usdc_3pair_lp_price(
+                self.mint_coll.supply, 
+                self.vault_a.amount, 
+                price_feed.decimals_a, 
+                self.vault_b.amount, 
+                price_feed.decimals_b,
+                self.vault_c.amount, 
+                price_feed.decimals_c
+            );
+        }
+        else {
+            return Err(StablePoolError::NotAllowed.into());
+        }
+        price_feed.price = lp_price;
 
         Ok(())
     }

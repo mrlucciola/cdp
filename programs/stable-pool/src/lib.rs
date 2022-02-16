@@ -167,4 +167,12 @@ pub mod stable_pool {
     pub fn harvest_from_saber(ctx: Context<HarvestFromSaber>) -> ProgramResult {
         ctx.accounts.harvest()
     }
+
+    #[access_control(is_secure(&ctx.accounts.global_state))]
+    pub fn create_price_feed(ctx: Context<CreatePriceFeed>, pair_count: u8) -> ProgramResult {
+        ctx.accounts.create_price_feed(pair_count)
+    }
+    pub fn update_price_feed(ctx: Context<UpdatePriceFeed>) -> ProgramResult {
+        ctx.accounts.update_price_feed()
+    }
 }

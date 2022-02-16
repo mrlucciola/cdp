@@ -77,3 +77,22 @@ pub enum PlatformType{
     // Mercurial,
     Unknown
 }
+
+
+#[account]
+#[derive(Default)]
+pub struct PriceFeed {
+    pub mint_coll: Pubkey,
+    pub mint_a: Pubkey, // usdc
+    pub mint_b: Pubkey,
+    pub mint_c: Pubkey,
+    pub vault_a: Pubkey, // usdc
+    pub vault_b: Pubkey,
+    pub vault_c: Pubkey,
+    pub decimals_a: u8, // usdc
+    pub decimals_b: u8,
+    pub decimals_c: u8,
+    pub pair_count: u8,
+    pub price: u64,
+    pub last_updated_time: u64
+}
