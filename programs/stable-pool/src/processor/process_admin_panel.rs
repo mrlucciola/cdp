@@ -10,7 +10,7 @@ use crate::{
 impl<'info> CreateGlobalState<'info> {
   pub fn create_state(&mut self, global_state_nonce:u8, mint_usd_nonce:u8, tvl_limit:u64, debt_ceiling:u64 ) -> ProgramResult {
       
-      self.global_state.authority = self.super_owner.key();
+      self.global_state.authority = self.authority.key();
       self.global_state.mint_usd = self.mint_usd.key();
       self.global_state.global_state_nonce = global_state_nonce;
       self.global_state.mint_usd_nonce = mint_usd_nonce;
@@ -41,7 +41,8 @@ impl<'info> ToggleEmerState<'info> {
   }
 }
 
-impl<'info> ChangeSuperOwner<'info> {
+// no tests yet
+impl<'info> ChangeAuthority<'info> {
   pub fn change_owner(&mut self) -> ProgramResult {
     self.global_state.authority = self.new_owner.key();
     Ok(())
@@ -49,7 +50,7 @@ impl<'info> ChangeSuperOwner<'info> {
 }
 
 impl<'info> SetGlobalTvlLimit<'info> {
-  pub fn set_tvL_limit(&mut self, limit: u64) -> ProgramResult {
+  pub fn set_tvl_limit(&mut self, limit: u64) -> ProgramResult {
       self.global_state.tvl_limit = limit;
       Ok(())
   }
@@ -64,32 +65,31 @@ impl<'info> SetGlobalDebtCeiling<'info> {
 
 impl<'info> SetVaultDebtCeiling<'info> {
   pub fn set(&mut self, ceiling: u64) -> ProgramResult {
-      self.token_vault.debt_ceiling = ceiling;
+      self.vault.debt_ceiling = ceiling;
       Ok(())
   }
 }
 
 impl<'info> SetUserDebtCeiling<'info> {
   pub fn set(&mut self, ceiling: u64) -> ProgramResult {
-      self.user_trove.debt_ceiling = ceiling;
+      self.trove.debt_ceiling = ceiling;
       Ok(())
   }
 }
 
-impl<'info> CreateTokenVault<'info> {
-  pub fn create_vault(&mut self, token_vault_nonce:u8, risk_level: u8, is_dual: u8, debt_ceiling: u64, platform_type: u8) -> ProgramResult {
+impl<'info> CreateVault<'info> {
+  pub fn create_vault(&mut self, vault_bump :u8, risk_level: u8, is_dual: u8, debt_ceiling: u64, platform_type: u8) -> ProgramResult {
 
-      self.token_vault.mint_coll = self.mint_coll.key();
-      msg!("Token Vault Nonce {}", token_vault_nonce);
-      self.token_vault.total_coll = 0;
-      self.token_vault.total_debt = 0;
-      self.token_vault.risk_level = risk_level;
-      self.token_vault.token_vault_nonce = token_vault_nonce;
-      self.token_vault.is_dual = is_dual;
-      self.token_vault.debt_ceiling = debt_ceiling;
+      self.vault.mint_coll = self.mint_coll.key();
+      self.vault.total_coll = 0;
+      self.vault.total_debt = 0;
+      self.vault.risk_level = risk_level;
+      self.vault.vault_bump = vault_bump;
+      self.vault.is_dual = is_dual;
+      self.vault.debt_ceiling = debt_ceiling;
       
-      require!(platform_type >= 0 && platform_type < PlatformType::Unknown as u8, StablePoolError:: InvalidPlatformType);
-      self.token_vault.platform_type = platform_type;
+      require!(platform_type < PlatformType::Unknown as u8, StablePoolError:: InvalidPlatformType);
+      self.vault.platform_type = platform_type;
       
       Ok(())
   }

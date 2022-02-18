@@ -6,13 +6,13 @@ use crate::{constant::*, states::*};
 #[derive(Accounts)]
 #[instruction(state_nonce:u8, mint_usdc_usdx_lp_nonce:u8, mint_eth_sol_lp_nonce:u8, mint_atlas_ray_lp_nonce:u8, mint_samo_ray_lp_nonce:u8)]
 pub struct CreateFaucetState<'info> {
-    pub super_owner: Signer<'info>,
+    pub authority: Signer<'info>,
 
     #[account(
     init,
     seeds = [FAUCET_TAG],
     bump = state_nonce,
-    payer = super_owner,
+    payer = authority,
     )]
     pub faucet_state: Account<'info, Faucet>,
 
@@ -21,7 +21,7 @@ pub struct CreateFaucetState<'info> {
         mint::authority = faucet_state,
         seeds = [LP_USDC_USDX_TAG],
         bump = mint_usdc_usdx_lp_nonce,
-        payer = super_owner)]
+        payer = authority)]
     pub mint_usdc_usdx_lp: Account<'info, Mint>,
 
     #[account(init,
@@ -29,7 +29,7 @@ pub struct CreateFaucetState<'info> {
         mint::authority = faucet_state,
         seeds = [LP_ETH_SOL_TAG],
         bump = mint_eth_sol_lp_nonce,
-        payer = super_owner)]
+        payer = authority)]
     pub mint_eth_sol_lp: Account<'info, Mint>,
 
     #[account(init,
@@ -37,7 +37,7 @@ pub struct CreateFaucetState<'info> {
         mint::authority = faucet_state,
         seeds = [LP_ATLAS_RAY_TAG],
         bump = mint_atlas_ray_lp_nonce,
-        payer = super_owner)]
+        payer = authority)]
     pub mint_atlas_ray_lp: Account<'info, Mint>,
 
     #[account(init,
@@ -45,7 +45,7 @@ pub struct CreateFaucetState<'info> {
         mint::authority = faucet_state,
         seeds = [LP_SAMO_RAY_TAG],
         bump = mint_samo_ray_lp_nonce,
-        payer = super_owner)]
+        payer = authority)]
     pub mint_samo_ray_lp: Account<'info, Mint>,
 
     pub system_program: Program<'info, System>,

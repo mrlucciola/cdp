@@ -8,18 +8,18 @@ use crate::{
     error::*,
 };
 
-impl<'info> CreateUserTrove<'info> {
+impl<'info> CreateTrove<'info> {
     /// Claims rewards from saber farm
     pub fn create(&mut self, 
-        user_trove_nonce: u8,
-        token_coll_nonce: u8, 
+        trove_nonce: u8,
+        ata_trove_nonce: u8, 
         ceiling: u64,
     ) -> ProgramResult {
-        self.user_trove.locked_coll_balance = 0;
-        self.user_trove.debt = 0;
-        self.user_trove.user_trove_nonce = user_trove_nonce;
-        self.user_trove.token_coll_nonce = token_coll_nonce;
-        self.user_trove.debt_ceiling = ceiling;
+        self.trove.locked_coll_balance = 0;
+        self.trove.debt = 0;
+        self.trove.trove_nonce = trove_nonce;
+        self.trove.ata_trove_nonce = ata_trove_nonce;
+        self.trove.debt_ceiling = ceiling;
 
         Ok(())
     }
@@ -30,7 +30,7 @@ impl<'info> CreateUserRewardVault<'info> {
     pub fn create(&mut self
     ) -> ProgramResult {
 
-        self.token_vault.reward_mint_a = self.reward_mint.key();
+        self.vault.reward_mint_a = self.reward_mint.key();
         Ok(())
     }
 }
@@ -44,9 +44,9 @@ impl<'info> RatioStaker<'info> {
         
         // transfer from user to pool
         let cpi_accounts = Transfer {
-            from: self.user_token_coll.to_account_info().clone(),
-            to: self.pool_token_coll.to_account_info().clone(),
-            authority: self.owner.to_account_info().clone(),
+            from: self.ata_user_coll.to_account_info().clone(),
+            to: self.ata_trove.to_account_info().clone(),
+            authority: self.authority.to_account_info().clone(),
         };
 
         let cpi_program = self.token_program.to_account_info().clone();
@@ -55,44 +55,41 @@ impl<'info> RatioStaker<'info> {
 
         token::transfer(cpi_ctx, amount)?;
 
-        self.token_vault.total_coll += amount;
-        self.user_trove.locked_coll_balance += amount;
+        self.vault.total_coll += amount;
+        self.trove.locked_coll_balance += amount;
         self.global_state.tvl += amount;
 
         Ok(())
     }
     pub fn withdraw(&mut self, amount: u64, ) -> ProgramResult {
-        msg!("withdrawing ...");
     
         let mut _amount = amount;
-        if amount > self.user_trove.locked_coll_balance {
-            _amount = self.user_trove.locked_coll_balance;
+        if amount > self.trove.locked_coll_balance {
+            _amount = self.trove.locked_coll_balance;
         }
         
         // transfer from pool to user
         let cpi_accounts = Transfer {
-            from: self.pool_token_coll.to_account_info(),
-            to: self.user_token_coll.to_account_info(),
-            authority: self.user_trove.to_account_info(),
+            from: self.ata_trove.to_account_info(),
+            to: self.ata_user_coll.to_account_info(),
+            authority: self.trove.to_account_info(),
         };
     
         let cpi_program = self.token_program.to_account_info();
     
         let signer_seeds = &[
-            USER_TROVE_TAG,
-            self.token_vault.to_account_info().key.as_ref(), 
-            self.owner.to_account_info().key.as_ref(),
-            &[self.user_trove.user_trove_nonce],
+            TROVE_SEED,
+            self.vault.to_account_info().key.as_ref(), 
+            self.authority.to_account_info().key.as_ref(),
+            &[self.trove.trove_nonce],
         ];
         let signer = &[&signer_seeds[..]];
     
         let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
-        msg!("transfering ...");
         token::transfer(cpi_ctx, _amount)?;
     
-        msg!("updating ...");
-        self.token_vault.total_coll -= amount;
-        self.user_trove.locked_coll_balance -= _amount;
+        self.vault.total_coll -= amount;
+        self.trove.locked_coll_balance -= _amount;
         self.global_state.tvl -= amount;
     
         Ok(())
@@ -102,37 +99,34 @@ impl<'info> RatioStaker<'info> {
 impl<'info> HarvestReward<'info> {
     pub fn harvest(&mut self) -> ProgramResult {
         
-        self.user_trove_reward.reload()?;
-        msg!("Harvest amount {}", self.user_trove_reward.amount);
-        let fee_info = calculate_fee(self.user_trove_reward.amount, self.global_state.fee_num, self.global_state.fee_deno)?;
+        self.trove_reward.reload()?;
+        let fee_info = calculate_fee(self.trove_reward.amount, self.global_state.fee_num, self.global_state.fee_deno)?;
         
         require!(fee_info.new_amount > 0, StablePoolError::InvalidTransferAmount);
         require!(fee_info.owner_fee > 0, StablePoolError::InvalidTransferAmount);
 
         let authority_seeds = &[
-            USER_TROVE_TAG,
-            self.token_vault.to_account_info().key.as_ref(), 
+            TROVE_SEED,
+            self.vault.to_account_info().key.as_ref(), 
             self.authority.to_account_info().key.as_ref(),
-            &[self.user_trove.user_trove_nonce],
+            &[self.trove.trove_nonce],
         ];
-        msg!("rewards To user {}", fee_info.new_amount);
         token::transfer(CpiContext::new(
             self.token_program.to_account_info(), 
             Transfer {
-                from: self.user_trove_reward.to_account_info(),
+                from: self.trove_reward.to_account_info(),
                 to: self.user_reward_token.to_account_info(),
-                authority: self.user_trove.to_account_info(),
+                authority: self.trove.to_account_info(),
             }).with_signer(&[&authority_seeds[..]]), 
             fee_info.new_amount
         )?;
 
-        msg!("rewards To site owner {}", fee_info.owner_fee);
         token::transfer(CpiContext::new(
             self.token_program.to_account_info(), 
             Transfer {
-                from: self.user_trove_reward.to_account_info(),
+                from: self.trove_reward.to_account_info(),
                 to: self.reward_fee_token.to_account_info(),
-                authority: self.user_trove.to_account_info(),
+                authority: self.trove.to_account_info(),
             }).with_signer(&[&authority_seeds[..]]), 
             fee_info.owner_fee
         )?;
@@ -147,25 +141,25 @@ impl<'info> BorrowUsd<'info> {
         user_usd_token_nonce: u8,
     ) -> ProgramResult {
         let lp_price = self.price_feed.price;
-        assert_debt_allowed(self.user_trove.locked_coll_balance, self.user_trove.debt, amount, lp_price)?;
-        assert_vault_debt_ceiling_not_exceeded(self.token_vault.debt_ceiling, self.token_vault.total_debt, amount)?;
+        assert_debt_allowed(self.trove.locked_coll_balance, self.trove.debt, amount, lp_price)?;
+        assert_vault_debt_ceiling_not_exceeded(self.vault.debt_ceiling, self.vault.total_debt, amount)?;
         assert_global_debt_ceiling_not_exceeded(self.global_state.debt_ceiling, self.global_state.total_debt, amount)?;
-        assert_user_debt_ceiling_not_exceeded(self.user_trove.debt_ceiling, self.user_trove.debt, amount)?;
+        assert_user_debt_ceiling_not_exceeded(self.trove.debt_ceiling, self.trove.debt, amount)?;
         
         let cur_timestamp = self.clock.unix_timestamp as u64;
 
-        assert_limit_mint(cur_timestamp, self.user_trove.last_mint_time)?;
+        assert_limit_mint(cur_timestamp, self.trove.last_mint_time)?;
         // mint to user
         let cpi_accounts = MintTo {
             mint: self.mint_usd.to_account_info().clone(),
-            to: self.user_token_usd.to_account_info().clone(),
+            to: self.ata_user_usd.to_account_info().clone(),
             authority: self.global_state.to_account_info().clone(),
         };
 
         let cpi_program = self.token_program.to_account_info().clone();
 
         let signer_seeds = &[
-            GLOBAL_STATE_TAG,
+            GLOBAL_STATE_SEED,
             &[self.global_state.global_state_nonce],
         ];
         let signer = &[&signer_seeds[..]];
@@ -173,11 +167,11 @@ impl<'info> BorrowUsd<'info> {
         let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
         token::mint_to(cpi_ctx, amount)?;
 
-        self.token_vault.total_debt += amount;
+        self.vault.total_debt += amount;
         self.global_state.total_debt += amount;
-        self.user_trove.debt += amount;
-        self.user_trove.last_mint_time = cur_timestamp;
-        self.user_trove.user_usd_nonce = user_usd_token_nonce;
+        self.trove.debt += amount;
+        self.trove.last_mint_time = cur_timestamp;
+        self.trove.user_usd_nonce = user_usd_token_nonce;
 
         Ok(())
     }
@@ -189,20 +183,20 @@ impl<'info> RepayUsd<'info> {
         amount: u64,
     ) -> ProgramResult {
         let mut _amount = amount;
-        if self.user_trove.debt < amount {
-            _amount = self.user_trove.debt;
+        if self.trove.debt < amount {
+            _amount = self.trove.debt;
         }
         // burn
         let cpi_accounts = Burn {
             mint: self.mint_usd.to_account_info().clone(),
-            to: self.user_token_usd.to_account_info().clone(),
+            to: self.ata_user_usd.to_account_info().clone(),
             authority: self.owner.to_account_info().clone(),
         };
 
         let cpi_program = self.token_program.to_account_info().clone();
 
         let signer_seeds = &[
-            GLOBAL_STATE_TAG,
+            GLOBAL_STATE_SEED,
             &[self.global_state.global_state_nonce],
         ];
         let signer = &[&signer_seeds[..]];
@@ -211,9 +205,9 @@ impl<'info> RepayUsd<'info> {
 
         token::burn(cpi_ctx, _amount)?;
 
-        self.token_vault.total_debt -= _amount;
+        self.vault.total_debt -= _amount;
         self.global_state.total_debt -= _amount;
-        self.user_trove.debt -= _amount;
+        self.trove.debt -= _amount;
 
         Ok(())
     }

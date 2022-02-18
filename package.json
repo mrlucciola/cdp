@@ -4,6 +4,8 @@
         "@project-serum/common": "^0.0.1-beta.3",
         "@quarryprotocol/quarry-sdk": "^1.10.6",
         "@saberhq/anchor-contrib": "^1.10.4",
+        "@saberhq/chai-solana": "^1.12.45",
+        "@saberhq/saber-periphery": "^1.0.11",
         "@saberhq/stableswap-sdk": "^1.10.3",
         "@saberhq/token-utils": "^1.10.8",
         "@solana/spl-token": "^0.1.8",
@@ -28,7 +30,7 @@
         "use-devnet": "solana config set --url devnet --config ./.config/config.yml",
         "use-localnet": "solana config set --url localhost --config ./.config/config.yml",
         "airdrop": "for i in `seq 1 10`; do solana airdrop 2 ./.config/test-keypair.json; done",
-        "update-pid": "sh ./.config/update_pid.sh"
+        "update-pid": "sh ./scripts/update_pid.sh"
     },
     "engines": {
         "node": ">14"

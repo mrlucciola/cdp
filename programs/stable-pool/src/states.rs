@@ -19,7 +19,7 @@ pub struct GlobalState {
 
 #[account]
 #[derive(Default)]
-pub struct TokenVault {
+pub struct Vault { // prev: TokenVault
     pub mint_coll: Pubkey,
     pub reward_mint_a: Pubkey,
     pub reward_mint_b: Pubkey,
@@ -28,7 +28,7 @@ pub struct TokenVault {
     pub total_debt: u64,
     pub debt_ceiling: u64,
     pub risk_level: u8,
-    pub token_vault_nonce: u8,
+    pub vault_bump: u8,
     
     pub platform_type: u8,
     pub farm_info: Pubkey,
@@ -46,20 +46,20 @@ pub struct SaberFarmAccount {
 
 #[account]
 #[derive(Default)]
-pub struct UserTrove {
-    pub token_coll: Pubkey,
+pub struct Trove {
+    pub wallet_nonce: u8, // because of raydium
     pub reward_token_a: Pubkey,
     pub reward_token_b: Pubkey,
     pub locked_coll_balance: u64,
     pub debt: u64,
     pub debt_ceiling: u64,
-    pub last_mint_time: u64,
-    pub user_trove_nonce: u8,
-    pub wallet_nonce: u8, // because of raydium
-    pub token_coll_nonce: u8,
+    pub trove_nonce: u8,
+    pub ata_trove_nonce: u8,
+    pub token_coll: Pubkey,
     pub user_usd_nonce: u8,
-    pub user_trove_reward_token_a_nonce: u8,
-    pub user_trove_reward_token_b_nonce: u8,
+    pub last_mint_time: u64,
+    pub trove_reward_token_a_nonce: u8,
+    pub trove_reward_token_b_nonce: u8,
 }
 
 // Risk Level

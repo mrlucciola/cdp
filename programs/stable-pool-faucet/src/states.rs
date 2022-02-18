@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 #[account]
 #[derive(Default)]
 pub struct Faucet {
-    pub super_owner: Pubkey,
+    pub authority: Pubkey,
     pub mint_usdc_usdx_lp: Pubkey,
     // pub mint_wtust_usdc_lp: Pubkey,
     pub mint_eth_sol_lp: Pubkey,

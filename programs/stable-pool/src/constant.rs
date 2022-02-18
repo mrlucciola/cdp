@@ -1,17 +1,14 @@
 use anchor_lang::constant;
 
-pub const GLOBAL_STATE_TAG: &[u8] = b"global-state-seed";
-pub const TOKEN_VAULT_TAG: &[u8] = b"token-vault-seed";
-pub const USER_TROVE_TAG: &[u8] = b"user-trove";
-pub const USD_MINT_TAG: &[u8] = b"usd-mint";
-pub const USER_USD_TOKEN_TAG: &[u8] = b"usd-token";
-pub const USER_TROVE_POOL_TAG: &[u8] = b"user-trove-pool";
+pub const GLOBAL_STATE_SEED: &[u8] = b"GLOBAL_STATE_TAG"; // prev: GLOBAL_STATE_TAG & global-state-seed
+pub const VAULT_SEED: &[u8] = b"VAULT_SEED";
+pub const TROVE_SEED: &[u8] = b"TROVE_SEED";
+pub const MINT_USD_SEED: &[u8] = b"MINT_USD_SEED"; // prev: USD_MINT_TAG & usd-mint
+pub const USD_TOKEN_SEED: &[u8] = b"USD_TOKEN_SEED"; // prev: USD_TOKEN_TAG & usd-token
+pub const TROVE_POOL_SEED: &[u8] = b"TROVE_POOL_SEED"; // used for ATA trove  prev: USER_TROVE_POOL_TAG
 pub const PRICE_FEED_TAG: &[u8] = b"price-feed";
 
 pub const USD_DECIMALS: u8 = 6;
-
-pub const USER_TROVE_REWARD_A_TAG: &[u8] = b"user-trove-reward-a";
-pub const USER_TROVE_REWARD_B_TAG: &[u8] = b"user-trove-reward-b";
 
 pub const DEFAULT_FEE_NUMERATOR: u128 = 3;
 pub const DEFAULT_FEE_DENOMINATOR: u128 = 1000;

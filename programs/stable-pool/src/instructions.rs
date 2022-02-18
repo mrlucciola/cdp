@@ -1,10 +1,7 @@
 use anchor_lang::prelude::*;
 use quarry_mine::Rewarder;
 // local
-use anchor_spl::{
-    associated_token::AssociatedToken,
-    token::{self, Token, TokenAccount, Mint}
-};
+use anchor_spl::{token::{self, Token, TokenAccount, Mint}};
 
 use crate::{
     states::*,
@@ -16,22 +13,22 @@ use crate::{
 #[instruction(global_state_nonce:u8, mint_usd_nonce:u8, tvl_limit:u64, debt_ceiling:u64)]
 pub struct CreateGlobalState<'info>{
     #[account(mut)]
-    pub super_owner: Signer<'info>,
+    pub authority: Signer<'info>,
 
     #[account(
         init,
-        seeds = [GLOBAL_STATE_TAG],
+        seeds = [GLOBAL_STATE_SEED],
         bump = global_state_nonce,
-        payer = super_owner,
+        payer = authority,
         )]
     pub global_state: Account<'info, GlobalState>,
 
     #[account(init,
         mint::decimals = USD_DECIMALS,
         mint::authority = global_state,
-        seeds = [USD_MINT_TAG],
+        seeds = [MINT_USD_SEED],
         bump = mint_usd_nonce,
-        payer = super_owner)]
+        payer = authority)]
     pub mint_usd: Account<'info, Mint>,
 
     pub system_program: Program<'info, System>,
@@ -46,7 +43,7 @@ pub struct SetHarvestFee<'info>{
 
     #[account(
         mut,
-        seeds = [GLOBAL_STATE_TAG],
+        seeds = [GLOBAL_STATE_SEED],
         bump = global_state.global_state_nonce,
     )]
     pub global_state: Account<'info, GlobalState>,
@@ -58,7 +55,7 @@ pub struct ToggleEmerState<'info>{
     pub payer: Signer<'info>,
 
     #[account(
-        seeds = [GLOBAL_STATE_TAG],
+        seeds = [GLOBAL_STATE_SEED],
         bump = global_state.global_state_nonce,
     )]
     pub global_state: Account<'info, GlobalState>,
@@ -70,19 +67,20 @@ pub struct SetCollateralRatio<'info>{
     pub payer: Signer<'info>,
 
     #[account(
-        seeds = [GLOBAL_STATE_TAG],
+        seeds = [GLOBAL_STATE_SEED],
         bump = global_state.global_state_nonce,
     )]
     pub global_state: Account<'info, GlobalState>,
 }
 
+// no tests yet
 #[derive(Accounts)]
-pub struct ChangeSuperOwner<'info>{
+pub struct ChangeAuthority<'info>{
     #[account(mut)]
     pub payer: Signer<'info>,
 
     #[account(
-        seeds = [GLOBAL_STATE_TAG],
+        seeds = [GLOBAL_STATE_SEED],
         bump = global_state.global_state_nonce,
     )]
     pub global_state: Account<'info, GlobalState>,
@@ -90,20 +88,20 @@ pub struct ChangeSuperOwner<'info>{
 }
 
 #[derive(Accounts)]
-#[instruction(token_vault_nonce:u8, risk_level: u8, is_dual: u8, debt_ceiling: u64, platform_type: u8)]
-pub struct CreateTokenVault<'info> {
+#[instruction(vault_bump :u8, risk_level: u8, is_dual: u8, debt_ceiling: u64, platform_type: u8)]
+pub struct CreateVault<'info> {
     #[account(mut)]
     pub authority:  Signer<'info>,
 
     #[account(
         init,
-        seeds = [TOKEN_VAULT_TAG,mint_coll.key().as_ref()],
-        bump = token_vault_nonce,
+        seeds = [VAULT_SEED, mint_coll.key().as_ref()],
+        bump = vault_bump,
         payer = authority,)]
-    pub token_vault: Box<Account<'info, TokenVault>>,
+    pub vault: Box<Account<'info, Vault>>,
 
     #[account(mut,
-        seeds = [GLOBAL_STATE_TAG],
+        seeds = [GLOBAL_STATE_SEED],
         bump = global_state.global_state_nonce,
         has_one = authority)]
     pub global_state: Box<Account<'info, GlobalState>>,
@@ -116,39 +114,41 @@ pub struct CreateTokenVault<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(user_trove_nonce:u8, token_coll_nonce:u8)]
-pub struct CreateUserTrove<'info> {
+#[instruction(trove_nonce: u8, ata_trove_nonce: u8)]
+pub struct CreateTrove<'info> {
 
-    #[account(mut,
-        seeds = [TOKEN_VAULT_TAG, token_vault.mint_coll.as_ref()],
-        bump = token_vault.token_vault_nonce,
+    #[account(
+        mut,
+        seeds = [VAULT_SEED, vault.mint_coll.as_ref()],
+        bump = vault.vault_bump,
     )]
-    pub token_vault: Box<Account<'info, TokenVault>>,
+    pub vault: Box<Account<'info, Vault>>, // prev: TokenVault
 
     #[account(
         init,
-        seeds = [USER_TROVE_TAG,token_vault.key().as_ref(), authority.key().as_ref()],
-        bump = user_trove_nonce,
+        seeds = [TROVE_SEED, vault.key().as_ref(), authority.key().as_ref()],
+        bump = trove_nonce,
         payer = authority,
     )]
-    pub user_trove: Box<Account<'info, UserTrove>>,
+    pub trove: Box<Account<'info, Trove>>,
 
     pub authority: Signer<'info>,
-
-    #[account(init,
+    // ata migh not be the correct term
+    #[account(
+        init,
         token::mint = mint_coll,
-        token::authority = user_trove,
+        token::authority = trove,
         seeds = [
-            USER_TROVE_POOL_TAG, 
-            user_trove.key().as_ref(),
+            TROVE_POOL_SEED,
+            trove.key().as_ref(),
             mint_coll.key().as_ref(),
         ],
-        bump = token_coll_nonce,
-        payer = authority)]
-    pub token_coll: Box<Account<'info, TokenAccount>>,
+        bump = ata_trove_nonce,
+        payer = authority,
+    )]
+    pub ata_trove: Box<Account<'info, TokenAccount>>,
 
-    #[account(mut,
-        constraint = mint_coll.key() == token_vault.mint_coll)]
+    #[account(mut, constraint = mint_coll.key() == vault.mint_coll)]
     pub mint_coll: Box<Account<'info, Mint>>,
 
     pub system_program: Program<'info, System>,
@@ -157,34 +157,38 @@ pub struct CreateUserTrove<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(reward_vault_nonce:u8)]
+#[instruction(reward_vault_bump: u8)]
 pub struct CreateUserRewardVault<'info> {
-
-    #[account(mut,
-        seeds = [TOKEN_VAULT_TAG, token_vault.mint_coll.as_ref()],
-        bump = token_vault.token_vault_nonce,
-    )]
-    pub token_vault: Box<Account<'info, TokenVault>>,
 
     #[account(
         mut,
-        seeds = [USER_TROVE_TAG, token_vault.key().as_ref(), authority.key().as_ref()],
-        bump = user_trove.user_trove_nonce,
+        seeds = [VAULT_SEED, vault.mint_coll.as_ref()],
+        bump = vault.vault_bump,
     )]
-    pub user_trove: Box<Account<'info, UserTrove>>,
+    pub vault: Box<Account<'info, Vault>>,
+
+    #[account(
+        mut,
+        seeds = [TROVE_SEED, vault.key().as_ref(), authority.key().as_ref()],
+        bump = trove.trove_nonce,
+    )]
+    pub trove: Box<Account<'info, Trove>>,
 
     pub authority: Signer<'info>,
 
-    #[account(init,
+    // this may be incorrect - either the seeds or the var name. TROVE_POOL_SEED is used for ata owned by trove
+    #[account(
+        init,
         token::mint = reward_mint,
-        token::authority = user_trove,
+        token::authority = trove,
         seeds = [
-            USER_TROVE_POOL_TAG, 
-            user_trove.key().as_ref(), 
-            reward_mint.key().key().as_ref()
+            TROVE_POOL_SEED, 
+            trove.key().as_ref(), 
+            reward_mint.key().key().as_ref(),
         ],
-        bump = reward_vault_nonce,
-        payer = authority)]
+        bump = reward_vault_bump,
+        payer = authority,
+    )]
     pub reward_vault: Box<Account<'info, TokenAccount>>,
     
     pub reward_mint: Box<Account<'info, Mint>>,
@@ -197,45 +201,44 @@ pub struct CreateUserRewardVault<'info> {
 #[derive(Accounts)]
 #[instruction(amount: u64)]
 pub struct RatioStaker<'info> {
-    
+    pub authority: Signer<'info>,
     #[account(mut,
-        seeds = [GLOBAL_STATE_TAG],
+        seeds = [GLOBAL_STATE_SEED],
         bump = global_state.global_state_nonce)]
     pub global_state: Box<Account<'info, GlobalState>>,
 
     #[account(mut,
-        seeds = [TOKEN_VAULT_TAG,mint_coll.key().as_ref()],
-        bump = token_vault.token_vault_nonce,
+        seeds = [VAULT_SEED,mint_coll.key().as_ref()],
+        bump = vault.vault_bump,
     )]
-    pub token_vault: Box<Account<'info, TokenVault>>,
-
+    pub vault: Box<Account<'info, Vault>>,
+    // holds the state for a user w.r.t a given token
     #[account(mut,
         seeds = [
-            USER_TROVE_TAG,
-            token_vault.key().as_ref(), 
-            owner.key().as_ref()
+            TROVE_SEED,
+            vault.key().as_ref(), 
+            authority.key().as_ref()
         ],
-        bump = user_trove.user_trove_nonce)]
-    pub user_trove: Box<Account<'info, UserTrove>>,
-
-    pub owner:  Signer<'info>,
-
+        bump = trove.trove_nonce)]
+    pub trove: Box<Account<'info, Trove>>,
+    
+    // token account for pool's/vault's collateral token
     #[account(mut,
         seeds = [
-            USER_TROVE_POOL_TAG, 
-            user_trove.key().as_ref(), 
-            token_vault.mint_coll.as_ref()
+            TROVE_POOL_SEED, 
+            trove.key().as_ref(), 
+            vault.mint_coll.as_ref()
         ],
-        bump = user_trove.token_coll_nonce,
+        bump = trove.ata_trove_nonce,
     )]
-    pub pool_token_coll: Box<Account<'info, TokenAccount>>,
-
+    pub ata_trove: Box<Account<'info, TokenAccount>>,
+    // token account for user's collateral token
     #[account(mut,
-        constraint = user_token_coll.owner == owner.key(),
-        constraint = user_token_coll.mint == token_vault.mint_coll)]
-    pub user_token_coll: Box<Account<'info, TokenAccount>>,
+        constraint = ata_user_coll.owner == authority.key(),
+        constraint = ata_user_coll.mint == vault.mint_coll)]
+    pub ata_user_coll: Box<Account<'info, TokenAccount>>,
 
-    #[account(mut, constraint = mint_coll.key() == token_vault.mint_coll)]
+    #[account(mut, constraint = mint_coll.key() == vault.mint_coll)]
     pub mint_coll: Box<Account<'info, Mint>>,
 
     pub token_program:Program<'info, Token>,
@@ -245,39 +248,39 @@ pub struct RatioStaker<'info> {
 pub struct HarvestReward<'info> {
 
     #[account(mut,
-        seeds = [GLOBAL_STATE_TAG],
+        seeds = [GLOBAL_STATE_SEED],
         bump = global_state.global_state_nonce)]
     pub global_state: Box<Account<'info, GlobalState>>,
 
     #[account(mut,
-        seeds = [TOKEN_VAULT_TAG, collateral_mint.key().as_ref()],
-        bump = token_vault.token_vault_nonce,
+        seeds = [VAULT_SEED, mint_coll.key().as_ref()],
+        bump = vault.vault_bump,
     )]
-    pub token_vault: Box<Account<'info, TokenVault>>,
+    pub vault: Box<Account<'info, Vault>>,
 
     #[account(mut,
-        seeds = [USER_TROVE_TAG,token_vault.key().as_ref(), authority.key().as_ref()],
-        bump = user_trove.user_trove_nonce)]
-    pub user_trove: Box<Account<'info, UserTrove>>,
+        seeds = [TROVE_SEED,vault.key().as_ref(), authority.key().as_ref()],
+        bump = trove.trove_nonce)]
+    pub trove: Box<Account<'info, Trove>>,
 
     pub authority: Signer<'info>,
 
-    #[account(mut, constraint = user_trove_reward.owner == user_trove.key())]
-    pub user_trove_reward:Box<Account<'info, TokenAccount>>,
+    #[account(mut, constraint = trove_reward.owner == trove.key())]
+    pub trove_reward:Box<Account<'info, TokenAccount>>,
 
     #[account(mut,
         constraint = user_reward_token.owner == authority.key(),
-        constraint = user_reward_token.mint == token_vault.reward_mint_a)]
+        constraint = user_reward_token.mint == vault.reward_mint_a)]
     pub user_reward_token: Box<Account<'info, TokenAccount>>,
 
     #[account(mut, 
         constraint = reward_fee_token.owner == site_fee_owner::ID,
-        constraint = reward_fee_token.mint == token_vault.reward_mint_a,
+        constraint = reward_fee_token.mint == vault.reward_mint_a,
     )]
     pub reward_fee_token:Box<Account<'info, TokenAccount>>,
 
-    #[account(constraint = collateral_mint.key() == token_vault.mint_coll)]
-    pub collateral_mint: Box<Account<'info, Mint>>,
+    #[account(constraint = mint_coll.key() == vault.mint_coll)]
+    pub mint_coll: Box<Account<'info, Mint>>,
 
     pub system_program: Program<'info, System>,
     #[account(constraint = token_program.key == &token::ID)]
@@ -290,48 +293,51 @@ pub struct HarvestReward<'info> {
 #[instruction(amount: u64, user_usd_token_nonce: u8)]
 pub struct BorrowUsd<'info> {
     #[account(mut)]
-    pub owner:  Signer<'info>,
+    pub authority: Signer<'info>,
     
     #[account(mut,
-        seeds = [TOKEN_VAULT_TAG,mint_coll.key().as_ref()],
-        bump = token_vault.token_vault_nonce,
+        seeds = [VAULT_SEED,mint_coll.key().as_ref()],
+        bump = vault.vault_bump,
     )]
-    pub token_vault: Box<Account<'info, TokenVault>>,
-    #[account(
-        seeds = [PRICE_FEED_TAG,token_vault.mint_coll.as_ref()],
-        bump,
-    )]
-    pub price_feed: Box<Account<'info, PriceFeed>>,
+    pub vault: Box<Account<'info, Vault>>,
     #[account(mut,
-        seeds = [USER_TROVE_TAG,token_vault.key().as_ref(), owner.key().as_ref()],
-        bump = user_trove.user_trove_nonce)]
-    pub user_trove: Box<Account<'info, UserTrove>>,
-    
+        seeds = [TROVE_SEED,vault.key().as_ref(), authority.key().as_ref()],
+        bump = trove.trove_nonce)]
+    pub trove: Box<Account<'info, Trove>>,
+
     #[account(mut,
-        seeds = [GLOBAL_STATE_TAG],
+        seeds = [GLOBAL_STATE_SEED],
         bump = global_state.global_state_nonce)]
     pub global_state: Account<'info, GlobalState>,
 
+    #[account(
+        seeds = [PRICE_FEED_TAG,vault.mint_coll.as_ref()],
+        bump,
+    )]
+    pub price_feed: Box<Account<'info, PriceFeed>>,
+    
+    
+
     #[account(mut,
-        seeds = [USD_MINT_TAG],
+        seeds = [MINT_USD_SEED],
         bump = global_state.mint_usd_nonce,
         constraint = mint_usd.key() == global_state.mint_usd
     )]
     pub mint_usd: Box<Account<'info, Mint>>,
     #[account(init_if_needed,
         token::mint = mint_usd,
-        token::authority = owner,
+        token::authority = authority,
         seeds = [
-            USER_USD_TOKEN_TAG, 
-            owner.key().as_ref(), 
+            USD_TOKEN_SEED, 
+            authority.key().as_ref(), 
             mint_usd.key().as_ref()
         ],
         bump = user_usd_token_nonce,
-        payer = owner)]
-    pub user_token_usd: Box<Account<'info, TokenAccount>>,
+        payer = authority)]
+    pub ata_user_usd: Box<Account<'info, TokenAccount>>,
 
     #[account(mut,
-        constraint = mint_coll.key() == token_vault.mint_coll)]
+        constraint = mint_coll.key() == vault.mint_coll)]
     pub mint_coll:Account<'info, Mint>,
 
     pub system_program: Program<'info, System>,
@@ -348,33 +354,33 @@ pub struct BorrowUsd<'info> {
 pub struct RepayUsd<'info> {
     pub owner:  Signer<'info>,
     #[account(mut,
-        seeds = [TOKEN_VAULT_TAG,mint_coll.key().as_ref()],
-        bump = token_vault.token_vault_nonce,
+        seeds = [VAULT_SEED,mint_coll.key().as_ref()],
+        bump = vault.vault_bump,
     )]
-    pub token_vault: Box<Account<'info, TokenVault>>,
+    pub vault: Box<Account<'info, Vault>>,
 
     #[account(mut,
-        seeds = [USER_TROVE_TAG,token_vault.key().as_ref(), owner.key().as_ref()],
-        bump = user_trove.user_trove_nonce)]
-    pub user_trove: Box<Account<'info, UserTrove>>,
+        seeds = [TROVE_SEED,vault.key().as_ref(), owner.key().as_ref()],
+        bump = trove.trove_nonce)]
+    pub trove: Box<Account<'info, Trove>>,
 
     #[account(mut,
-        seeds = [GLOBAL_STATE_TAG],
+        seeds = [GLOBAL_STATE_SEED],
         bump = global_state.global_state_nonce)]
     pub global_state: Box<Account<'info, GlobalState>>,
 
     #[account(mut,
-        seeds = [USD_MINT_TAG],
+        seeds = [MINT_USD_SEED],
         bump = global_state.mint_usd_nonce,
         constraint = mint_usd.key() == global_state.mint_usd
     )]
     pub mint_usd: Box<Account<'info, Mint>>,
     
     #[account(mut)]
-    pub user_token_usd: Box<Account<'info, TokenAccount>>,
+    pub ata_user_usd: Box<Account<'info, TokenAccount>>,
 
     #[account(mut,
-        constraint = mint_coll.key() == token_vault.mint_coll)]
+        constraint = mint_coll.key() == vault.mint_coll)]
     pub mint_coll: Box<Account<'info, Mint>>,
     
     pub token_program:Program<'info, Token>,
@@ -386,7 +392,7 @@ pub struct SetGlobalTvlLimit<'info>{
     pub payer:  Signer<'info>,
 
     #[account(mut,
-        seeds = [GLOBAL_STATE_TAG],
+        seeds = [GLOBAL_STATE_SEED],
         bump = global_state.global_state_nonce)]
     pub global_state: Account<'info, GlobalState>,
 }
@@ -397,7 +403,7 @@ pub struct SetGlobalDebtCeiling<'info>{
     pub payer:  Signer<'info>,
 
     #[account(mut,
-        seeds = [GLOBAL_STATE_TAG],
+        seeds = [GLOBAL_STATE_SEED],
         bump = global_state.global_state_nonce)]
     pub global_state: Account<'info, GlobalState>,
 }
@@ -408,23 +414,25 @@ pub struct SetVaultDebtCeiling<'info>{
     pub payer:  Signer<'info>,
 
     #[account(mut,
-        seeds = [GLOBAL_STATE_TAG],
+        seeds = [GLOBAL_STATE_SEED],
         bump = global_state.global_state_nonce)]
     pub global_state: Account<'info, GlobalState>,
 
     #[account(mut,
-        constraint = mint_coll.key() == token_vault.mint_coll)]
+        constraint = mint_coll.key() == vault.mint_coll)]
     pub mint_coll:Account<'info, Mint>,
 
     #[account(mut,
         seeds = [
-            TOKEN_VAULT_TAG,
-            mint_coll.key().as_ref()
+            VAULT_SEED,
+            mint_coll.key().as_ref(),
         ],
-        bump = token_vault.token_vault_nonce,)]
-    pub token_vault:Account<'info, TokenVault>,
+        bump = vault.vault_bump,
+    )]
+    pub vault:Account<'info, Vault>,
 }
 
+// who is setting the debt ceiling, and for which user(s)?
 #[derive(Accounts)]
 pub struct SetUserDebtCeiling<'info>{
     #[account(mut)]
@@ -432,27 +440,27 @@ pub struct SetUserDebtCeiling<'info>{
     pub user: AccountInfo<'info>,
 
     #[account(mut,
-        seeds = [GLOBAL_STATE_TAG],
+        seeds = [GLOBAL_STATE_SEED],
         bump = global_state.global_state_nonce,)]
     pub global_state: Account<'info, GlobalState>,
 
     #[account(mut,
-        constraint = mint_coll.key() == token_vault.mint_coll)]
+        constraint = mint_coll.key() == vault.mint_coll)]
     pub mint_coll: Account<'info, Mint>,
 
     #[account(mut,
         seeds = [
-            TOKEN_VAULT_TAG,
+            VAULT_SEED,
             mint_coll.key().as_ref()
         ],
-        bump = token_vault.token_vault_nonce)]
-    pub token_vault: Account<'info, TokenVault>,
+        bump = vault.vault_bump)]
+    pub vault: Account<'info, Vault>,
 
     #[account(mut,
-        seeds = [USER_TROVE_TAG,token_vault.key().as_ref(), user.key().as_ref()],
-        bump = user_trove.user_trove_nonce,
+        seeds = [TROVE_SEED,vault.key().as_ref(), user.key().as_ref()],
+        bump = trove.trove_nonce,
     )]
-    pub user_trove:Account<'info, UserTrove>,
+    pub trove:Account<'info, Trove>,
 }
 
 #[derive(Accounts)]
@@ -460,20 +468,20 @@ pub struct SetUserDebtCeiling<'info>{
 pub struct CreateQuarryMiner<'info> {
 
     #[account(mut,
-        seeds = [TOKEN_VAULT_TAG, token_mint.key().as_ref()],
-        bump = token_vault.token_vault_nonce,
+        seeds = [VAULT_SEED, token_mint.key().as_ref()],
+        bump = vault.vault_bump,
     )]
-    pub token_vault: Box<Account<'info, TokenVault>>,
+    pub vault: Box<Account<'info, Vault>>,
 
     #[account(mut,
         seeds = [
-            USER_TROVE_TAG,
-            token_vault.key().as_ref(), 
+            TROVE_SEED,
+            vault.key().as_ref(), 
             payer.key().as_ref(),
         ],
-        bump = user_trove.user_trove_nonce,
+        bump = trove.trove_nonce,
     )]
-    pub user_trove: Box<Account<'info, UserTrove>>,
+    pub trove: Box<Account<'info, Trove>>,
 
     #[account(mut)]
     pub payer: Signer<'info>,
@@ -538,9 +546,9 @@ pub struct HarvestFromSaber<'info> {
     
     //saber farm to stake 
     pub saber_farm: SaberFarm<'info>,
-
-    #[account(mut, constraint = user_token_coll.owner == ratio_harvester.user_trove.key())]
-    pub user_token_coll: Box<Account<'info, TokenAccount>>,
+    // token account for user's collateral token
+    #[account(mut, constraint = ata_user_coll.owner == ratio_harvester.trove.key())]
+    pub ata_user_coll: Box<Account<'info, TokenAccount>>,
 
     pub saber_farm_program: AccountInfo<'info>,
     
@@ -568,20 +576,20 @@ pub struct HarvestFromSaber<'info> {
 #[instruction(pair_count: u8)]
 pub struct CreatePriceFeed<'info> {
     #[account(
-        seeds = [GLOBAL_STATE_TAG],
+        seeds = [GLOBAL_STATE_SEED],
         bump,
         has_one = authority)]
     pub global_state: Box<Account<'info, GlobalState>>,
 
     #[account(
-        seeds = [TOKEN_VAULT_TAG,mint_coll.key().as_ref()],
+        seeds = [VAULT_SEED,mint_coll.key().as_ref()],
         bump,
     )]
-    pub token_vault: Box<Account<'info, TokenVault>>,
+    pub vault: Box<Account<'info, Vault>>,
 
     #[account(
         init,
-        seeds = [PRICE_FEED_TAG,token_vault.mint_coll.as_ref()],
+        seeds = [PRICE_FEED_TAG, vault.mint_coll.as_ref()],
         bump,
         payer = authority
     )]

@@ -35,16 +35,16 @@ pub mod stable_pool {
     }
 
     #[access_control(is_admin(&ctx.accounts.global_state, &ctx.accounts.authority))]
-    pub fn create_token_vault(
-        ctx: Context<CreateTokenVault>,
-        token_vault_nonce: u8,
+    pub fn create_vault(
+        ctx: Context<CreateVault>,
+        vault_bump: u8,
         risk_level: u8,
         is_dual: u8,
         debt_ceiling: u64,
         platform_type: u8,
     ) -> ProgramResult {
         ctx.accounts.create_vault(
-            token_vault_nonce,
+            vault_bump,
             risk_level,
             is_dual,
             debt_ceiling,
@@ -66,14 +66,15 @@ pub mod stable_pool {
         ctx.accounts.toggle_state(new_state)
     }
 
+    // no tests yet
     #[access_control(is_admin(&ctx.accounts.global_state, &ctx.accounts.payer))]
-    pub fn change_super_owner(ctx: Context<ChangeSuperOwner>) -> ProgramResult {
+    pub fn change_authority(ctx: Context<ChangeAuthority>) -> ProgramResult {
         ctx.accounts.change_owner()
     }
 
     #[access_control(is_admin(&ctx.accounts.global_state, &ctx.accounts.payer))]
     pub fn set_global_tvl_limit(ctx: Context<SetGlobalTvlLimit>, limit: u64) -> ProgramResult {
-        ctx.accounts.set_tvL_limit(limit)
+        ctx.accounts.set_tvl_limit(limit)
     }
     #[access_control(is_admin(&ctx.accounts.global_state, &ctx.accounts.payer))]
     pub fn set_global_debt_ceiling(
@@ -103,18 +104,18 @@ pub mod stable_pool {
     }
 
     // user section
-    pub fn create_user_trove(
-        ctx: Context<CreateUserTrove>,
-        user_trove_nonce: u8,
-        token_coll_nonce: u8,
+    pub fn create_trove(
+        ctx: Context<CreateTrove>,
+        trove_nonce: u8,
+        ata_trove_nonce: u8,
         ceiling: u64,
     ) -> ProgramResult {
         ctx.accounts
-            .create(user_trove_nonce, token_coll_nonce, ceiling)
+            .create(trove_nonce, ata_trove_nonce, ceiling)
     }
     pub fn create_user_reward_vault(
         ctx: Context<CreateUserRewardVault>,
-        reward_vault_nonce: u8,
+        reward_vault_bump: u8,
     ) -> ProgramResult {
         ctx.accounts.create()
     }

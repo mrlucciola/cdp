@@ -5,11 +5,9 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@saberhq/token-utils";
 import type { PublicKey, Signer, TransactionSignature } from "@solana/web3.js";
-import { Account, Keypair, TransactionInstruction, LAMPORTS_PER_SOL } from "@solana/web3.js";
-
-// import { DEFAULT_TOKEN_DECIMALS } from "../constants";
-// import type { ISeedPoolAccountsFn } from ".";
+import { Keypair, TransactionInstruction, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { ISeedPoolAccountsFn, DEFAULT_TOKEN_DECIMALS } from '@saberhq/stableswap-sdk';
+import { Wallet } from "@project-serum/common";
 
 // // Adapted from https://github.com/saber-hq/stable-swap/blob/5db776fb0a41a0d1a23d46b99ef412ca7ccc5bf6/stable-swap-program/sdk/src/util/deployTestTokens.ts 
 // Initial amount in each swap token
@@ -59,20 +57,20 @@ const createMint = async ({
 
 export const deployTestTokens = async ({
   provider,
-  minterSigner = Keypair.generate(),
+  minterSigner,
   initialTokenAAmount = DEFAULT_INITIAL_TOKEN_A_AMOUNT,
   initialTokenBAmount = DEFAULT_INITIAL_TOKEN_B_AMOUNT,
 }: {
   provider: Provider;
-  minterSigner?: Signer;
+  minterSigner?: Wallet;
   initialTokenAAmount?: number;
   initialTokenBAmount?: number;
 }): Promise<{
-  minterSigner: Signer;
   mintA: PublicKey;
   mintB: PublicKey;
   seedPoolAccounts: ISeedPoolAccountsFn;
 }> => {
+  
   console.log("Deploying test tokens.");
   const [mintA, mintB] = (await Promise.all(
     ["Token A", "Token B"].map(async (tokenName) => {
@@ -98,7 +96,7 @@ export const deployTestTokens = async ({
         mintA,
         tokenAAccount,
         minterSigner.publicKey,
-        [new Account(minterSigner.secretKey)],
+        [],
         initialTokenAAmount
       ),
       SPLToken.createMintToInstruction(
@@ -106,12 +104,12 @@ export const deployTestTokens = async ({
         mintB,
         tokenBAccount,
         minterSigner.publicKey,
-        [new Account(minterSigner.secretKey)],
+        [], // we dont need to sign here
         initialTokenBAmount
       ),
     ],
-    signers: [minterSigner],
+    signers: [],
   });
 
-  return { minterSigner, mintA, mintB, seedPoolAccounts };
+  return { mintA, mintB, seedPoolAccounts };
 };
