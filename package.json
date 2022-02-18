@@ -10,6 +10,7 @@
         "@saberhq/token-utils": "^1.10.8",
         "@solana/spl-token": "^0.1.8",
         "@solana/web3.js": "^1.32.0",
+        "bs58": "^5.0.0",
         "chai-as-promised": "^7.1.1",
         "decimal.js": "^10.3.1",
         "jsbi": "^4.1.0"
@@ -29,7 +30,7 @@
         "get-pool-faucet-address": "solana address -k target/deploy/stable_pool_faucet_v1-keypair.json",
         "use-devnet": "solana config set --url devnet --config ./.config/config.yml",
         "use-localnet": "solana config set --url localhost --config ./.config/config.yml",
-        "airdrop": "for i in `seq 1 10`; do solana airdrop 2 ./.config/test-keypair.json; done",
+        "airdrop": "for i in `seq 1 10`; do solana airdrop 2 ./.config/testUser-super-keypair.json; done",
         "update-pid": "sh ./scripts/update_pid.sh"
     },
     "engines": {

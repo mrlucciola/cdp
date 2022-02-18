@@ -14,7 +14,7 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 // local
-import superKeyArr from "../../.config/testUser-super-keypair.json";
+// import superKeyArr from "../../.config/testUser-super-keypair.json";
 import baseKeyArr from "../../.config/testUser-base-keypair.json";
 import { StablePool } from "../../target/types/stable_pool";
 import * as constants from "../utils/constants";
@@ -25,15 +25,13 @@ import {
   handleTxn,
 } from "../utils/fxns";
 import { Accounts, Vault } from "./accounts";
+import { userSuperKeypair } from "../../.config/testUser-super";
 
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
+// will repeat what was done for super, for user
 const userBaseKeypair: web3.Keypair = web3.Keypair.fromSecretKey(
   new Uint8Array(baseKeyArr as any[])
-);
-
-const userSuperKeypair: web3.Keypair = web3.Keypair.fromSecretKey(
-  new Uint8Array(superKeyArr as any[])
 );
 
 export interface PDA {
