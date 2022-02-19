@@ -457,7 +457,7 @@ describe("saber-test", () => {
       {
         accounts: {
           globalState: accounts.global.pubKey,
-          payer: users.super.wallet.publicKey,
+          authority: users.super.wallet.publicKey,
         },
         signers: [users.super.wallet.payer],
       }

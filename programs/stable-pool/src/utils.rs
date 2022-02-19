@@ -74,10 +74,6 @@ pub fn is_secure(global_state: &Account<GlobalState>) -> Result<()> {
     require!(global_state.paused == 0, StablePoolError::NotAllowed);
     Ok(())
 }
-pub fn is_admin(global_state: &Account<GlobalState>, admin: &AccountInfo) -> Result<()> {
-    require!(global_state.authority.eq(&admin.key()), StablePoolError::Unauthorized);
-    Ok(())
-}
 
 pub fn assert_global_debt_ceiling_not_exceeded(
     debt_ceiling: u64,

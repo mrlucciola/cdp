@@ -14,7 +14,7 @@ pub mod states;
 pub mod utils;
 use crate::{instructions::*, processor::*, utils::*};
 
-declare_id!("7ikNrDUaBf1Vk6KUagXzRvEz1Nhsep1PjixcqJH4vdSk");
+declare_id!("7kKokDY8zXMpWgN8yUrBKqvwoB57vXPhzGDC4dJDvWER");
 pub mod site_fee_owner {
     anchor_lang::declare_id!("2Pv5mjmKYAtXNpr3mcsXf7HjtS3fieJeFoWPATVT5rWa");
 }
@@ -34,7 +34,6 @@ pub mod stable_pool {
             .create_state(global_state_nonce, mint_usd_nonce, tvl_limit, debt_ceiling)
     }
 
-    #[access_control(is_admin(&ctx.accounts.global_state, &ctx.accounts.authority))]
     pub fn create_vault(
         ctx: Context<CreateVault>,
         vault_bump: u8,
@@ -52,7 +51,6 @@ pub mod stable_pool {
         )
     }
 
-    #[access_control(is_admin(&ctx.accounts.global_state, &ctx.accounts.payer))]
     pub fn set_harvest_fee(
         ctx: Context<SetHarvestFee>,
         fee_num: u64,
@@ -61,41 +59,38 @@ pub mod stable_pool {
         ctx.accounts.set_fee(fee_num, fee_deno)
     }
 
-    #[access_control(is_admin(&ctx.accounts.global_state, &ctx.accounts.payer))]
     pub fn toggle_emer_state(ctx: Context<ToggleEmerState>, new_state: u8) -> ProgramResult {
         ctx.accounts.toggle_state(new_state)
     }
 
     // no tests yet
-    #[access_control(is_admin(&ctx.accounts.global_state, &ctx.accounts.payer))]
     pub fn change_authority(ctx: Context<ChangeAuthority>) -> ProgramResult {
         ctx.accounts.change_owner()
     }
 
-    #[access_control(is_admin(&ctx.accounts.global_state, &ctx.accounts.payer))]
+    
     pub fn set_global_tvl_limit(ctx: Context<SetGlobalTvlLimit>, limit: u64) -> ProgramResult {
         ctx.accounts.set_tvl_limit(limit)
     }
-    #[access_control(is_admin(&ctx.accounts.global_state, &ctx.accounts.payer))]
+    
     pub fn set_global_debt_ceiling(
         ctx: Context<SetGlobalDebtCeiling>,
         ceiling: u64,
     ) -> ProgramResult {
         ctx.accounts.set(ceiling)
     }
-    #[access_control(is_admin(&ctx.accounts.global_state, &ctx.accounts.payer))]
+    
     pub fn set_vault_debt_ceiling(
         ctx: Context<SetVaultDebtCeiling>,
         ceiling: u64,
     ) -> ProgramResult {
         ctx.accounts.set(ceiling)
     }
-    #[access_control(is_admin(&ctx.accounts.global_state, &ctx.accounts.payer))]
+
     pub fn set_user_debt_ceiling(ctx: Context<SetUserDebtCeiling>, ceiling: u64) -> ProgramResult {
         ctx.accounts.set(ceiling)
     }
 
-    #[access_control(is_admin(&ctx.accounts.global_state, &ctx.accounts.payer))]
     pub fn set_collaterial_ratio(
         ctx: Context<SetCollateralRatio>,
         ratios: [u64; 10],

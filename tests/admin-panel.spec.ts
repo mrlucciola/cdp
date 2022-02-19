@@ -100,7 +100,7 @@ describe("admin-panel", function () {
       1, // paused
       {
         accounts: {
-          payer: users.super.wallet.publicKey,
+          authority: users.super.wallet.publicKey,
           globalState: accounts.global.pubKey,
         },
         signers: [users.super.wallet.payer],
@@ -118,7 +118,7 @@ describe("admin-panel", function () {
       0, // paused
       {
         accounts: {
-          payer: users.super.wallet.publicKey,
+          authority: users.super.wallet.publicKey,
           globalState: accounts.global.pubKey,
         },
         signers: [users.super.wallet.payer],
@@ -137,7 +137,7 @@ describe("admin-panel", function () {
       1, // paused
       {
         accounts: {
-          payer: users.base.wallet.publicKey,
+          authority: users.base.wallet.publicKey,
           globalState: accounts.global.pubKey,
         },
         signers: [users.base.wallet.payer],

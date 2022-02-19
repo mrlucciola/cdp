@@ -39,12 +39,13 @@ pub struct CreateGlobalState<'info>{
 #[derive(Accounts)]
 pub struct SetHarvestFee<'info>{
     #[account(mut)]
-    pub payer: Signer<'info>,
+    pub authority: Signer<'info>,
 
     #[account(
         mut,
         seeds = [GLOBAL_STATE_SEED],
         bump = global_state.global_state_nonce,
+        has_one = authority
     )]
     pub global_state: Account<'info, GlobalState>,
 }
@@ -52,11 +53,13 @@ pub struct SetHarvestFee<'info>{
 #[derive(Accounts)]
 pub struct ToggleEmerState<'info>{
     #[account(mut)]
-    pub payer: Signer<'info>,
+    pub authority: Signer<'info>,
 
     #[account(
+        mut,
         seeds = [GLOBAL_STATE_SEED],
         bump = global_state.global_state_nonce,
+        has_one = authority
     )]
     pub global_state: Account<'info, GlobalState>,
 }
@@ -64,11 +67,13 @@ pub struct ToggleEmerState<'info>{
 #[derive(Accounts)]
 pub struct SetCollateralRatio<'info>{
     #[account(mut)]
-    pub payer: Signer<'info>,
+    pub authority: Signer<'info>,
 
     #[account(
+        mut,
         seeds = [GLOBAL_STATE_SEED],
         bump = global_state.global_state_nonce,
+        has_one = authority
     )]
     pub global_state: Account<'info, GlobalState>,
 }
@@ -77,11 +82,13 @@ pub struct SetCollateralRatio<'info>{
 #[derive(Accounts)]
 pub struct ChangeAuthority<'info>{
     #[account(mut)]
-    pub payer: Signer<'info>,
+    pub authority: Signer<'info>,
 
     #[account(
+        mut,
         seeds = [GLOBAL_STATE_SEED],
         bump = global_state.global_state_nonce,
+        has_one = authority
     )]
     pub global_state: Account<'info, GlobalState>,
     pub new_owner: AccountInfo<'info>,
@@ -389,33 +396,39 @@ pub struct RepayUsd<'info> {
 #[derive(Accounts)]
 pub struct SetGlobalTvlLimit<'info>{
     #[account(mut)]
-    pub payer:  Signer<'info>,
+    pub authority:  Signer<'info>,
 
     #[account(mut,
         seeds = [GLOBAL_STATE_SEED],
-        bump = global_state.global_state_nonce)]
+        bump = global_state.global_state_nonce,
+        has_one = authority
+    )]
     pub global_state: Account<'info, GlobalState>,
 }
 
 #[derive(Accounts)]
 pub struct SetGlobalDebtCeiling<'info>{
     #[account(mut)]
-    pub payer:  Signer<'info>,
+    pub authority:  Signer<'info>,
 
     #[account(mut,
         seeds = [GLOBAL_STATE_SEED],
-        bump = global_state.global_state_nonce)]
+        bump = global_state.global_state_nonce,
+        has_one = authority
+    )]
     pub global_state: Account<'info, GlobalState>,
 }
 
 #[derive(Accounts)]
 pub struct SetVaultDebtCeiling<'info>{
     #[account(mut)]
-    pub payer:  Signer<'info>,
+    pub authority:  Signer<'info>,
 
     #[account(mut,
         seeds = [GLOBAL_STATE_SEED],
-        bump = global_state.global_state_nonce)]
+        bump = global_state.global_state_nonce,
+        has_one = authority
+    )]
     pub global_state: Account<'info, GlobalState>,
 
     #[account(mut,
@@ -436,12 +449,14 @@ pub struct SetVaultDebtCeiling<'info>{
 #[derive(Accounts)]
 pub struct SetUserDebtCeiling<'info>{
     #[account(mut)]
-    pub payer: Signer<'info>,
+    pub authority: Signer<'info>,
     pub user: AccountInfo<'info>,
 
     #[account(mut,
         seeds = [GLOBAL_STATE_SEED],
-        bump = global_state.global_state_nonce,)]
+        bump = global_state.global_state_nonce,
+        has_one = authority
+    )]
     pub global_state: Account<'info, GlobalState>,
 
     #[account(mut,

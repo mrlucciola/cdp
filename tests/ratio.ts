@@ -610,7 +610,7 @@ describe("ratio", async () => {
       new anchor.BN(newTVLLimit),
       {
         accounts: {
-          payer: users.super.wallet.publicKey,
+          authority: users.super.wallet.publicKey,
           globalState: accounts.global.pubKey,
         },
         signers: [users.super.wallet.payer],
@@ -640,7 +640,7 @@ describe("ratio", async () => {
       new anchor.BN(tvlLimit),
       {
         accounts: {
-          payer: users.super.wallet.publicKey,
+          authority: users.super.wallet.publicKey,
           globalState: accounts.global.pubKey,
         },
         signers: [users.super.wallet.payer],
@@ -675,7 +675,7 @@ describe("ratio", async () => {
       new anchor.BN(newGlobalDebtCeiling),
       {
         accounts: {
-          payer: users.super.wallet.publicKey,
+          authority: users.super.wallet.publicKey,
           globalState: accounts.global.pubKey,
         },
         signers: [users.super.wallet.payer],
@@ -705,7 +705,7 @@ describe("ratio", async () => {
       new anchor.BN(globalDebtCeiling),
       {
         accounts: {
-          payer: users.super.wallet.publicKey,
+          authority: users.super.wallet.publicKey,
           globalState: accounts.global.pubKey,
         },
         signers: [users.super.wallet.payer],
@@ -740,7 +740,7 @@ describe("ratio", async () => {
       new anchor.BN(newVaultDebtCeiling),
       {
         accounts: {
-          payer: users.super.wallet.publicKey,
+          authority: users.super.wallet.publicKey,
           globalState: accounts.global.pubKey,
           mintColl: accounts.mintLpSaber.publicKey,
           vault: accounts.vaultLpSaber.pubKey,
@@ -771,7 +771,7 @@ describe("ratio", async () => {
       new anchor.BN(vaultDebtCeiling),
       {
         accounts: {
-          payer: users.super.wallet.publicKey,
+          authority: users.super.wallet.publicKey,
           globalState: accounts.global.pubKey,
           mintColl: accounts.mintLpSaber.publicKey,
           vault: accounts.vaultLpSaber.pubKey,
@@ -808,7 +808,7 @@ describe("ratio", async () => {
       new anchor.BN(newUserDebtCeiling),
       {
         accounts: {
-          payer: users.super.wallet.publicKey,
+          authority: users.super.wallet.publicKey,
           user: users.base.wallet.publicKey,
           globalState: accounts.global.pubKey,
           mintColl: accounts.mintLpSaber.publicKey,
@@ -841,7 +841,7 @@ describe("ratio", async () => {
       new anchor.BN(userDebtCeiling),
       {
         accounts: {
-          payer: users.super.wallet.publicKey,
+          authority: users.super.wallet.publicKey,
           user: users.base.wallet.publicKey,
           globalState: accounts.global.pubKey,
           mintColl: accounts.mintLpSaber.publicKey,
@@ -881,7 +881,7 @@ describe("ratio", async () => {
         new anchor.BN(newTVLLimit),
         {
           accounts: {
-            payer: users.base.wallet.publicKey,
+            authority: users.base.wallet.publicKey,
             globalState: accounts.global.pubKey,
           },
           signers: [users.base.wallet.payer],
@@ -922,7 +922,7 @@ describe("ratio", async () => {
         new anchor.BN(newGlobalDebtCeiling),
         {
           accounts: {
-            payer: users.base.wallet.publicKey,
+            authority: users.base.wallet.publicKey,
             globalState: accounts.global.pubKey,
           },
           signers: [users.base.wallet.payer],
@@ -964,7 +964,7 @@ describe("ratio", async () => {
         new anchor.BN(newVaultDebtCeiling),
         {
           accounts: {
-            payer: users.base.wallet.publicKey,
+            authority: users.base.wallet.publicKey,
             globalState: accounts.global.pubKey,
             mintColl: accounts.mintLpSaber.publicKey,
             vault: accounts.vaultLpSaber.pubKey,
@@ -1008,7 +1008,7 @@ describe("ratio", async () => {
         new anchor.BN(newUserDebtCeiling),
         {
           accounts: {
-            payer: users.base.wallet.publicKey,
+            authority: users.base.wallet.publicKey,
             user: users.base.wallet.publicKey,
             globalState: accounts.global.pubKey,
             mintColl: accounts.mintLpSaber.publicKey,
@@ -1540,7 +1540,7 @@ describe("ratio", async () => {
       new anchor.BN(newGlobalDebtCeiling),
       {
         accounts: {
-          payer: users.super.wallet.publicKey,
+          authority: users.super.wallet.publicKey,
           globalState: accounts.global.pubKey,
         },
         signers: [users.super.wallet.payer],
@@ -1990,7 +1990,7 @@ describe("ratio", async () => {
       new anchor.BN(globalDebtCeiling),
       {
         accounts: {
-          payer: users.super.wallet.publicKey,
+          authority: users.super.wallet.publicKey,
           globalState: accounts.global.pubKey,
         },
         signers: [users.super.wallet.payer],
@@ -2020,7 +2020,7 @@ describe("ratio", async () => {
       new anchor.BN(newUserDebtCeiling),
       {
         accounts: {
-          payer: users.super.wallet.publicKey,
+          authority: users.super.wallet.publicKey,
           user: users.base.wallet.publicKey,
           globalState: accounts.global.pubKey,
           mintColl: accounts.mintLpSaber.publicKey,
@@ -2333,7 +2333,7 @@ describe("ratio", async () => {
       new anchor.BN(userDebtCeiling),
       {
         accounts: {
-          payer: users.super.wallet.publicKey,
+          authority: users.super.wallet.publicKey,
           user: users.base.wallet.publicKey,
           globalState: accounts.global.pubKey,
           mintColl: accounts.mintLpSaber.publicKey,
