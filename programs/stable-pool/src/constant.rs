@@ -1,18 +1,25 @@
 use anchor_lang::constant;
 
+#[constant]
 pub const GLOBAL_STATE_SEED: &[u8] = b"GLOBAL_STATE_TAG"; // prev: GLOBAL_STATE_TAG & global-state-seed
+#[constant]
 pub const VAULT_SEED: &[u8] = b"VAULT_SEED";
+#[constant]
 pub const TROVE_SEED: &[u8] = b"TROVE_SEED";
+#[constant]
 pub const MINT_USD_SEED: &[u8] = b"MINT_USD_SEED"; // prev: USD_MINT_TAG & usd-mint
+#[constant]
 pub const USD_TOKEN_SEED: &[u8] = b"USD_TOKEN_SEED"; // prev: USD_TOKEN_TAG & usd-token
+#[constant]
 pub const TROVE_POOL_SEED: &[u8] = b"TROVE_POOL_SEED"; // used for ATA trove  prev: USER_TROVE_POOL_TAG
+#[constant]
 pub const PRICE_FEED_TAG: &[u8] = b"price-feed";
-
+#[constant]
 pub const USD_DECIMALS: u8 = 6;
-
+#[constant]
 pub const DEFAULT_FEE_NUMERATOR: u128 = 3;
+#[constant]
 pub const DEFAULT_FEE_DENOMINATOR: u128 = 1000;
-
 #[constant]
 pub const RISK_TYPE_COUNT: u8 = 10;
 #[constant]
