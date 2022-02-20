@@ -7,18 +7,12 @@ use arrayref::array_ref;
 // use spl_math::{precise_number::PreciseNumber};
 
 use quarry_mine::cpi::{
-    withdraw_tokens, 
-    claim_rewards,
-    stake_tokens,
-    accounts::{
-        UserStake, 
-        UserClaim,
-        ClaimRewards, 
-    }
+    accounts::{ClaimRewards, UserClaim, UserStake},
+    claim_rewards, stake_tokens, withdraw_tokens,
 };
 use solana_program::{
-    program::{ invoke, invoke_signed },
-    instruction::Instruction
+    instruction::Instruction,
+    program::{invoke, invoke_signed},
 };
 
 use std::convert::TryInto;
@@ -162,26 +156,24 @@ pub struct ProcessedAmounts {
     pub new_amount: u64,
 }
 
-pub fn calculate_fee(
-    input_amount: u64,
-    fee_num: u128,
-    fee_deno: u128,
-)->Result<ProcessedAmounts>{
-    let mut fee_amount = u128::from(input_amount).checked_mul(fee_num).unwrap()
-    .checked_div(fee_deno).unwrap();
+pub fn calculate_fee(input_amount: u64, fee_num: u128, fee_deno: u128) -> Result<ProcessedAmounts> {
+    let mut fee_amount = u128::from(input_amount)
+        .checked_mul(fee_num)
+        .unwrap()
+        .checked_div(fee_deno)
+        .unwrap();
 
     if fee_amount == 0 {
         fee_amount = 1;
     }
 
     let new_amount = u128::from(input_amount).checked_sub(fee_amount).unwrap();
-    
-    Ok(ProcessedAmounts{
+
+    Ok(ProcessedAmounts {
         owner_fee: fee_amount.try_into().unwrap(),
         new_amount: new_amount.try_into().unwrap(),
     })
 }
-
 
 pub fn harvest_from_saber_pda<'info>(
     farm_program: AccountInfo<'info>,
@@ -267,11 +259,10 @@ pub fn assert_devnet() -> ProgramResult {
     Ok(())
 }
 
-
 //StableUsdcPair
 pub fn calc_stable_usdc_pair_lp_price(
-    lp_supply: u64, 
-    pair_a_origin_amount: u64, 
+    lp_supply: u64,
+    pair_a_origin_amount: u64,
     pair_a_decimals: u8,
     pair_b_origin_amount: u64, // usdc
     pair_b_decimals: u8,
@@ -283,21 +274,26 @@ pub fn calc_stable_usdc_pair_lp_price(
     let supply = lp_supply as u128;
 
     let lp_price = amount_b
-        .checked_mul(decimals_a).unwrap()
-        .checked_div(decimals_b).unwrap()
-        .checked_add(amount_a).unwrap()
-        .checked_mul(RATIO_DENOMINATOR as u128).unwrap()
-        .checked_div(supply).unwrap();
+        .checked_mul(decimals_a)
+        .unwrap()
+        .checked_div(decimals_b)
+        .unwrap()
+        .checked_add(amount_a)
+        .unwrap()
+        .checked_mul(RATIO_DENOMINATOR as u128)
+        .unwrap()
+        .checked_div(supply)
+        .unwrap();
 
     return lp_price.try_into().unwrap();
 }
 
 //StableUsdc3Pair
 pub fn calc_stable_usdc_3pair_lp_price(
-    lp_supply: u64, 
-    pair_a_origin_amount: u64, 
+    lp_supply: u64,
+    pair_a_origin_amount: u64,
     pair_a_decimals: u8,
-    pair_b_origin_amount: u64, 
+    pair_b_origin_amount: u64,
     pair_b_decimals: u8,
     pair_c_origin_amount: u64, // usdc
     pair_c_decimals: u8,
@@ -311,16 +307,24 @@ pub fn calc_stable_usdc_3pair_lp_price(
     let supply = lp_supply as u128;
 
     let lp_price = amount_c
-    .checked_mul(decimals_a).unwrap()
-    .checked_div(decimals_c).unwrap()
-    .checked_add(
-        amount_b
-        .checked_mul(decimals_a).unwrap()
-        .checked_div(decimals_b).unwrap()
-    ).unwrap()
-    .checked_add(amount_a).unwrap()
-    .checked_mul(RATIO_DENOMINATOR as u128).unwrap()
-    .checked_div(supply).unwrap();
+        .checked_mul(decimals_a)
+        .unwrap()
+        .checked_div(decimals_c)
+        .unwrap()
+        .checked_add(
+            amount_b
+                .checked_mul(decimals_a)
+                .unwrap()
+                .checked_div(decimals_b)
+                .unwrap(),
+        )
+        .unwrap()
+        .checked_add(amount_a)
+        .unwrap()
+        .checked_mul(RATIO_DENOMINATOR as u128)
+        .unwrap()
+        .checked_div(supply)
+        .unwrap();
 
     return lp_price.try_into().unwrap();
 }

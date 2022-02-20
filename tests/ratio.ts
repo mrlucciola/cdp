@@ -17,7 +17,6 @@ import * as constants from "./utils/constants";
 import { initUsersObj, Users, usersObj } from "./config/users";
 import { getGlobalStateVaultAndTrove } from "./utils/fxns";
 import { Accounts, configAccountsObj } from "./config/accounts";
-// import { secretKey } from "../.config/testUser-super";
 
 // init env
 chaiUse(chaiAsPromised);

@@ -42,13 +42,8 @@ pub mod stable_pool {
         debt_ceiling: u64,
         platform_type: u8,
     ) -> ProgramResult {
-        ctx.accounts.create_vault(
-            vault_bump,
-            risk_level,
-            is_dual,
-            debt_ceiling,
-            platform_type,
-        )
+        ctx.accounts
+            .create_vault(vault_bump, risk_level, is_dual, debt_ceiling, platform_type)
     }
 
     pub fn set_harvest_fee(
@@ -68,18 +63,17 @@ pub mod stable_pool {
         ctx.accounts.change_owner()
     }
 
-    
     pub fn set_global_tvl_limit(ctx: Context<SetGlobalTvlLimit>, limit: u64) -> ProgramResult {
         ctx.accounts.set_tvl_limit(limit)
     }
-    
+
     pub fn set_global_debt_ceiling(
         ctx: Context<SetGlobalDebtCeiling>,
         ceiling: u64,
     ) -> ProgramResult {
         ctx.accounts.set(ceiling)
     }
-    
+
     pub fn set_vault_debt_ceiling(
         ctx: Context<SetVaultDebtCeiling>,
         ceiling: u64,
@@ -105,8 +99,7 @@ pub mod stable_pool {
         ata_trove_nonce: u8,
         ceiling: u64,
     ) -> ProgramResult {
-        ctx.accounts
-            .create(trove_nonce, ata_trove_nonce, ceiling)
+        ctx.accounts.create(trove_nonce, ata_trove_nonce, ceiling)
     }
     pub fn create_user_reward_vault(
         ctx: Context<CreateUserRewardVault>,

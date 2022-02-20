@@ -7,20 +7,12 @@ import { TOKEN_PROGRAM_ID, Token } from "@solana/spl-token";
 import { use as chaiUse, assert } from "chai";
 import chaiAsPromised from "chai-as-promised";
 // local
-import * as constants from "./utils/constants";
 import { initUsersObj, Users, usersObj } from "./config/users";
-import { getSolBalance } from "./utils/fxns";
 import { Accounts, configAccountsObj } from "./config/accounts";
 
 chaiUse(chaiAsPromised);
-
-
-
 // JKAP: THESE TESTS ARE INCOMPLETE. THIS IS MID-REFACTOR.
 //     THERE ARE STILL VARIABLES THAT HAVENT BEEN FIGURED OUT
-
-
-
 
 const stablePoolProgram = anchor.workspace
   .StablePool as anchor.Program<StablePool>;
@@ -131,7 +123,7 @@ describe("admin-panel", function () {
     assert(globalState.paused == 0, "CDP Not Resumed");
   });
 
-  it("Pause CDP in Emergency state with other user", async () => {
+  it("FAIL CASE: Pause CDP in Emergency state with other user", async () => {
     // TXN 1
     const txn1 = await stablePoolProgram.rpc.toggleEmerState(
       1, // paused

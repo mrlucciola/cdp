@@ -14,12 +14,13 @@ pub struct GlobalState {
     pub debt_ceiling: u64,
     pub fee_num: u128,
     pub fee_deno: u128,
-    pub coll_per_risklv: [u64; 10]
+    pub coll_per_risklv: [u64; 10],
 }
 
 #[account]
 #[derive(Default)]
-pub struct Vault { // prev: TokenVault
+pub struct Vault {
+    // prev: TokenVault
     pub mint_coll: Pubkey,
     pub reward_mint_a: Pubkey,
     pub reward_mint_b: Pubkey,
@@ -29,7 +30,7 @@ pub struct Vault { // prev: TokenVault
     pub debt_ceiling: u64,
     pub risk_level: u8,
     pub vault_bump: u8,
-    
+
     pub platform_type: u8,
     pub farm_info: Pubkey,
 }
@@ -64,20 +65,25 @@ pub struct Trove {
 
 // Risk Level
 pub enum RiskLevel {
-    AAA, AA, A,
-    BBB, BB, B,
-    CCC, CC, C,
+    AAA,
+    AA,
+    A,
+    BBB,
+    BB,
+    B,
+    CCC,
+    CC,
+    C,
     D,
 }
 
-pub enum PlatformType{
+pub enum PlatformType {
     Saber,
     // Raydium,
     // Orca,
     // Mercurial,
-    Unknown
+    Unknown,
 }
-
 
 #[account]
 #[derive(Default)]
@@ -94,5 +100,5 @@ pub struct PriceFeed {
     pub decimals_c: u8,
     pub pair_count: u8,
     pub price: u64,
-    pub last_updated_time: u64
+    pub last_updated_time: u64,
 }

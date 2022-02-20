@@ -1,9 +1,15 @@
 // anchor/solana
-import { web3, Provider, Wallet, utils, workspace, Program } from "@project-serum/anchor";
-import { PublicKey } from "@solana/web3.js";
 import {
-  ASSOCIATED_TOKEN_PROGRAM_ID,
-} from "@solana/spl-token";
+  web3,
+  Provider,
+  Wallet,
+  utils,
+  workspace,
+  Program,
+  getProvider,
+} from "@project-serum/anchor";
+import { PublicKey, TokenAmount } from "@solana/web3.js";
+import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 // utils
 import { sha256 } from "js-sha256";
 // local
@@ -36,7 +42,7 @@ export const handleTxn = async (
   }
 };
 
-export const airdrop = async (
+export const airdropSol = async (
   provider: Provider,
   target: web3.PublicKey,
   lamps: number
@@ -65,7 +71,7 @@ export const getAssocTokenAcct = (
 ): [PublicKey, number] => {
   const seeds: Buffer[] = [
     ownerPubKey.toBuffer(),
-    ASSOCIATED_TOKEN_PROGRAM_ID.toBuffer(),
+    TOKEN_PROGRAM_ID.toBuffer(),
     mintPubKey.toBuffer(),
   ];
   const programId: PublicKey = ASSOCIATED_TOKEN_PROGRAM_ID;
@@ -81,7 +87,12 @@ export const getAcctInfo = async (
   return accountInfo;
 };
 
-export const getAcctBalance = async (provider: Provider) => {};
+export const getAcctBalance = async (
+  acctPubKey: PublicKey,
+  provider: Provider = getProvider()
+): Promise<TokenAmount> => {
+  return (await provider.connection.getTokenAccountBalance(acctPubKey)).value;
+};
 
 export const deriveTokenAcctSync = (seeds: Buffer[], programId: PublicKey) => {
   return utils.publicKey.findProgramAddressSync(seeds, programId);
@@ -95,22 +106,22 @@ export const derivePdaAsync = async (
   return [pubKey, bump];
 };
 
-export const getSolBalance = async (
-  provider: Provider,
-  pubKey: PublicKey
-) => {
+export const getSolBalance = async (pubKey: PublicKey, provider: Provider = getProvider()) => {
   return await provider.connection.getBalance(pubKey);
 };
 
 // this is a one-off since we repeat this code like 50 times in the repo
-export const getGlobalStateVaultAndTrove = async (accounts: Accounts, user: User, vaultAcct: Vault) => {
-  const vault = await programStablePool.account.vault.fetch(
-    vaultAcct.pubKey
-  );
+export const getGlobalStateVaultAndTrove = async (
+  accounts: Accounts,
+  user: User,
+  vaultAcct: Vault
+) => {
+  const vault = await programStablePool.account.vault.fetch(vaultAcct.pubKey);
   const trove = await programStablePool.account.trove.fetch(
     user.troveLpSaber.pubKey
   );
-  const globalState =
-    await programStablePool.account.globalState.fetch(accounts.global.pubKey);
-  return {vault, trove, globalState};
+  const globalState = await programStablePool.account.globalState.fetch(
+    accounts.global.pubKey
+  );
+  return { vault, trove, globalState };
 };
