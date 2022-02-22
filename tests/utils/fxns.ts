@@ -31,7 +31,7 @@ export const handleTxn = async (
       await user.provider.connection.getLatestBlockhash()
     ).blockhash;
   } catch (error) {
-    throw new Error(error);
+    throw error;
   }
 
   // send txn
@@ -45,11 +45,8 @@ export const handleTxn = async (
     console.log("txn confirmation", confirmation);
     return receipt;
   } catch (error) {
-    console.log("\nsending txn err: ", error, '\n');
-    throw Error(error);
+    throw error;
   }
-
-
 
 
 

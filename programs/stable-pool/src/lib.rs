@@ -58,6 +58,7 @@ pub struct CreateGlobalState<'info> {
     #[account(
         mut,
         // this is for LOCALNET and DEVNET. Please change key for mainnet
+        //      maybe add custom error handling, not a priority
         constraint = authority.as_ref().key().to_string() == "7Lw3e19CJUvR5qWRj8J6NKrV2tywiJqS9oDu1m8v4rsi"
     )]
     pub authority: Signer<'info>,

@@ -6,18 +6,25 @@ import {
   workspace,
   BN,
   IdlAccounts,
+  ProgramError,
+  IdlError,
 } from "@project-serum/anchor";
-import { SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
+import {
+  SystemProgram,
+  SYSVAR_RENT_PUBKEY,
+  TransactionError,
+} from "@solana/web3.js";
 // solana imports
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { TokenError, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 // utils
-import { assert } from "chai";
+import { assert, expect } from "chai";
 // local
 import { handleTxn } from "../utils/fxns";
 import * as constants from "../utils/constants";
 import { User, Users } from "../config/users";
 import { Accounts } from "../config/accounts";
 import { StablePool } from "../../target/types/stable_pool";
+import { errors } from "../utils/errors";
 
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
@@ -40,34 +47,35 @@ const createGlobalStateCall = async (accounts: Accounts, user: User) => {
           tokenProgram: TOKEN_PROGRAM_ID,
           rent: SYSVAR_RENT_PUBKEY,
         },
-        // signers: [user.wallet.payer],
       }
     )
   );
 
   // send transaction
-  const receipt = await handleTxn(txn, user);
-  console.log("Global state creation confirmed: ", receipt);
+  try {
+    const receipt = await handleTxn(txn, user);
+    console.log("Global state creation confirmed: ", receipt);
+    return receipt;
+  } catch (error) {
+    const idlErrors = new Map(
+      errors.map((e) => [e.code, `${e.name}: ${e.msg}`])
+    );
+    const translatedErr = ProgramError.parse(error, idlErrors);
+    throw translatedErr;
+  }
 };
 
+/**
+ * Creates global state account and usdx mint account
+ * auth needs to be 7Lw3e19CJUvR5qWRj8J6NKrV2tywiJqS9oDu1m8v4rsi, this will fail otherwise
+ * @param accounts
+ * @param superUser
+ */
 export const createGlobalStatePASS = async (
   accounts: Accounts,
   superUser: User
 ) => {
-  // create the global state account
-  console.log(
-    "global state: ",
-    accounts.global.pubKey,
-    "\n string:",
-    accounts.global.pubKey.toString()
-  );
-  console.log(
-    "mint: ",
-    accounts.mintUsdx.pubKey,
-    "\n string:",
-    accounts.mintUsdx.pubKey.toString()
-  );
-
+  // create the global state account and mint account
   // check if global state exists. If not, create it
   const globalStateAccountInfo: web3.AccountInfo<Buffer> =
     await superUser.provider.connection.getAccountInfo(accounts.global.pubKey);
@@ -106,4 +114,61 @@ export const createGlobalStatePASS = async (
     globalState.debtCeiling.toNumber() == constants.GLOBAL_DEBT_CEILING,
     `GlobalState Debt Ceiling: ${globalState.debtCeiling} Debt Ceiling: ${constants.GLOBAL_DEBT_CEILING}`
   );
+};
+
+/**
+ * In this FAIL test - auth is not 7Lw3e19CJUvR5qWRj8J6NKrV2tywiJqS9oDu1m8v4rsi
+ * Verify that the user being passed into the fxn is not super
+ * @param accounts
+ * @param notSuperUser
+ */
+export const createGlobalStateFAIL_auth = async (
+  accounts: Accounts,
+  notSuperUser: User
+) => {
+  assert(
+    notSuperUser.wallet.publicKey.toString() !==
+      "7Lw3e19CJUvR5qWRj8J6NKrV2tywiJqS9oDu1m8v4rsi",
+    "For this fail test, do not use super user account"
+  );
+  // create the global state account and mint account
+  // check if global state exists. If not, create it
+  const globalStateAccountInfo: web3.AccountInfo<Buffer> =
+    await notSuperUser.provider.connection.getAccountInfo(
+      accounts.global.pubKey
+    );
+
+  assert(
+    !globalStateAccountInfo,
+    "Please place test before global state account creation"
+  );
+  // 2003 = ConstraintRaw - the check that says pubkey needs to == superuser
+  await expect(
+    createGlobalStateCall(accounts, notSuperUser)
+  ).to.be.rejectedWith("2003");
+};
+
+/**
+ * In this FAIL test - we try to create a new global state when it already exists
+ * @param accounts
+ * @param superUser
+ */
+export const createGlobalStateFAIL_duplicate = async (
+  accounts: Accounts,
+  superUser: User
+) => {
+  // check if global state exists. It should exist for this test
+  const globalStateAccountInfo: web3.AccountInfo<Buffer> =
+    await superUser.provider.connection.getAccountInfo(accounts.global.pubKey);
+
+  assert(
+    globalStateAccountInfo,
+    "Please place test after global state account creation"
+  );
+
+  // { code: 0, byte: 0x0, name: "AlreadyInUse", msg: "Already in use" },
+  await expect(createGlobalStateCall(accounts, superUser)).to.be.rejectedWith(
+    "0"
+  );
+  console.log('^ this is failing correctly, as expected');
 };

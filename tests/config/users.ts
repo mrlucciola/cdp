@@ -143,7 +143,7 @@ const deriveAndInitAta = async (
       await user.provider.connection.getLatestBlockhash()
     ).blockhash;
   } catch (error) {
-    throw new Error(error);
+    return error;
   }
 
   // send txn
@@ -157,7 +157,7 @@ const deriveAndInitAta = async (
     console.log("confirmation", confirmation);
   } catch (error) {
     console.log("\nsending txn err: ", error);
-    throw Error(error);
+    throw error;
   }
   return [ata, bump];
 };
@@ -187,7 +187,7 @@ export const mintToAta = async (
       // , // programId — SPL Token program account
     );
   } catch (error) {
-    throw new Error(error);
+    throw error;
   }
   const ataBalanceNew = Number(
     (await getAcctBalance(destination.ata.pubKey)).amount

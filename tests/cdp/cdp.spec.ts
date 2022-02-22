@@ -7,7 +7,7 @@ import chaiAsPromised from "chai-as-promised";
 import { StablePool } from "../../target/types/stable_pool";
 import { Users, usersObj } from "../config/users";
 import { Accounts, configAccountsObj } from "../config/accounts";
-import { createGlobalStatePASS } from "./createGlobalState";
+import { createGlobalStateFAIL_auth, createGlobalStateFAIL_duplicate, createGlobalStatePASS } from "./createGlobalState";
 
 // init env
 chaiUse(chaiAsPromised);
@@ -29,7 +29,16 @@ describe("cdp core test suite", async () => {
     await users.init(accounts.mintLpSaber);
   });
 
+  // global state tests
+  it("FAIL: Create Global State with non-superuser", async () => {
+    await createGlobalStateFAIL_auth(accounts, users.base);
+  });
   it("PASS: Create Global State", async () => {
     await createGlobalStatePASS(accounts, users.super);
   });
+  it("FAIL: Create Global State duplicate", async () => {
+    await createGlobalStateFAIL_duplicate(accounts, users.super);
+  });
+
+  // 
 });
