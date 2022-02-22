@@ -1,13 +1,12 @@
 .anchor
 .DS_Store
 **/*.DS_Store
+target
 **/*.rs.bk
 node_modules
 **/*node_modules
 **/build
 /CACHEDIR.TAG
 test-ledger
-target
-
+**/*test-ledger
 yarn-error.log
-package-lock.json

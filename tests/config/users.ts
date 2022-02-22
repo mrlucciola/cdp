@@ -6,15 +6,18 @@ import {
   Provider,
   web3,
   workspace,
+  Wallet,
+  SplToken,
 } from "@project-serum/anchor";
-import { PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { PublicKey, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import {
-  Token as SplToken,
   ASSOCIATED_TOKEN_PROGRAM_ID,
+  createAssociatedTokenAccount,
+  createAssociatedTokenAccountInstruction,
+  getAssociatedTokenAddress,
+  mintTo,
   TOKEN_PROGRAM_ID,
-  AccountInfo,
 } from "@solana/spl-token";
-import { NodeWallet } from "@project-serum/common";
 // local
 // import superKeyArr from "../../.config/testUser-super-keypair.json";
 import baseKeyArr from "../../.config/testUser-base-keypair.json";
@@ -25,11 +28,12 @@ import {
   derivePdaAsync,
   getAcctBalance,
   getAssocTokenAcct,
+  getPda,
   getSolBalance,
   handleTxn,
 } from "../utils/fxns";
 import { Accounts, Vault } from "./accounts";
-import { userSuperKeypair } from "../../.config/testUser-super";
+// import { userb } from "../../.config/testUser-super";
 
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
@@ -37,264 +41,247 @@ const programStablePool = workspace.StablePool as Program<StablePool>;
 const userBaseKeypair: web3.Keypair = web3.Keypair.fromSecretKey(
   new Uint8Array(baseKeyArr as any[])
 );
-
-export interface PDA {
+export interface Addr {
   pubKey: PublicKey;
+}
+export interface PDA extends Addr {
   bump: number;
 }
-const emptyPda = {
+export interface Trove extends PDA {}
+/**
+ * Associated Token Account
+ * @param pubKey - PublicKey: Public Key for ATA
+ * @param bump - u8: Bump/nonce
+ */
+export interface ATA extends Addr {
+  bump?: number;
+}
+
+export interface UserToken {
+  ata: ATA;
+  trove: Trove;
+}
+const emptyPda: PDA = {
   pubKey: null as PublicKey,
   bump: null as number,
 };
 export interface User {
-  wallet: NodeWallet;
-  // prev: userCollKey
-  ataLpSaber: PDA;
-  troveLpSaber: {
-    pubKey: PublicKey; // prev: userTroveKey -> trovePubKey
-    bump: number; // prev: userTroveNonce
-    // this doesnt get created until the pass case for trove
-    state: IdlAccounts<StablePool>["trove"];
-  };
-  ataTroveLpSaber: PDA;
-  usd: PDA;
-}
-export interface Users {
-  base: User;
-  super: {
-    // @ts-ignore   likely that saber library is interfering with anchor's wallet
-    wallet: NodeWallet;
+  wallet: Wallet; // prev: userCollKey
+  provider: Provider;
+  tokens?: {
+    usdx?: UserToken;
+    lpSaber?: UserToken; // this doesnt get created until the pass case for trove
   };
 }
 
+// @ts-ignore
 export const usersObj: Users = {
   base: {
-    // @ts-ignore   likely that saber library is interfering with anchor's wallet
-    wallet: new NodeWallet(userBaseKeypair),
-    // prev: userCollKey
-    ataLpSaber: emptyPda,
-    troveLpSaber: {
-      ...emptyPda,
-      state: null as IdlAccounts<StablePool>["trove"],
-    },
-    ataTroveLpSaber: emptyPda,
-    usd: emptyPda,
+    wallet: new Wallet(userBaseKeypair), // prev: userCollKey
+    provider: new Provider(
+      programStablePool.provider.connection,
+      new Wallet(userBaseKeypair),
+      {
+        skipPreflight: true,
+        commitment: "confirmed",
+        preflightCommitment: "confirmed",
+      }
+    ),
   },
   super: {
-    // @ts-ignore   likely that saber library is interfering with anchor's wallet
-    wallet: new NodeWallet(userSuperKeypair),
+    wallet: programStablePool.provider.wallet as Wallet,
+    provider: programStablePool.provider,
   },
+  addToken: null as any,
 };
-
-const testAta = async (user: User, mintToken: SplToken) => {
-  const [expectedAtaPubKey, expectedAtaBump] = getAssocTokenAcct(
-    user.wallet.publicKey,
-    mintToken.publicKey
-  );
-  
-  // const associatedDestinationTokenAddr = await SplToken.getAssociatedTokenAddress(
-  //   ASSOCIATED_TOKEN_PROGRAM_ID, // mintToken.associatedProgramId,
-  //   TOKEN_PROGRAM_ID, // mintToken.programId,
-  //   mintToken.publicKey,
-  //   user.wallet.publicKey
-  // );
-  // console.log({
-  //   programStablePool: programStablePool.programId.toString(),
-  //   ASSOCIATED_TOKEN_PROGRAM_ID: ASSOCIATED_TOKEN_PROGRAM_ID.toString(),
-  //   TOKEN_PROGRAM_ID: TOKEN_PROGRAM_ID.toString(),
-  //   mint_associatedProgramId: mintToken.associatedProgramId.toString(),
-  //   mint_programId: mintToken.programId.toString(),
-  //   mint_publicKey: mintToken.publicKey.toString(),
-  //   userPubKey: user.wallet.publicKey.toString()
-  // })
-  // console.log('exp :', expectedAtaPubKey.toString())
-  // console.log('done:', associatedDestinationTokenAddr.toString())
-  const txnUserAssoc = new web3.Transaction();
-  txnUserAssoc.add(
-    SplToken.createAssociatedTokenAccountInstruction(
-      ASSOCIATED_TOKEN_PROGRAM_ID, // associatedProgramId: web3.PublicKey,
-      TOKEN_PROGRAM_ID, // programId: web3.PublicKey,
-      mintToken.publicKey, // mint: web3.PublicKey,
-      expectedAtaPubKey, // associatedAccount: web3.PublicKey,
-      user.wallet.publicKey, // owner: web3.PublicKey,
-      user.wallet.publicKey // payer: web3.PublicKey
-    )
-  );
-  const confirmationUserAssoc = await handleTxn(
-    txnUserAssoc,
-    // should we use userProvider?
-    getProvider(),
-    user.wallet
-  );
-  console.log('\n\n confirmationUserAssoc', confirmationUserAssoc)
-};
+type UsersType = "base" | "super";
+type tokens = "usdx" | "lpSaber";
 
 /**
  * Create an associated token account (ATA) for a given user-auth account.
  *
  * 1. Derive the ATA.
- * 2. Creates the ATA on chain
+ * 2. Create the ATA on chain
  * 3. Mint token to the ATA
  *
  * @param user
  * @param mintSuper - the mint authority's wallet
  * @param mintToken - the
  */
-const deriveAndInitAtaUI = async (
+const deriveAndInitAta = async (
   user: User,
-  mintSuperWallet: NodeWallet,
-  mintToken: SplToken
-) => {
-  // get token acct for user
-  // TODO: DERIVE ATA USING getAssocTokenAcct() - this is a deterministic and preferred way of deriving the pda.
-  try {
-    await testAta(user, mintToken); // this is not working
-    console.log("creating lp saber ata for:", user.wallet.publicKey.toString());
-    const expectedAta = getAssocTokenAcct(
-      user.wallet.publicKey,
-      mintToken.publicKey
-    );
-    console.log(`expected ata:`, expectedAta[0].toString());
-    mintToken.associatedProgramId
-    const ataLpSaberInfo: AccountInfo =
-      await mintToken.getOrCreateAssociatedAccountInfo(user.wallet.publicKey);
-    console.log(`result ata:`, ataLpSaberInfo.address.toString());
-    user.ataLpSaber.pubKey = ataLpSaberInfo.address;
-  } catch (error) {
-    throw new Error(error);
-  }
-  try {
-    console.log("minting saber lp to user ata");
-    await mintToken.mintTo(
-      user.ataLpSaber.pubKey,
-      mintSuperWallet.payer,
-      [],
-      200_000_000 /* 0.2 LPT */
-    );
-    console.log(`ata balance: ${(await getAcctBalance(user.ataLpSaber.pubKey)).amount}`);
-  } catch (error) {
-    throw new Error(error);
-  }
-};
-
-export const deriveAndInitAtaNew = async (
-  provider: Provider,
-  userWallet: NodeWallet,
   mintPubKey: PublicKey
-) => {
-  // we dont need bump but its here just in case
-  const [ataLpSaberPubkey, ataLpSaberBump] = getAssocTokenAcct(
-    userWallet.publicKey,
-    mintPubKey
-  );
+): Promise<[PublicKey, number]> => {
+  if (
+    user.wallet.publicKey.toString() !==
+    user.provider.wallet.publicKey.toString()
+  )
+    throw new Error("Provider user != wallet user");
 
-  const txnUserAssoc = new web3.Transaction();
-  txnUserAssoc.add(
-    SplToken.createAssociatedTokenAccountInstruction(
-      ASSOCIATED_TOKEN_PROGRAM_ID, // associatedProgramId: web3.PublicKey,
-      TOKEN_PROGRAM_ID, // programId: web3.PublicKey,
-      mintPubKey, // mint: web3.PublicKey,
-      ataLpSaberPubkey, // associatedAccount: web3.PublicKey,
-      userWallet.publicKey, // owner: web3.PublicKey,
-      userWallet.publicKey // payer: web3.PublicKey
+  // 1) get token acct for user
+  console.log(mintPubKey.toString());
+  // TODO: DERIVE ATA USING getAssocTokenAcct() - this is a deterministic and preferred way of deriving the pda.
+  const [ata, bump] = getAssocTokenAcct(user.wallet.publicKey, mintPubKey);
+  console.log("mint token", mintPubKey.toString());
+  console.log(`expected ata:`, ata.toString());
+  console.log("base user", user.wallet.publicKey.toString());
+
+  // create instruction & add to transaction
+  const txn = new Transaction().add(
+    createAssociatedTokenAccountInstruction(
+      user.wallet.publicKey, // payer: web3.PublicKey,
+      ata, // associatedToken: web3.PublicKey,
+      user.wallet.publicKey, // owner: web3.PublicKey,
+      mintPubKey // mint: web3.PublicKey,
     )
   );
+
+  // prep txn
+  txn.feePayer = user.wallet.publicKey;
   try {
-    const confirmationUserAssoc = await handleTxn(
-      txnUserAssoc,
-      // should we use userProvider?
-      provider,
-      userWallet
-    );
-    console.log("success");
-    return confirmationUserAssoc;
+    txn.recentBlockhash = (
+      await user.provider.connection.getLatestBlockhash()
+    ).blockhash;
   } catch (error) {
-    console.log("\n\nerror with derive-and-init-ata");
-    console.log(error);
-    // jkap: i know its redundant
     throw new Error(error);
   }
+
+  // send txn
+  try {
+    const signedTxn: Transaction = await user.wallet.signTransaction(txn);
+    const receipt: string = await user.provider.send(signedTxn);
+    const confirmation: web3.RpcResponseAndContext<web3.SignatureResult> =
+      await user.provider.connection.confirmTransaction(receipt);
+
+    console.log("resMain", receipt);
+    console.log("confirmation", confirmation);
+  } catch (error) {
+    console.log("\nsending txn err: ", error);
+    throw Error(error);
+  }
+  return [ata, bump];
 };
 
-export const deriveTroveAccts = async (
-  mintToken: SplToken,
-  user: User,
-  vault: Vault // prev: tokenVault -> vaultColl
+export const mintToAta = async (
+  mintTokenStr: tokens,
+  mintPubKey: PublicKey,
+  mintAuth: User,
+  destination: UserToken,
+  amount: number = 200_000_000 // 0.2 units of token
 ) => {
-  // troves are derived from a vault
-  const seeds = [
-    Buffer.from(constants.TROVE_SEED),
-    vault.pubKey.toBuffer(),
-    user.wallet.publicKey.toBuffer(),
-  ];
-
-  // prev: [userTroveKey, userTroveNonce]
-  // can we use the sync version of this fxn?
-  const [trovePubKey, troveBump] = await derivePdaAsync(
-    seeds,
-    programStablePool.programId
+  // mint to newly created ata
+  const ataBalanceOrig = Number(
+    (await getAcctBalance(destination.ata.pubKey)).amount
   );
-  // assign to global test state
-  user.troveLpSaber.pubKey = trovePubKey;
-  user.troveLpSaber.bump = troveBump;
-
+  console.log(`minting ${mintTokenStr} to ata, balance: ${ataBalanceOrig}`);
   try {
-    // getAssocTokenAcct(user.wallet.);
-    // user.ataTroveLpSaber.pubKey = ataTroveLpSaberInfo.address;
-    const ataTroveLpSaberPubkey = await mintToken.createAssociatedTokenAccount(
-      user.troveLpSaber.pubKey
+    await mintTo(
+      mintAuth.provider.connection, // connection — Connection to use
+      mintAuth.wallet.payer, // payer — Payer of the transaction fees
+      mintPubKey, // mint — Mint for the account
+      destination.ata.pubKey, // destination — Address of the account to mint to
+      mintAuth.wallet.publicKey, // authority — Minting authority
+      amount // amount — Amount to mint
+      // [], // multiSigners — Signing accounts if authority is a multisig
+      // , // confirmOptions — Options for confirming the transaction
+      // , // programId — SPL Token program account
     );
-    user.ataTroveLpSaber.pubKey = ataTroveLpSaberPubkey;
   } catch (error) {
-    console.log("error here:\n", error);
     throw new Error(error);
   }
-};
-export const deriveUsdAcct = async (mintPubKey: PublicKey, user: User) => {
-  // create usd and assign to state var
-  const seeds = [
-    Buffer.from(constants.USD_TOKEN_SEED),
-    user.wallet.publicKey.toBuffer(),
-    mintPubKey.toBuffer(),
-  ];
-  // can we use the sync version?
-  const [userUsdKey, userUsdBump] = await derivePdaAsync(
-    seeds,
-    programStablePool.programId
+  const ataBalanceNew = Number(
+    (await getAcctBalance(destination.ata.pubKey)).amount
   );
-
-  user.usd.pubKey = userUsdKey;
-  user.usd.bump = userUsdBump;
+  const diff = ataBalanceNew - ataBalanceOrig;
+  console.log(`ata balance: ${ataBalanceOrig} -> ${ataBalanceNew} ∆=${diff}`);
 };
 
-export const initUsersObj = async (
-  provider: Provider,
-  accounts: Accounts,
-  usersObj: Users,
-  vault: Vault
-) => {
-  await airdropSol(
-    provider,
-    usersObj.super.wallet.publicKey,
-    99999 * LAMPORTS_PER_SOL
-  );
-  await airdropSol(
-    provider,
-    usersObj.base.wallet.publicKey,
-    99999 * LAMPORTS_PER_SOL
-  );
-  console.log(
-    "airdrop complete\n",
-    `base user: ${await getSolBalance(usersObj.base.wallet.publicKey)}\n`,
-    `super user: ${await getSolBalance(usersObj.super.wallet.publicKey)}`
-  );
-  await deriveAndInitAtaUI(
-    usersObj.base,
-    usersObj.super.wallet,
-    accounts.mintLpSaber
-  );
-  // await deriveTroveAccts(accounts.mintLpSaber, usersObj.base, vault);
-  // await deriveUsdAcct(accounts.mintUsd.pubKey, usersObj.base);
+export class Users {
+  public base: User;
+  public super: User;
 
-  return usersObj;
+  constructor() {
+    this.base = {
+      wallet: new Wallet(userBaseKeypair), // prev: userCollKey
+      provider: new Provider(
+        programStablePool.provider.connection,
+        new Wallet(userBaseKeypair),
+        {
+          skipPreflight: true,
+          commitment: "confirmed",
+          preflightCommitment: "confirmed",
+        }
+      ),
+      tokens: {},
+    };
+    this.super = {
+      wallet: programStablePool.provider.wallet as Wallet,
+      provider: programStablePool.provider,
+    };
+  }
+  public async init(mintPubKey: PublicKey) {
+    await airdropSol(
+      this.super.provider,
+      this.super.wallet.publicKey,
+      99999 * LAMPORTS_PER_SOL
+    );
+    await airdropSol(
+      this.base.provider,
+      this.base.wallet.publicKey,
+      99999 * LAMPORTS_PER_SOL
+    );
+    // await this.addToken("base", mintUsdxPubKey, "usdx", 500_000_000_000, false);
+    await this.addToken("base", mintPubKey, "lpSaber", 200_000_000);
+  }
+
+  public async addToken(
+    userStr: UsersType,
+    mintPubKey: PublicKey,
+    tokenStr: tokens,
+    amount: number = 200_000_000,
+    isMintActive: boolean = true
+  ) {
+    if (amount === 0) throw new Error("Please enter more than 0");
+    const user = this[userStr] as User;
+    user.tokens[tokenStr] = {} as UserToken;
+
+    // create ata
+    const [ata, bump] = await deriveAndInitAta(user, mintPubKey);
+    user.tokens[tokenStr].ata = { pubKey: ata, bump };
+
+    // mint
+    if (!isMintActive) return;
+    await mintToAta(
+      tokenStr,
+      mintPubKey,
+      this.super,
+      user.tokens[tokenStr],
+      amount
+    );
+  }
+  /**
+   * createTrove NOT COMPLETE
+   */
+  public async createTrove(vault: Vault, user: User) {
+    const seeds = [
+      Buffer.from(constants.TROVE_SEED),
+      vault.pubKey.toBuffer(),
+      user.wallet.publicKey.toBuffer(),
+    ];
+    getPda(seeds, programStablePool.programId);
+  }
+}
+
+/**
+ * create usdx and assign to state var
+ * @param mintPubKey
+ * @param user
+ */
+export const deriveUsdxAcct = async (mintPubKey: PublicKey, user: User) => {
+  const [userUsdxKey, userUsdxBump] = getAssocTokenAcct(
+    user.wallet.publicKey,
+    mintPubKey
+  );
+  // add to state
+  user.tokens.usdx.ata = { pubKey: userUsdxKey, bump: userUsdxBump };
 };

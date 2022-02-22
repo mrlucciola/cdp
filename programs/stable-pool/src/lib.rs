@@ -1,167 +1,104 @@
 use anchor_lang::prelude::*;
 
-/// constant
-pub mod constant;
-/// error
-pub mod error;
-/// instructions
-pub mod instructions;
-///processor
-pub mod processor;
-/// states
-pub mod states;
-/// utils
-pub mod utils;
-use crate::{instructions::*, processor::*, utils::*};
+use anchor_spl::token::{self, Mint, Token};
 
-declare_id!("7kKokDY8zXMpWgN8yUrBKqvwoB57vXPhzGDC4dJDvWER");
-pub mod site_fee_owner {
-    anchor_lang::declare_id!("2Pv5mjmKYAtXNpr3mcsXf7HjtS3fieJeFoWPATVT5rWa");
-}
+// constants
+pub const DEFAULT_FEE_NUMERATOR: u128 = 3;
+pub const DEFAULT_FEE_DENOMINATOR: u128 = 1000;
+pub const USDX_DECIMALS: u8 = 6;
+pub const MINT_USDX_SEED: &[u8] = b"MINT_USDX_SEED";
+pub const GLOBAL_STATE_SEED: &[u8] = b"GLOBAL_STATE_SEED";
+pub const DEFAULT_RATIOS: [u64; 10] = [
+    99009901, // AAA
+    97799511, // AA
+    96618357, // A
+    95011876, // BBB
+    93023256, // BB
+    91116173, // B
+    90090090, // CCC
+    89086860, // CC
+    88105727, // C
+    86206897, // D
+];
+
+declare_id!("FvTjLbwbHY4v8Gfv18JKuPCJG2Hj87CG8kPNHqGeHAR4");
+
 #[program]
 pub mod stable_pool {
+    use std::{io::Read, str::FromStr};
+
     use super::*;
 
-    // admin panel
     pub fn create_global_state(
         ctx: Context<CreateGlobalState>,
-        global_state_nonce: u8,
-        mint_usd_nonce: u8,
+        global_state_bump: u8,
+        mint_usdx_nonce: u8,
         tvl_limit: u64,
         debt_ceiling: u64,
-    ) -> ProgramResult {
-        ctx.accounts
-            .create_state(global_state_nonce, mint_usd_nonce, tvl_limit, debt_ceiling)
-    }
+    ) -> Result<()> {
+        ctx.accounts.global_state.bump = global_state_bump;
+        ctx.accounts.global_state.authority = ctx.accounts.authority.key();
+        ctx.accounts.global_state.mint_usdx = ctx.accounts.mint_usdx.key();
+        ctx.accounts.global_state.mint_usdx_nonce = mint_usdx_nonce;
+        ctx.accounts.global_state.tvl_limit = tvl_limit;
+        ctx.accounts.global_state.tvl = 0;
+        ctx.accounts.global_state.total_debt = 0;
+        ctx.accounts.global_state.debt_ceiling = debt_ceiling;
+        ctx.accounts.global_state.fee_num = DEFAULT_FEE_NUMERATOR;
+        ctx.accounts.global_state.fee_deno = DEFAULT_FEE_DENOMINATOR;
+        ctx.accounts.global_state.coll_per_risklv = DEFAULT_RATIOS;
 
-    pub fn create_vault(
-        ctx: Context<CreateVault>,
-        vault_bump: u8,
-        risk_level: u8,
-        is_dual: u8,
-        debt_ceiling: u64,
-        platform_type: u8,
-    ) -> ProgramResult {
-        ctx.accounts
-            .create_vault(vault_bump, risk_level, is_dual, debt_ceiling, platform_type)
+        Ok(())
     }
+}
 
-    pub fn set_harvest_fee(
-        ctx: Context<SetHarvestFee>,
-        fee_num: u64,
-        fee_deno: u64,
-    ) -> ProgramResult {
-        ctx.accounts.set_fee(fee_num, fee_deno)
-    }
+#[derive(Accounts)]
+#[instruction(global_state_nonce: u8, mint_usdx_nonce: u8)]
+pub struct CreateGlobalState<'info> {
+    #[account(
+        mut,
+        // this is for LOCALNET and DEVNET. Please change key for mainnet
+        constraint = authority.as_ref().key().to_string() == "7Lw3e19CJUvR5qWRj8J6NKrV2tywiJqS9oDu1m8v4rsi"
+    )]
+    pub authority: Signer<'info>,
 
-    pub fn toggle_emer_state(ctx: Context<ToggleEmerState>, new_state: u8) -> ProgramResult {
-        ctx.accounts.toggle_state(new_state)
-    }
+    #[account(
+        init,
+        payer = authority,
+        seeds = [GLOBAL_STATE_SEED],
+        bump,
+    )]
+    pub global_state: Account<'info, GlobalState>,
 
-    // no tests yet
-    pub fn change_authority(ctx: Context<ChangeAuthority>) -> ProgramResult {
-        ctx.accounts.change_owner()
-    }
+    #[account(
+        init,
+        payer = authority,
+        mint::decimals = USDX_DECIMALS,
+        mint::authority = global_state,
+        seeds = [MINT_USDX_SEED],
+        bump,
+    )]
+    pub mint_usdx: Account<'info, Mint>,
 
-    pub fn set_global_tvl_limit(ctx: Context<SetGlobalTvlLimit>, limit: u64) -> ProgramResult {
-        ctx.accounts.set_tvl_limit(limit)
-    }
+    #[account(address = token::ID)]
+    pub token_program: Program<'info, Token>,
+    pub system_program: Program<'info, System>,
+    pub rent: Sysvar<'info, Rent>,
+}
 
-    pub fn set_global_debt_ceiling(
-        ctx: Context<SetGlobalDebtCeiling>,
-        ceiling: u64,
-    ) -> ProgramResult {
-        ctx.accounts.set(ceiling)
-    }
-
-    pub fn set_vault_debt_ceiling(
-        ctx: Context<SetVaultDebtCeiling>,
-        ceiling: u64,
-    ) -> ProgramResult {
-        ctx.accounts.set(ceiling)
-    }
-
-    pub fn set_user_debt_ceiling(ctx: Context<SetUserDebtCeiling>, ceiling: u64) -> ProgramResult {
-        ctx.accounts.set(ceiling)
-    }
-
-    pub fn set_collaterial_ratio(
-        ctx: Context<SetCollateralRatio>,
-        ratios: [u64; 10],
-    ) -> ProgramResult {
-        ctx.accounts.set_ratio(&ratios)
-    }
-
-    // user section
-    pub fn create_trove(
-        ctx: Context<CreateTrove>,
-        trove_nonce: u8,
-        ata_trove_nonce: u8,
-        ceiling: u64,
-    ) -> ProgramResult {
-        ctx.accounts.create(trove_nonce, ata_trove_nonce, ceiling)
-    }
-    pub fn create_user_reward_vault(
-        ctx: Context<CreateUserRewardVault>,
-        reward_vault_bump: u8,
-    ) -> ProgramResult {
-        ctx.accounts.create()
-    }
-
-    #[access_control(is_secure(&ctx.accounts.global_state))]
-    pub fn deposit_collateral(ctx: Context<RatioStaker>, amount: u64) -> ProgramResult {
-        ctx.accounts.deposit(amount)
-    }
-
-    #[access_control(is_secure(&ctx.accounts.global_state))]
-    pub fn withdraw_collateral(ctx: Context<RatioStaker>, amount: u64) -> ProgramResult {
-        ctx.accounts.withdraw(amount)
-    }
-
-    #[access_control(is_secure(&ctx.accounts.global_state))]
-    pub fn borrow_usd(
-        ctx: Context<BorrowUsd>,
-        amount: u64,
-        user_usd_token_nonce: u8,
-    ) -> ProgramResult {
-        ctx.accounts.borrow(amount, user_usd_token_nonce)
-    }
-
-    #[access_control(is_secure(&ctx.accounts.global_state))]
-    pub fn repay_usd(ctx: Context<RepayUsd>, amount: u64) -> ProgramResult {
-        ctx.accounts.repay(amount)
-    }
-
-    // quarry miner
-    pub fn create_quarry_miner(
-        ctx: Context<CreateQuarryMiner>,
-        miner_bump: u8,
-        miner_vault_bump: u8,
-    ) -> ProgramResult {
-        ctx.accounts.create(miner_bump, miner_vault_bump)
-    }
-
-    // saber functions
-    #[access_control(is_secure(&ctx.accounts.ratio_staker.global_state))]
-    pub fn deposit_to_saber(ctx: Context<SaberStaker>, amount: u64) -> ProgramResult {
-        ctx.accounts.deposit(amount)
-    }
-
-    #[access_control(is_secure(&ctx.accounts.ratio_staker.global_state))]
-    pub fn withdraw_from_saber(ctx: Context<SaberStaker>, amount: u64) -> ProgramResult {
-        ctx.accounts.withdraw(amount)
-    }
-
-    #[access_control(is_secure(&ctx.accounts.ratio_harvester.global_state))]
-    pub fn harvest_from_saber(ctx: Context<HarvestFromSaber>) -> ProgramResult {
-        ctx.accounts.harvest()
-    }
-
-    #[access_control(is_secure(&ctx.accounts.global_state))]
-    pub fn create_price_feed(ctx: Context<CreatePriceFeed>, pair_count: u8) -> ProgramResult {
-        ctx.accounts.create_price_feed(pair_count)
-    }
-    pub fn update_price_feed(ctx: Context<UpdatePriceFeed>) -> ProgramResult {
-        ctx.accounts.update_price_feed()
-    }
+#[account]
+#[derive(Default)]
+pub struct GlobalState {
+    pub bump: u8,
+    pub authority: Pubkey,
+    pub mint_usdx: Pubkey,
+    pub mint_usdx_nonce: u8,
+    pub tvl_limit: u64,
+    pub tvl: u64,
+    pub paused: u8,
+    pub total_debt: u64,
+    pub debt_ceiling: u64,
+    pub fee_num: u128,
+    pub fee_deno: u128,
+    pub coll_per_risklv: [u64; 10],
 }

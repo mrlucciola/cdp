@@ -58,8 +58,8 @@ super(owner) -> authority
 
 | Before      | After |
 | ----------- | ----------- |
-| USD_MINT_TAG | MINT_USD_SEED |
-| usd-mint (value) | MINT_USD_SEED |
+| USD_MINT_TAG | MINT_USDX_SEED |
+| usd-mint (value) | MINT_USDX_SEED |
 
 <br>
 
@@ -122,18 +122,18 @@ super(owner) -> authority
 
 <br>
 
-# USD
+# USDx
 
 | Before      | After |
 | ----------- | ----------- |
-| user_token_usd | ata_user_usd |
-| userTokenUsd | ataUserUsd |
-| userUsdKey | ataUserUsd |
-| user_usd_key | ata_user_usd |
+| user_token_usd | ata_user_usdx |
+| userTokenUsd | ataUserUsdx |
+| userUsdKey | ataUserUsdx |
+| user_usd_key | ata_user_usdx |
 
 ### constants
 
 | Before      | After |
 | ----------- | ----------- |
-| USER_USD_TOKEN_TAG | USER_USD_SEED |
-| usd-token (value) | USER_USD_SEED |
+| USER_USD_TOKEN_TAG | USER_USDX_SEED |
+| usd-token (value) | USER_USDX_SEED |

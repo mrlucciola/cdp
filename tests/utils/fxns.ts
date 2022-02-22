@@ -8,7 +8,7 @@ import {
   Program,
   getProvider,
 } from "@project-serum/anchor";
-import { PublicKey, TokenAmount } from "@solana/web3.js";
+import { PublicKey, TokenAmount, Transaction } from "@solana/web3.js";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 // utils
 import { sha256 } from "js-sha256";
@@ -20,26 +20,56 @@ import { StablePool } from "../../target/types/stable_pool";
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
 export const handleTxn = async (
-  txn_: web3.Transaction,
-  txnProvider: Provider,
-  // @ts-ignore saber library is likely interfering with anchor's wallet type
-  txnWallet: Wallet
+  txn: web3.Transaction,
+  user: User,
 ) => {
-  txn_.feePayer = txnWallet.publicKey;
-  txn_.recentBlockhash = (
-    await txnProvider.connection.getLatestBlockhash()
-  ).blockhash;
-  const signedTxn: web3.Transaction = await txnWallet.signTransaction(txn_);
-  try {
-    const resMain: string = await txnProvider.send(signedTxn);
-    const conf: web3.RpcResponseAndContext<web3.SignatureResult> =
-      await txnProvider.connection.confirmTransaction(resMain);
 
-    return resMain;
+  // prep txn
+  txn.feePayer = user.wallet.publicKey;
+  try {
+    txn.recentBlockhash = (
+      await user.provider.connection.getLatestBlockhash()
+    ).blockhash;
   } catch (error) {
-    console.log("err: ", error);
+    throw new Error(error);
+  }
+
+  // send txn
+  try {
+    const signedTxn: Transaction = await user.wallet.signTransaction(txn);
+    const receipt: string = await user.provider.send(signedTxn);
+    const confirmation: web3.RpcResponseAndContext<web3.SignatureResult> =
+      await user.provider.connection.confirmTransaction(receipt);
+
+    console.log("txn receipt", receipt);
+    console.log("txn confirmation", confirmation);
+    return receipt;
+  } catch (error) {
+    console.log("\nsending txn err: ", error, '\n');
     throw Error(error);
   }
+
+
+
+
+
+
+
+  // txn_.feePayer = txnWallet.publicKey;
+  // txn_.recentBlockhash = (
+  //   await txnProvider.connection.getLatestBlockhash()
+  // ).blockhash;
+  // const signedTxn: web3.Transaction = await txnWallet.signTransaction(txn_);
+  // try {
+  //   const resMain: string = await txnProvider.send(signedTxn);
+  //   const conf: web3.RpcResponseAndContext<web3.SignatureResult> =
+  //     await txnProvider.connection.confirmTransaction(resMain);
+
+  //   return resMain;
+  // } catch (error) {
+  //   console.log("err: ", error);
+  //   throw Error(error);
+  // }
 };
 
 export const airdropSol = async (
@@ -94,7 +124,7 @@ export const getAcctBalance = async (
   return (await provider.connection.getTokenAccountBalance(acctPubKey)).value;
 };
 
-export const deriveTokenAcctSync = (seeds: Buffer[], programId: PublicKey) => {
+export const getPda = (seeds: Buffer[], programId: PublicKey) => {
   return utils.publicKey.findProgramAddressSync(seeds, programId);
 };
 
@@ -111,17 +141,17 @@ export const getSolBalance = async (pubKey: PublicKey, provider: Provider = getP
 };
 
 // this is a one-off since we repeat this code like 50 times in the repo
-export const getGlobalStateVaultAndTrove = async (
-  accounts: Accounts,
-  user: User,
-  vaultAcct: Vault
-) => {
-  const vault = await programStablePool.account.vault.fetch(vaultAcct.pubKey);
-  const trove = await programStablePool.account.trove.fetch(
-    user.troveLpSaber.pubKey
-  );
-  const globalState = await programStablePool.account.globalState.fetch(
-    accounts.global.pubKey
-  );
-  return { vault, trove, globalState };
-};
+// export const getGlobalStateVaultAndTrove = async (
+//   accounts: Accounts,
+//   user: User,
+//   vaultAcct: Vault
+// ) => {
+//   const vault = await programStablePool.account.vault.fetch(vaultAcct.pubKey);
+//   const trove = await programStablePool.account.trove.fetch(
+//     user.troveLpSaber.pubKey
+//   );
+//   const globalState = await programStablePool.account.globalState.fetch(
+//     accounts.global.pubKey
+//   );
+//   return { vault, trove, globalState };
+// };

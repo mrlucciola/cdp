@@ -3,7 +3,6 @@ import {
   Provider,
   Program,
   web3,
-  // @ts-ignore
   workspace,
   BN,
   IdlAccounts,
@@ -16,57 +15,65 @@ import { assert } from "chai";
 // local
 import { handleTxn } from "../utils/fxns";
 import * as constants from "../utils/constants";
-import { Users } from "../config/users";
+import { User, Users } from "../config/users";
 import { Accounts } from "../config/accounts";
 import { StablePool } from "../../target/types/stable_pool";
 
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
-export const createGlobalState = async (
-  provider: Provider,
-  accounts: Accounts,
-  users: Users
-) => {
-  // check if global state exists. If not, create it
-  const isNullGlobalState: web3.AccountInfo<Buffer> =
-    await provider.connection.getAccountInfo(accounts.global.pubKey);
+const createGlobalStateCall = async (accounts: Accounts, user: User) => {
+  // create txn
+  const txn = new web3.Transaction();
+  // add instruction
+  txn.add(
+    programStablePool.instruction.createGlobalState(
+      accounts.global.bump, // prev: globalStateNonce
+      accounts.mintUsdx.bump, // prev: mintUsdNonce
+      new BN(constants.TVL_LIMIT),
+      new BN(constants.GLOBAL_DEBT_CEILING),
+      {
+        accounts: {
+          authority: user.wallet.publicKey,
+          globalState: accounts.global.pubKey,
+          mintUsdx: accounts.mintUsdx.pubKey,
+          systemProgram: SystemProgram.programId,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          rent: SYSVAR_RENT_PUBKEY,
+        },
+        // signers: [user.wallet.payer],
+      }
+    )
+  );
 
+  // send transaction
+  const receipt = await handleTxn(txn, user);
+  console.log("Global state creation confirmed: ", receipt);
+};
+
+export const createGlobalStatePASS = async (
+  accounts: Accounts,
+  superUser: User
+) => {
   // create the global state account
   console.log(
-    "mint",
-    accounts.mintUsd.pubKey,
-    "\n",
-    accounts.mintUsd.pubKey.toString()
+    "global state: ",
+    accounts.global.pubKey,
+    "\n string:",
+    accounts.global.pubKey.toString()
   );
-  if (!isNullGlobalState) {
-    const txnCreateGlobalState = new web3.Transaction().add(
-      programStablePool.instruction.createGlobalState(
-        accounts.global.bump, // prev: globalStateNonce
-        accounts.mintUsd.bump, // prev: mintUsdNonce
-        new BN(constants.TVL_LIMIT),
-        new BN(constants.GLOBAL_DEBT_CEILING),
-        {
-          accounts: {
-            authority: users.super.wallet.publicKey,
-            globalState: accounts.global.pubKey,
-            mintUsd: accounts.mintUsd.pubKey,
-            systemProgram: SystemProgram.programId,
-            tokenProgram: TOKEN_PROGRAM_ID,
-            rent: SYSVAR_RENT_PUBKEY,
-          },
-          signers: [users.super.wallet.payer],
-        }
-      )
-    );
+  console.log(
+    "mint: ",
+    accounts.mintUsdx.pubKey,
+    "\n string:",
+    accounts.mintUsdx.pubKey.toString()
+  );
 
-    const confirmation = await handleTxn(
-      txnCreateGlobalState,
-      provider,
-      users.super.wallet // users.super.wallet
-    );
-    console.log("Global state creation confirmed: ", confirmation);
-  } else
-    console.log("ALREADY CREATED accounts.global.pubKey =", isNullGlobalState);
+  // check if global state exists. If not, create it
+  const globalStateAccountInfo: web3.AccountInfo<Buffer> =
+    await superUser.provider.connection.getAccountInfo(accounts.global.pubKey);
+  if (!globalStateAccountInfo) {
+    const receipt = await createGlobalStateCall(accounts, superUser);
+  } else console.log("GLOBAL STATE ALREADY CREATED", globalStateAccountInfo);
 
   // check if global state exists
   const globalState: IdlAccounts<StablePool>["globalState"] =
@@ -78,13 +85,13 @@ export const createGlobalState = async (
 
   // testing if each of the global state's parameters exists
   assert(
-    globalState.authority.toBase58() == users.super.wallet.publicKey.toBase58(),
+    globalState.authority.toBase58() == superUser.wallet.publicKey.toBase58(),
     "\n auth is not user.super"
   );
   assert(
-    accounts.global.state.mintUsd.toBase58() ==
-      accounts.mintUsd.pubKey.toBase58(),
-    "\n USD mint is not correct"
+    accounts.global.state.mintUsdx.toBase58() ==
+      accounts.mintUsdx.pubKey.toBase58(),
+    "\n USDx mint is not correct"
   );
   assert(
     globalState.tvlLimit.toNumber() == constants.TVL_LIMIT,

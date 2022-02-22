@@ -5,9 +5,11 @@ import {
   Program,
   Provider,
   Wallet,
+  SplToken,
+  SplTokenCoder
 } from "@project-serum/anchor";
 import { PublicKey, Signer } from "@solana/web3.js";
-import { TOKEN_PROGRAM_ID, Token } from "@solana/spl-token";
+import { TOKEN_PROGRAM_ID, createMint } from "@solana/spl-token";
 // local
 import { StablePool } from "../../target/types/stable_pool";
 import * as constants from "../utils/constants";
@@ -17,7 +19,7 @@ const programStablePool = workspace.StablePool as Program<StablePool>;
 export interface Vault {
   pubKey: PublicKey;
   bump: number;
-  state: IdlAccounts<StablePool>["vault"];
+  state: any;// IdlAccounts<StablePool>["vault"];
 }
 export interface Accounts {
   global: {
@@ -25,49 +27,51 @@ export interface Accounts {
     bump: number;
     state: IdlAccounts<StablePool>["globalState"];
   };
-  mintUsd: {
+  mintUsdx: {
     pubKey: PublicKey;
     bump: number;
   };
-  mintLpSaber: Token;
+  mintLpSaber: PublicKey;
   // collateral vault, with the type of token 'lp' and platform 'saber' and coinpair 'usd-sol'
   vaultLpSaber: Vault;
 }
 
-export const createMintToken2 = async (
-  provider: Provider,
-  mintPubKey: PublicKey,
-  mintAuthWallet: typeof Wallet
-): Promise<Token> => {
-  const mint = new Token(
-    provider.connection,
-    mintPubKey,
-    TOKEN_PROGRAM_ID,
-    mintAuthWallet.payer
-  );
-  return mint;
-};
+// export const createMintToken2 = async (
+//   provider: Provider,
+//   mintPubKey: PublicKey,
+//   mintAuthWallet: typeof Wallet
+// ): Promise<Token> => {
+//   const mint = new Token(
+//     provider.connection,
+//     mintPubKey,
+//     TOKEN_PROGRAM_ID,
+//     mintAuthWallet.payer
+//   );
+//   return mint;
+// };
 export const createMintToken = async (
   provider: Provider,
   // @ts-ignore
   mintAuthWallet: Wallet
-): Promise<Token> => {
-  const mintToken = await Token.createMint(
-    provider.connection,
-    mintAuthWallet.payer as Signer,
-    mintAuthWallet.publicKey,
-    null,
-    9,
-    TOKEN_PROGRAM_ID
+): Promise<PublicKey> => {
+  const mintTokenPubKey: PublicKey = await createMint(
+    provider.connection, // connection — Connection to use
+    mintAuthWallet.payer as Signer, // payer — Payer of the transaction and initialization fees
+    mintAuthWallet.publicKey, // mintAuthority — Account or multisig that will control minting
+    null, // freezeAuthority — Optional account or multisig that can freeze token accounts
+    9, // decimals — Location of the decimal place
+    // keypair — Optional keypair, defaulting to a new random one
+    // confirmOptions — Options for confirming the transaction
+    // programId — SPL Token program account
   );
-  return mintToken;
+  return mintTokenPubKey;
 };
 
 export const configAccountsObj = async (
   provider: Provider,
   users: Users
 ): Promise<Accounts> => {
-  const mintLpSaber: Token = await createMintToken(provider, users.super.wallet);
+  const mintLpSaber: PublicKey = await createMintToken(provider, users.super.wallet);
   const [globalStatePubkey, globalStateBump] =
     await PublicKey.findProgramAddress(
       [Buffer.from(constants.GLOBAL_STATE_SEED)],
@@ -79,13 +83,13 @@ export const configAccountsObj = async (
     await PublicKey.findProgramAddress(
       [
         Buffer.from(constants.VAULT_SEED),
-        mintLpSaber.publicKey.toBuffer(),
+        mintLpSaber.toBuffer(),
       ],
       programStablePool.programId
     ); // prev: [tokenVaultKey, tokenVaultNonce]
 
-  const [mintUsdPubkey, mintUsdBump] = await PublicKey.findProgramAddress(
-    [Buffer.from(constants.MINT_USD_SEED)],
+  const [mintUsdxPubkey, mintUsdxBump] = await PublicKey.findProgramAddress(
+    [Buffer.from(constants.MINT_USDX_SEED)],
     programStablePool.programId
   ); // prev: [mintUsdKey, mintUsdNonce]
 
@@ -96,18 +100,17 @@ export const configAccountsObj = async (
       // this is created during the positive test
       state: null as IdlAccounts<StablePool>["globalState"],
     },
-    mintUsd: {
-      pubKey: mintUsdPubkey as PublicKey, // prev: mintUsdKey
-      bump: mintUsdBump as number, // prev: mintUsdNonce
+    mintUsdx: {
+      pubKey: mintUsdxPubkey as PublicKey, // prev: mintUsdKey
+      bump: mintUsdxBump as number, // prev: mintUsdNonce
     },
-    // im not sure why we do it this way rather than how we do mint usd
     mintLpSaber,
     vaultLpSaber: {
       // prev: tokenVaultLpSaber
       pubKey: vaultLpSaberPubkey as PublicKey, // prev: tokenVaultKey
       bump: vaultLpSaberBump as number, // prev: tokenVaultNonce
       // this gets created after the PASS test for create-collateral-vault // prev: create-token-vault
-      state: null as IdlAccounts<StablePool>["vault"], // prev: tokenVault
+      state: null as any // IdlAccounts<StablePool>["vault"], // prev: tokenVault
     },
   };
   return accounts;
