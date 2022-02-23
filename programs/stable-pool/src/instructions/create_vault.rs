@@ -21,7 +21,7 @@ pub fn handle(
     ctx.accounts.vault.total_coll = 0;
     ctx.accounts.vault.total_debt = 0;
     ctx.accounts.vault.risk_level = risk_level;
-    ctx.accounts.vault.vault_bump = vault_bump;
+    ctx.accounts.vault.bump = vault_bump;
     ctx.accounts.vault.is_dual = is_dual;
     ctx.accounts.vault.debt_ceiling = debt_ceiling;
 

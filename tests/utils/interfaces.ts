@@ -21,7 +21,9 @@ export class Acct {
 export class PDA extends Acct {
   bump: number;
 }
-export class Trove extends PDA {}
+export class Trove extends PDA {
+  ata: ATA;
+}
 
 export interface ITokenAccount {
   mint: PublicKey;

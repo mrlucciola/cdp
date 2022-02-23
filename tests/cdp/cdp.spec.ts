@@ -18,6 +18,7 @@ import {
   createVaultFAIL_auth,
   createVaultPASS,
 } from "./createVault";
+import { createTrovePASS } from "./createTrove";
 
 // init env
 chaiUse(chaiAsPromised);
@@ -81,4 +82,9 @@ describe("cdp core test suite", async () => {
       accounts.lpSaberUsdcUsdt.vault
     );
   });
+
+  // trove tests
+  // it("PASS: Create Trove", async () => {
+  //   await createTrovePASS(users.base, accounts, accounts.lpSaberUsdcUsdt);
+  // });
 });

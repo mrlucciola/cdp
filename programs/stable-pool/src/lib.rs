@@ -38,6 +38,22 @@ pub mod stable_pool {
         debt_ceiling: u64,
         platform_type: u8,
     ) -> Result<()> {
-        create_vault::handle(ctx, vault_bump, risk_level, is_dual, debt_ceiling, platform_type)
+        create_vault::handle(
+            ctx,
+            vault_bump,
+            risk_level,
+            is_dual,
+            debt_ceiling,
+            platform_type,
+        )
+    }
+
+    pub fn create_trove(
+        ctx: Context<CreateTrove>,
+        trove_nonce: u8,
+        ata_trove_nonce: u8,
+        ceiling: u64,
+    ) -> Result<()> {
+        create_trove::handle(ctx, trove_nonce, ata_trove_nonce, ceiling)
     }
 }

@@ -88,13 +88,10 @@ export const createVaultFAIL_auth = async (
     // asserts
     // this does not identify the correct error code properly
     await expect(
-      createVaultCall(notSuperUser, accounts, riskLevel, isDual, vault),
-    ).to.be.rejectedWith("2003", "No error was thrown when trying to create a vault with a user different than the super owner");
-    // this does not identify the correct error code properly
-    await assert.isRejected(
-      programStablePool.account.vault.fetch(vault.pubKey),
-      /Account does not exist/,
-      "Fetching a vault that shouldn't had been created did not throw an error"
+      createVaultCall(notSuperUser, accounts, riskLevel, isDual, vault)
+    ).to.be.rejectedWith(
+      "2003",
+      "No error was thrown when trying to create a vault with a user different than the super owner"
     );
   }
 };
@@ -132,7 +129,7 @@ export const createVaultFAIL_noGlobalState = async (
       "No error was thrown when trying to create a vault without a global state created. Please check anchor version."
     );
   } else {
-    console.log('\n\n SKIPPING TEST: GLOBAL STATE EXISTS')
+    console.log("\n\n SKIPPING TEST: GLOBAL STATE EXISTS");
   }
 };
 
