@@ -1,6 +1,7 @@
 // seeds
 pub const GLOBAL_STATE_SEED: &[u8] = b"GLOBAL_STATE_SEED";
 pub const MINT_USDX_SEED: &[u8] = b"MINT_USDX_SEED";
+pub const VAULT_SEED: &[u8] = b"VAULT_SEED";
 // numbers
 pub const USDX_DECIMALS: u8 = 6;
 pub const DEFAULT_FEE_NUMERATOR: u128 = 3;

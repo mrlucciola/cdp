@@ -2,28 +2,23 @@
 import {
   web3,
   Provider,
-  Wallet,
   utils,
   workspace,
   Program,
   getProvider,
 } from "@project-serum/anchor";
 import { PublicKey, TokenAmount, Transaction } from "@solana/web3.js";
-import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
-// utils
-import { sha256 } from "js-sha256";
+import {
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
 // local
-import { Accounts, Vault } from "../config/accounts";
-import { User } from "../config/users";
 import { StablePool } from "../../target/types/stable_pool";
+import { User } from "./interfaces";
 
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
-export const handleTxn = async (
-  txn: web3.Transaction,
-  user: User,
-) => {
-
+export const handleTxn = async (txn: web3.Transaction, user: User) => {
   // prep txn
   txn.feePayer = user.wallet.publicKey;
   try {
@@ -47,26 +42,6 @@ export const handleTxn = async (
   } catch (error) {
     throw error;
   }
-
-
-
-
-
-  // txn_.feePayer = txnWallet.publicKey;
-  // txn_.recentBlockhash = (
-  //   await txnProvider.connection.getLatestBlockhash()
-  // ).blockhash;
-  // const signedTxn: web3.Transaction = await txnWallet.signTransaction(txn_);
-  // try {
-  //   const resMain: string = await txnProvider.send(signedTxn);
-  //   const conf: web3.RpcResponseAndContext<web3.SignatureResult> =
-  //     await txnProvider.connection.confirmTransaction(resMain);
-
-  //   return resMain;
-  // } catch (error) {
-  //   console.log("err: ", error);
-  //   throw Error(error);
-  // }
 };
 
 export const airdropSol = async (
@@ -133,7 +108,10 @@ export const derivePdaAsync = async (
   return [pubKey, bump];
 };
 
-export const getSolBalance = async (pubKey: PublicKey, provider: Provider = getProvider()) => {
+export const getSolBalance = async (
+  pubKey: PublicKey,
+  provider: Provider = getProvider()
+) => {
   return await provider.connection.getBalance(pubKey);
 };
 

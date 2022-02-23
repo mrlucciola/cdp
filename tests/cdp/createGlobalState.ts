@@ -1,30 +1,24 @@
 // anchor imports
 import {
-  Provider,
   Program,
   web3,
   workspace,
   BN,
   IdlAccounts,
   ProgramError,
-  IdlError,
 } from "@project-serum/anchor";
-import {
-  SystemProgram,
-  SYSVAR_RENT_PUBKEY,
-  TransactionError,
-} from "@solana/web3.js";
+import { SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 // solana imports
-import { TokenError, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 // utils
 import { assert, expect } from "chai";
 // local
 import { handleTxn } from "../utils/fxns";
 import * as constants from "../utils/constants";
-import { User, Users } from "../config/users";
 import { Accounts } from "../config/accounts";
 import { StablePool } from "../../target/types/stable_pool";
 import { errors } from "../utils/errors";
+import { User } from "../utils/interfaces";
 
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
@@ -35,14 +29,14 @@ const createGlobalStateCall = async (accounts: Accounts, user: User) => {
   txn.add(
     programStablePool.instruction.createGlobalState(
       accounts.global.bump, // prev: globalStateNonce
-      accounts.mintUsdx.bump, // prev: mintUsdNonce
+      accounts.usdx.bump, // prev: mintUsdNonce
       new BN(constants.TVL_LIMIT),
       new BN(constants.GLOBAL_DEBT_CEILING),
       {
         accounts: {
           authority: user.wallet.publicKey,
           globalState: accounts.global.pubKey,
-          mintUsdx: accounts.mintUsdx.pubKey,
+          mintUsdx: accounts.usdx.pubKey,
           systemProgram: SystemProgram.programId,
           tokenProgram: TOKEN_PROGRAM_ID,
           rent: SYSVAR_RENT_PUBKEY,
@@ -68,37 +62,42 @@ const createGlobalStateCall = async (accounts: Accounts, user: User) => {
 /**
  * Creates global state account and usdx mint account
  * auth needs to be 7Lw3e19CJUvR5qWRj8J6NKrV2tywiJqS9oDu1m8v4rsi, this will fail otherwise
- * @param accounts
  * @param superUser
+ * @param accounts
  */
 export const createGlobalStatePASS = async (
-  accounts: Accounts,
-  superUser: User
+  superUser: User,
+  accounts: Accounts
 ) => {
+  assert(
+    superUser.wallet.publicKey.toString() ===
+      "7Lw3e19CJUvR5qWRj8J6NKrV2tywiJqS9oDu1m8v4rsi",
+    "For this PASS test, please use super user account"
+  );
   // create the global state account and mint account
   // check if global state exists. If not, create it
-  const globalStateAccountInfo: web3.AccountInfo<Buffer> =
-    await superUser.provider.connection.getAccountInfo(accounts.global.pubKey);
-  if (!globalStateAccountInfo) {
+  // we are not throwing an error or asserting account-not-created here
+  //    because we may be running this multiple times on a live localnet
+  //    or devnet, or even mainnet.
+  //    So, we will just pass on recreating global state if it exists
+  const globalStateAccttInfo: web3.AccountInfo<Buffer> =
+    await accounts.global.getAccount();
+  if (!globalStateAccttInfo) {
     const receipt = await createGlobalStateCall(accounts, superUser);
-  } else console.log("GLOBAL STATE ALREADY CREATED", globalStateAccountInfo);
+  } else console.log("GLOBAL STATE ALREADY CREATED", globalStateAccttInfo);
 
   // check if global state exists
   const globalState: IdlAccounts<StablePool>["globalState"] =
     await programStablePool.account.globalState.fetch(accounts.global.pubKey);
   console.log("global state account: ", globalState);
 
-  // add to the account state
-  accounts.global.state = globalState;
-
   // testing if each of the global state's parameters exists
   assert(
     globalState.authority.toBase58() == superUser.wallet.publicKey.toBase58(),
-    "\n auth is not user.super"
+    "\n global state auth is not super user"
   );
   assert(
-    accounts.global.state.mintUsdx.toBase58() ==
-      accounts.mintUsdx.pubKey.toBase58(),
+    globalState.mintUsdx.toBase58() == accounts.usdx.pubKey.toBase58(),
     "\n USDx mint is not correct"
   );
   assert(
@@ -119,12 +118,12 @@ export const createGlobalStatePASS = async (
 /**
  * In this FAIL test - auth is not 7Lw3e19CJUvR5qWRj8J6NKrV2tywiJqS9oDu1m8v4rsi
  * Verify that the user being passed into the fxn is not super
- * @param accounts
  * @param notSuperUser
+ * @param accounts
  */
 export const createGlobalStateFAIL_auth = async (
-  accounts: Accounts,
-  notSuperUser: User
+  notSuperUser: User,
+  accounts: Accounts
 ) => {
   assert(
     notSuperUser.wallet.publicKey.toString() !==
@@ -150,12 +149,12 @@ export const createGlobalStateFAIL_auth = async (
 
 /**
  * In this FAIL test - we try to create a new global state when it already exists
- * @param accounts
  * @param superUser
+ * @param accounts
  */
 export const createGlobalStateFAIL_duplicate = async (
-  accounts: Accounts,
-  superUser: User
+  superUser: User,
+  accounts: Accounts
 ) => {
   // check if global state exists. It should exist for this test
   const globalStateAccountInfo: web3.AccountInfo<Buffer> =
@@ -170,5 +169,5 @@ export const createGlobalStateFAIL_duplicate = async (
   await expect(createGlobalStateCall(accounts, superUser)).to.be.rejectedWith(
     "0"
   );
-  console.log('^ this is failing correctly, as expected');
+  console.log("^ this is failing correctly, as expected");
 };

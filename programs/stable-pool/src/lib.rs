@@ -2,13 +2,11 @@
 use anchor_lang::prelude::*;
 // local imports
 pub mod constants;
+pub mod enums;
+pub mod errors;
 pub mod instructions;
 pub mod states;
-pub mod errors;
-use crate::{
-    // utils::*, states::*,
-    instructions::*,
-};
+use crate::instructions::*;
 
 declare_id!("FvTjLbwbHY4v8Gfv18JKuPCJG2Hj87CG8kPNHqGeHAR4");
 
@@ -30,5 +28,16 @@ pub mod stable_pool {
             tvl_limit,
             debt_ceiling,
         )
+    }
+
+    pub fn create_vault(
+        ctx: Context<CreateVault>,
+        vault_bump: u8,
+        risk_level: u8,
+        is_dual: u8,
+        debt_ceiling: u64,
+        platform_type: u8,
+    ) -> Result<()> {
+        create_vault::handle(ctx, vault_bump, risk_level, is_dual, debt_ceiling, platform_type)
     }
 }

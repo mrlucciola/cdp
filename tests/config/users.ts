@@ -1,22 +1,15 @@
 // libraries
 import {
-  getProvider,
-  IdlAccounts,
   Program,
   Provider,
   web3,
   workspace,
   Wallet,
-  SplToken,
 } from "@project-serum/anchor";
 import { PublicKey, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import {
-  ASSOCIATED_TOKEN_PROGRAM_ID,
-  createAssociatedTokenAccount,
   createAssociatedTokenAccountInstruction,
-  getAssociatedTokenAddress,
   mintTo,
-  TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 // local
 // import superKeyArr from "../../.config/testUser-super-keypair.json";
@@ -25,15 +18,12 @@ import { StablePool } from "../../target/types/stable_pool";
 import * as constants from "../utils/constants";
 import {
   airdropSol,
-  derivePdaAsync,
   getAcctBalance,
   getAssocTokenAcct,
   getPda,
-  getSolBalance,
-  handleTxn,
 } from "../utils/fxns";
-import { Accounts, Vault } from "./accounts";
-// import { userb } from "../../.config/testUser-super";
+import { User, UserToken, Vault } from "../utils/interfaces";
+import { TestTokens, TestUsers } from "../utils/types";
 
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
@@ -41,40 +31,7 @@ const programStablePool = workspace.StablePool as Program<StablePool>;
 const userBaseKeypair: web3.Keypair = web3.Keypair.fromSecretKey(
   new Uint8Array(baseKeyArr as any[])
 );
-export interface Addr {
-  pubKey: PublicKey;
-}
-export interface PDA extends Addr {
-  bump: number;
-}
-export interface Trove extends PDA {}
-/**
- * Associated Token Account
- * @param pubKey - PublicKey: Public Key for ATA
- * @param bump - u8: Bump/nonce
- */
-export interface ATA extends Addr {
-  bump?: number;
-}
 
-export interface UserToken {
-  ata: ATA;
-  trove: Trove;
-}
-const emptyPda: PDA = {
-  pubKey: null as PublicKey,
-  bump: null as number,
-};
-export interface User {
-  wallet: Wallet; // prev: userCollKey
-  provider: Provider;
-  tokens?: {
-    usdx?: UserToken;
-    lpSaber?: UserToken; // this doesnt get created until the pass case for trove
-  };
-}
-
-// @ts-ignore
 export const usersObj: Users = {
   base: {
     wallet: new Wallet(userBaseKeypair), // prev: userCollKey
@@ -93,9 +50,9 @@ export const usersObj: Users = {
     provider: programStablePool.provider,
   },
   addToken: null as any,
+  init: null as any,
+  createTrove: null as any,
 };
-type UsersType = "base" | "super";
-type tokens = "usdx" | "lpSaber";
 
 /**
  * Create an associated token account (ATA) for a given user-auth account.
@@ -163,37 +120,32 @@ const deriveAndInitAta = async (
 };
 
 export const mintToAta = async (
-  mintTokenStr: tokens,
+  mintTokenStr: TestTokens,
   mintPubKey: PublicKey,
   mintAuth: User,
-  destination: UserToken,
+  dest: UserToken,
   amount: number = 200_000_000 // 0.2 units of token
 ) => {
   // mint to newly created ata
-  const ataBalanceOrig = Number(
-    (await getAcctBalance(destination.ata.pubKey)).amount
-  );
+  const ataBalanceOrig = Number((await getAcctBalance(dest.ata.pubKey)).amount);
   console.log(`minting ${mintTokenStr} to ata, balance: ${ataBalanceOrig}`);
   try {
     await mintTo(
       mintAuth.provider.connection, // connection — Connection to use
       mintAuth.wallet.payer, // payer — Payer of the transaction fees
       mintPubKey, // mint — Mint for the account
-      destination.ata.pubKey, // destination — Address of the account to mint to
+      dest.ata.pubKey, // destination — Address of the account to mint to
       mintAuth.wallet.publicKey, // authority — Minting authority
       amount // amount — Amount to mint
-      // [], // multiSigners — Signing accounts if authority is a multisig
-      // , // confirmOptions — Options for confirming the transaction
-      // , // programId — SPL Token program account
     );
   } catch (error) {
     throw error;
   }
-  const ataBalanceNew = Number(
-    (await getAcctBalance(destination.ata.pubKey)).amount
-  );
+  const ataBalanceNew = Number((await getAcctBalance(dest.ata.pubKey)).amount);
   const diff = ataBalanceNew - ataBalanceOrig;
-  console.log(`ata balance: ${ataBalanceOrig} -> ${ataBalanceNew} ∆=${diff}`);
+  console.log(
+    `ata balance: ${ataBalanceOrig} -> ${ataBalanceNew}  ∆ = ${diff}`
+  );
 };
 
 export class Users {
@@ -235,9 +187,9 @@ export class Users {
   }
 
   public async addToken(
-    userStr: UsersType,
+    userStr: TestUsers,
     mintPubKey: PublicKey,
-    tokenStr: tokens,
+    tokenStr: TestTokens,
     amount: number = 200_000_000,
     isMintActive: boolean = true
   ) {
