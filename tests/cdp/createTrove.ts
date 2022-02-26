@@ -6,8 +6,14 @@ import {
   workspace,
   IdlAccounts,
   BN,
+  Wallet,
 } from "@project-serum/anchor";
-import { PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
+import {
+  Connection,
+  PublicKey,
+  SystemProgram,
+  SYSVAR_RENT_PUBKEY,
+} from "@solana/web3.js";
 // solana imports
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -19,7 +25,14 @@ import { assert, expect } from "chai";
 import { StablePool } from "../../target/types/stable_pool";
 import { handleTxn } from "../utils/fxns";
 import { Accounts } from "../config/accounts";
-import { ITokenAccount, MintAcct, User } from "../utils/interfaces";
+import {
+  ATA,
+  ITokenAccount,
+  MintAcct,
+  PDA,
+  User,
+  UserToken,
+} from "../utils/interfaces";
 // program
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
@@ -33,42 +46,45 @@ interface Vault {
 }
 
 const createTroveCall = async (
-  user: User,
+  userConnection: Connection,
+  userWallet: Wallet,
+  ata: ATA,
   trove: Trove,
   vault: Vault,
   mint: PublicKey
 ) => {
-  const txnCreateTrove = new web3.Transaction().add(
+  const txn = new web3.Transaction().add(
     programStablePool.instruction.createTrove(
       // prev: user_trove_nonce -> trove_bump
       trove.bump, // prev: userTokenCollNonce
       // token_coll_bump
-      user.tokens.lpSaber.ata.bump, // prev: tokenCollNonce
+      ata.bump, // prev: tokenCollNonce
       // ceiling
       new BN(0),
       {
         accounts: {
           // user that owns the trove
-          authority: user.wallet.publicKey, // prev: troveOwner
+          authority: userWallet.publicKey, // prev: troveOwner
           // state account where all the platform funds go thru or maybe are stored
           vault: vault.pubKey,
           // the user's trove is the authority for the collateral tokens within it
           trove: trove.pubKey, // prev: baseUser.trove.pubKey, userTrovePubKey
           // this is the trove's ATA for the collateral's mint, previously named tokenColl
-          ataTrove: user.tokens.lpSaber.trove.ata.pubKey, // prev: userTroveTokenVaultKey
+          ataTrove: ata.pubKey, // prev: userTroveTokenVaultKey
           // the mint address for the specific collateral provided to this trove
-          mintColl: mint, // prev: lpMint.publicKey,
+          mintColl: mint,
           systemProgram: SystemProgram.programId,
           associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
           tokenProgram: TOKEN_PROGRAM_ID,
           rent: SYSVAR_RENT_PUBKEY,
         },
-        signers: [user.wallet.payer],
       }
     )
   );
-  const confirmation = await handleTxn(txnCreateTrove, user);
-  return confirmation;
+
+  // send transaction
+  const receipt = await handleTxn(txn, userConnection, userWallet);
+  return receipt;
 };
 
 export const createTrovePASS = async (
@@ -78,12 +94,16 @@ export const createTrovePASS = async (
 ) => {
   // get user trove info
   const troveInfo: web3.AccountInfo<Buffer> =
-    await getProvider().connection.getAccountInfo(baseUser.tokens.lpSaber.trove.pubKey);
+    await getProvider().connection.getAccountInfo(
+      baseUser.tokens.lpSaber.trove.pubKey
+    );
 
   // if not created, create user trove
   if (!troveInfo) {
     const confirmation = await createTroveCall(
-      baseUser,
+      baseUser.provider.connection,
+      baseUser.wallet,
+      baseUser.tokens.lpSaber.ata,
       baseUser.tokens.lpSaber.trove,
       accounts.lpSaberUsdcUsdt.vault,
       mint.mint
@@ -93,7 +113,9 @@ export const createTrovePASS = async (
 
   // get the user trove state
   let troveLpSaberInfo: IdlAccounts<StablePool>["trove"] =
-    await programStablePool.account.trove.fetch(baseUser.tokens.lpSaber.trove.pubKey);
+    await programStablePool.account.trove.fetch(
+      baseUser.tokens.lpSaber.trove.pubKey
+    );
   // final asserts
   assert(troveLpSaberInfo.debt.toNumber() == 0, "debt mismatch");
 };

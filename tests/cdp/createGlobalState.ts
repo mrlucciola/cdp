@@ -46,17 +46,8 @@ const createGlobalStateCall = async (accounts: Accounts, user: User) => {
   );
 
   // send transaction
-  try {
-    const receipt = await handleTxn(txn, user);
-    console.log("Global state creation confirmed: ", receipt);
-    return receipt;
-  } catch (error) {
-    const idlErrors = new Map(
-      errors.map((e) => [e.code, `${e.name}: ${e.msg}`])
-    );
-    const translatedErr = ProgramError.parse(error, idlErrors);
-    throw translatedErr;
-  }
+  const receipt = await handleTxn(txn, user.provider.connection, user.wallet);
+  return receipt;
 };
 
 /**
@@ -82,9 +73,8 @@ export const createGlobalStatePASS = async (
   //    So, we will just pass on recreating global state if it exists
   const globalStateAccttInfo: web3.AccountInfo<Buffer> =
     await accounts.global.getAccount();
-  if (!globalStateAccttInfo) {
-    const receipt = await createGlobalStateCall(accounts, superUser);
-  } else console.log("GLOBAL STATE ALREADY CREATED", globalStateAccttInfo);
+  if (!globalStateAccttInfo) await createGlobalStateCall(accounts, superUser);
+  else console.log("GLOBAL STATE ALREADY CREATED", globalStateAccttInfo);
 
   // check if global state exists
   const globalState: IdlAccounts<StablePool>["globalState"] =

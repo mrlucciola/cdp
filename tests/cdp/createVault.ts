@@ -49,17 +49,11 @@ const createVaultCall = async (
       }
     )
   );
-  try {
-    const receipt = await handleTxn(txnCreateUserVault, user);
-    console.log("created user vault", receipt);
-    return receipt;
-  } catch (error) {
-    const idlErrors = new Map(
-      errors.map((e) => [e.code, `${e.name}: ${e.msg}`])
-    );
-    const translatedErr = ProgramError.parse(error, idlErrors);
-    throw translatedErr;
-  }
+
+  // send transaction
+  const receipt = await handleTxn(txnCreateUserVault, user.provider.connection, user.wallet);
+  console.log("created vault", receipt);
+  return receipt;
 };
 
 // TODO: FIX THIS TEST SO WE CAN GET PROPER CONSTRAINT MESSAGE

@@ -6,8 +6,14 @@ import {
   workspace,
   Program,
   getProvider,
+  Wallet,
 } from "@project-serum/anchor";
-import { PublicKey, TokenAmount, Transaction } from "@solana/web3.js";
+import {
+  Connection,
+  PublicKey,
+  TokenAmount,
+  Transaction,
+} from "@solana/web3.js";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
@@ -15,32 +21,49 @@ import {
 // local
 import { StablePool } from "../../target/types/stable_pool";
 import { User } from "./interfaces";
+import { translateError } from "./errors";
 
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
-export const handleTxn = async (txn: web3.Transaction, user: User) => {
+/**
+ * We use user provider and user wallet because
+ * @param txn
+ * @param userProvider
+ * @param userWallet
+ * @returns
+ */
+export const handleTxn = async (
+  txn: web3.Transaction,
+  userConnection: Connection,
+  userWallet: Wallet
+) => {
   // prep txn
-  txn.feePayer = user.wallet.publicKey;
+  txn.feePayer = userWallet.publicKey;
   try {
-    txn.recentBlockhash = (
-      await user.provider.connection.getLatestBlockhash()
-    ).blockhash;
+    txn.recentBlockhash = (await userConnection.getLatestBlockhash()).blockhash;
   } catch (error) {
     throw error;
   }
 
   // send txn
   try {
-    const signedTxn: Transaction = await user.wallet.signTransaction(txn);
-    const receipt: string = await user.provider.send(signedTxn);
+    const signedTxn: Transaction = await userWallet.signTransaction(txn);
+    const rawTxn: Buffer = signedTxn.serialize();
+    const options = {
+      skipPreflight: true,
+      commitment: "singleGossip",
+    };
+    const receipt: string = await userConnection.sendRawTransaction(
+      rawTxn,
+      options
+    );
     const confirmation: web3.RpcResponseAndContext<web3.SignatureResult> =
-      await user.provider.connection.confirmTransaction(receipt);
+      await userConnection.confirmTransaction(receipt);
 
-    console.log("txn receipt", receipt);
-    console.log("txn confirmation", confirmation);
-    return receipt;
+    if (confirmation.value.err) throw new Error(JSON.stringify(confirmation.value.err));
+    else return receipt;
   } catch (error) {
-    throw error;
+    translateError(error)
   }
 };
 
