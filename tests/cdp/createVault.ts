@@ -3,7 +3,7 @@ import {
   web3,
   workspace,
   BN,
-  ProgramError,
+  IdlAccounts,
 } from "@project-serum/anchor";
 import { SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 // solana imports
@@ -16,7 +16,6 @@ import * as constants from "../utils/constants";
 import { handleTxn } from "../utils/fxns";
 import { Accounts } from "../config/accounts";
 import { User, Vault } from "../utils/interfaces";
-import { errors } from "../utils/errors";
 
 // program
 const programStablePool = workspace.StablePool as Program<StablePool>;
@@ -51,7 +50,11 @@ const createVaultCall = async (
   );
 
   // send transaction
-  const receipt = await handleTxn(txnCreateUserVault, user.provider.connection, user.wallet);
+  const receipt = await handleTxn(
+    txnCreateUserVault,
+    user.provider.connection,
+    user.wallet
+  );
   console.log("created vault", receipt);
   return receipt;
 };
@@ -109,7 +112,7 @@ export const createVaultFAIL_noGlobalState = async (
    *   or devnet, or even mainnet.
    *   So, we will just pass on recreating vault if it exists
    */
-  const globalStateInfo = await accounts.global.getAccount();
+  const globalStateInfo = await accounts.global.getAccountInfo();
 
   if (!globalStateInfo) {
     // params
@@ -140,12 +143,12 @@ export const createVaultFAIL_dup = async (
   accounts: Accounts,
   vault: Vault
 ) => {
-  const globalStateInfo = await accounts.global.getAccount();
+  const globalStateInfo = await accounts.global.getAccountInfo();
   assert(
     globalStateInfo,
     "Global state account does not exist. Please place this test after the PASS test."
   );
-  const vaultInfo = await vault.getAccount();
+  const vaultInfo: web3.AccountInfo<Buffer> = await vault.getAccountInfo();
   assert(
     vaultInfo,
     "Vault account does not exist. Please place this test after the PASS test."
@@ -186,7 +189,8 @@ export const createVaultPASS = async (
    *   or devnet, or even mainnet.
    *   So, we will just pass on recreating vault if it exists
    */
-  const vaultAcctInfo: web3.AccountInfo<Buffer> = await vault.getAccount();
+  const vaultAcctInfo: web3.AccountInfo<Buffer> = await vault.getAccountInfo();
+
   // if not created, create token vault
   if (!vaultAcctInfo) {
     const riskLevel = 0;
@@ -199,5 +203,8 @@ export const createVaultPASS = async (
       vault
     );
     console.log("token vault created- confirmation: ", confirmation);
-  } else console.log("token vault already created:", vaultAcctInfo);
+  } else console.log("token vault already created:");
+  const vaultAcct: IdlAccounts<StablePool>["vault"] =
+    await accounts.lpSaberUsdcUsdt.vault.getAccount();
+  console.log("vault account:", vaultAcct);
 };

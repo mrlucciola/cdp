@@ -19,6 +19,8 @@ import {
   createVaultPASS,
 } from "./createVault";
 import { createTrovePASS } from "./createTrove";
+import { Trove } from "../utils/interfaces";
+import { depositCollateralPASS } from "./depositCollateral";
 
 // init env
 chaiUse(chaiAsPromised);
@@ -38,7 +40,10 @@ describe("cdp core test suite", async () => {
     await accounts.init();
 
     users = new Users();
-    await users.init(accounts.lpSaberUsdcUsdt.mint);
+    await users.init(
+      accounts.lpSaberUsdcUsdt.mint,
+      accounts.lpSaberUsdcUsdt.vault
+    );
   });
 
   // pre-global state tests
@@ -84,7 +89,28 @@ describe("cdp core test suite", async () => {
   });
 
   // trove tests
-  // it("PASS: Create Trove", async () => {
-  //   await createTrovePASS(users.base, accounts, accounts.lpSaberUsdcUsdt);
-  // });
+  before(async () => {
+    // get trove account
+    users.base.tokens.lpSaber.trove = new Trove(
+      users.base.wallet,
+      accounts.lpSaberUsdcUsdt.vault,
+      accounts.lpSaberUsdcUsdt.mint
+    );
+  });
+  it("PASS: Create Trove", async () => {
+    await createTrovePASS(
+      users.base.wallet,
+      users.base.provider.connection,
+      users.base.tokens.lpSaber.trove,
+      accounts.lpSaberUsdcUsdt.vault,
+      accounts.lpSaberUsdcUsdt.mint
+    );
+  });
+  it("PASS: Deposit Collateral", async () => {
+    await depositCollateralPASS(
+      users.base,
+      accounts,
+      accounts.lpSaberUsdcUsdt.mint
+    );
+  });
 });

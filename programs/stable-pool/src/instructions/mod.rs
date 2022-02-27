@@ -6,3 +6,6 @@ pub use create_vault::*;
 
 pub mod create_trove;
 pub use create_trove::*;
+
+pub mod deposit_collateral;
+pub use deposit_collateral::*;

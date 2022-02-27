@@ -72,13 +72,13 @@ export const createGlobalStatePASS = async (
   //    or devnet, or even mainnet.
   //    So, we will just pass on recreating global state if it exists
   const globalStateAccttInfo: web3.AccountInfo<Buffer> =
-    await accounts.global.getAccount();
+    await accounts.global.getAccountInfo();
   if (!globalStateAccttInfo) await createGlobalStateCall(accounts, superUser);
   else console.log("GLOBAL STATE ALREADY CREATED", globalStateAccttInfo);
 
   // check if global state exists
   const globalState: IdlAccounts<StablePool>["globalState"] =
-    await programStablePool.account.globalState.fetch(accounts.global.pubKey);
+    await accounts.global.getAccount();
   console.log("global state account: ", globalState);
 
   // testing if each of the global state's parameters exists
@@ -147,6 +147,7 @@ export const createGlobalStateFAIL_duplicate = async (
   accounts: Accounts
 ) => {
   // check if global state exists. It should exist for this test
+  accounts.global.getAccountInfo()
   const globalStateAccountInfo: web3.AccountInfo<Buffer> =
     await superUser.provider.connection.getAccountInfo(accounts.global.pubKey);
 

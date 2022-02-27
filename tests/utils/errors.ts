@@ -220,5 +220,7 @@ export const translateError = (error) => {
   const idlErrors = new Map(errors.map((e) => [e.code, `${e.name}: ${e.msg}`]));
 
   // throw the translated error
+  console.log('the error', error);
+  console.log('the translated error ', ProgramError.parse(error, idlErrors))
   throw ProgramError.parse(error, idlErrors);
 };

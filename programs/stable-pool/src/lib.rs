@@ -50,10 +50,10 @@ pub mod stable_pool {
 
     pub fn create_trove(
         ctx: Context<CreateTrove>,
-        trove_nonce: u8,
-        ata_trove_nonce: u8,
+        trove_bump: u8,
+        ata_trove_bump: u8,
         ceiling: u64,
     ) -> Result<()> {
-        create_trove::handle(ctx, trove_nonce, ata_trove_nonce, ceiling)
+        create_trove::handle(ctx, trove_bump, ata_trove_bump, ceiling)
     }
 }

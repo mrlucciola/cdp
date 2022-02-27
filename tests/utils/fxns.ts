@@ -30,7 +30,7 @@ const programStablePool = workspace.StablePool as Program<StablePool>;
  * @param txn
  * @param userProvider
  * @param userWallet
- * @returns
+ * @returns receipt - string
  */
 export const handleTxn = async (
   txn: web3.Transaction,
@@ -53,13 +53,13 @@ export const handleTxn = async (
       skipPreflight: true,
       commitment: "singleGossip",
     };
+    
     const receipt: string = await userConnection.sendRawTransaction(
       rawTxn,
       options
     );
     const confirmation: web3.RpcResponseAndContext<web3.SignatureResult> =
       await userConnection.confirmTransaction(receipt);
-
     if (confirmation.value.err) throw new Error(JSON.stringify(confirmation.value.err));
     else return receipt;
   } catch (error) {
