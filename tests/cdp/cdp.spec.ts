@@ -22,6 +22,7 @@ import { createTrovePASS } from "./createTrove";
 import { Trove } from "../utils/interfaces";
 import { depositCollateralPASS } from "./depositCollateral";
 import * as constants from "../utils/constants";
+import { withdrawCollateralPASS } from "./withdrawCollateral";
 
 // init env
 chaiUse(chaiAsPromised);
@@ -41,10 +42,7 @@ describe("cdp core test suite", async () => {
     await accounts.init();
 
     users = new Users();
-    await users.init(
-      accounts.lpSaberUsdcUsdt.mint,
-      accounts.lpSaberUsdcUsdt.vault
-    );
+    await users.init(accounts.lpSaberUsdcUsdt.mint);
   });
 
   // pre-global state tests
@@ -94,7 +92,6 @@ describe("cdp core test suite", async () => {
     // derive trove account
     users.base.tokens.lpSaber.trove = new Trove(
       users.base.wallet,
-      accounts.lpSaberUsdcUsdt.vault,
       accounts.lpSaberUsdcUsdt.mint
     );
   });
@@ -117,10 +114,42 @@ describe("cdp core test suite", async () => {
       accounts.lpSaberUsdcUsdt.mint
     );
 
-    const ataBalPre = (await userlpSaber.ata.getBalance()).value.uiAmount;
+    const userBalPre = (await userlpSaber.ata.getBalance()).value.uiAmount;
+    const troveBalPre = (await userlpSaber.trove.ata.getBalance()).value
+      .uiAmount;
     await depositCollateralPASS(users.base, accounts);
-    const ataBalPost = (await userlpSaber.ata.getBalance()).value.uiAmount;
-    const diff = ataBalPost - ataBalPre;
-    console.log(`token balance: ${ataBalPre} -> ${ataBalPost} ∆=${diff}`);
+    const userBalPost = (await userlpSaber.ata.getBalance()).value.uiAmount;
+    const troveBalPost = (await userlpSaber.trove.ata.getBalance()).value
+      .uiAmount;
+    const userDiff = userBalPost - userBalPre;
+    const troveDiff = troveBalPost - troveBalPre;
+    console.log(`user balance: ${userBalPre} -> ${userBalPost} ∆=${userDiff}`);
+    console.log(
+      `trove balance: ${troveBalPre} -> ${troveBalPost} ∆=${troveDiff}`
+    );
+  });
+  it("PASS: Withdraw Collateral", async () => {
+    const userlpSaber = users.base.tokens.lpSaber;
+    // set acct to 0 balance
+    // await userlpSaber.ata.burnTokens(
+    //   -1, // decimals for this mint
+    //   users.super,
+    //   accounts.lpSaberUsdcUsdt.mint,
+    //   users.base.wallet
+    // );
+
+    const troveBalPre = (await userlpSaber.trove.ata.getBalance()).value
+      .uiAmount;
+    const userBalPre = (await userlpSaber.ata.getBalance()).value.uiAmount;
+    await withdrawCollateralPASS(users.base, accounts);
+    const troveBalPost = (await userlpSaber.trove.ata.getBalance()).value
+      .uiAmount;
+    const userBalPost = (await userlpSaber.ata.getBalance()).value.uiAmount;
+    const userDiff = userBalPost - userBalPre;
+    const troveDiff = troveBalPost - troveBalPre;
+    console.log(`user balance: ${userBalPre} -> ${userBalPost} ∆=${userDiff}`);
+    console.log(
+      `trove balance: ${troveBalPre} -> ${troveBalPost} ∆=${troveDiff}`
+    );
   });
 });

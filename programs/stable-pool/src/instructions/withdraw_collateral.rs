@@ -7,45 +7,44 @@ use crate::{
     constants::*,
     errors::StablePoolError,
     states::{GlobalState, Trove, Vault},
-    utils::assert_tvl_allowed,
 };
 
-pub fn handle(ctx: Context<DepositCollateral>, deposit_amount: u64) -> Result<()> {
-    assert_tvl_allowed(
-        ctx.accounts.global_state.tvl_limit,
-        ctx.accounts.global_state.tvl_usd,
-        deposit_amount,
-    )?;
-
+pub fn handle(ctx: Context<WithdrawCollateral>, withdraw_amount: u64) -> Result<()> {
     // validation
     require!(
-        ctx.accounts.ata_user.amount > 0,
+        ctx.accounts.ata_trove.amount > 0,
         StablePoolError::InvalidTransferAmount,
     );
+    let trove_seeds: &[&[&[u8]]] = &[&[
+        &TROVE_SEED,
+        &ctx.accounts.mint.key().to_bytes(),
+        &ctx.accounts.authority.key().to_bytes(),
+        &[ctx.accounts.trove.bump],
+    ]];
 
-    let transfer_ctx = CpiContext::new(
+    let transfer_ctx = CpiContext::new_with_signer(
         ctx.accounts.token_program.to_account_info(),
         Transfer {
-            from: ctx.accounts.ata_user.clone().to_account_info(),
-            to: ctx.accounts.ata_trove.clone().to_account_info(),
-            authority: ctx.accounts.authority.clone().to_account_info(),
+            from: ctx.accounts.ata_trove.clone().to_account_info(),
+            to: ctx.accounts.ata_user.clone().to_account_info(),
+            authority: ctx.accounts.trove.clone().to_account_info(),
         },
+        trove_seeds,
     );
 
     // send the transfer
-    token::transfer(transfer_ctx, deposit_amount)?;
+    token::transfer(transfer_ctx, withdraw_amount)?;
 
-    ctx.accounts.vault.total_coll += deposit_amount;
-    ctx.accounts.trove.locked_coll_balance += deposit_amount;
+    ctx.accounts.vault.total_coll -= withdraw_amount;
+    ctx.accounts.trove.locked_coll_balance -= withdraw_amount;
 
     Ok(())
 }
 
 #[derive(Accounts)]
-pub struct DepositCollateral<'info> {
+pub struct WithdrawCollateral<'info> {
     #[account[mut]]
     pub authority: Signer<'info>,
-    #[account[mut]]
     pub global_state: Account<'info, GlobalState>,
 
     #[account(

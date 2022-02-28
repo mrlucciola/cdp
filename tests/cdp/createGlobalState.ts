@@ -5,7 +5,9 @@ import {
   workspace,
   BN,
   IdlAccounts,
+  IdlError,
   ProgramError,
+  eventDiscriminator
 } from "@project-serum/anchor";
 import { SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 // solana imports
@@ -17,7 +19,6 @@ import { handleTxn } from "../utils/fxns";
 import * as constants from "../utils/constants";
 import { Accounts } from "../config/accounts";
 import { StablePool } from "../../target/types/stable_pool";
-import { errors } from "../utils/errors";
 import { User } from "../utils/interfaces";
 
 const programStablePool = workspace.StablePool as Program<StablePool>;
@@ -94,7 +95,7 @@ export const createGlobalStatePASS = async (
     globalState.tvlLimit.toNumber() == constants.TVL_LIMIT,
     `Global-state TVL Limit: ${globalState.tvlLimit} \nTVL Limit: ${constants.TVL_LIMIT}`
   );
-  assert(globalState.tvl.toNumber() == 0, "Err: Global-state.tvl != 0");
+  assert(globalState.tvlUsd.toNumber() == 0, "Err: Global-state.tvl != 0");
   assert(
     globalState.totalDebt.toNumber() == 0,
     "Err: Global-state-total-debt != 0"
@@ -158,7 +159,8 @@ export const createGlobalStateFAIL_duplicate = async (
 
   // { code: 0, byte: 0x0, name: "AlreadyInUse", msg: "Already in use" },
   await expect(createGlobalStateCall(accounts, superUser)).to.be.rejectedWith(
-    "0"
+    "0",
+    "AlreadyInUse: Already in use"
   );
   console.log("^ this is failing correctly, as expected");
 };

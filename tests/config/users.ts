@@ -134,9 +134,9 @@ export class Users {
       addToken: null,
     };
   }
-  public async init(mintPubKey: PublicKey, vault: Vault) {
+  public async init(mintPubKey: PublicKey) {
     await this.base.init(mintPubKey);
-    await this.base.addToken(mintPubKey, "lpSaber", 200_000_000, vault);
+    await this.base.addToken(mintPubKey, "lpSaber", 200_000_000);
   }
 }
 

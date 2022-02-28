@@ -85,9 +85,7 @@ export const createTrovePASS = async (
   console.log("getting trove acct");
 
   // get user trove info
-  const troveInfo: web3.AccountInfo<Buffer> =
-    await getProvider().connection.getAccountInfo(trove.pubKey);
-  //
+  const troveInfo: web3.AccountInfo<Buffer> = await trove.getAccountInfo();
 
   // if not created, create user trove
   if (!troveInfo) {

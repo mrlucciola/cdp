@@ -89,6 +89,8 @@ export class ATA extends Acct {
   /**
    * after a test ends, it can be useful to burn tokens
    *  to reset the balance for the next test.
+   *
+   * Setting burn amount to -1 will burn all tokens
    */
   public async burnTokens(
     burnAmount: number,
@@ -96,13 +98,20 @@ export class ATA extends Acct {
     mintPubKey: MintPubKey,
     userWallet: Wallet
   ) {
+    // check if -1, then get the total amount in account
+    const amtToBurn = (
+      burnAmount === -1 ? (await this.getBalance()).value.amount : burnAmount
+    ) as number;
+    if (amtToBurn === 0) return;
+
+    // send burn txn
     await burn(
       mintAuth.provider.connection, // connection
-      mintAuth.wallet.payer, // payer
+      userWallet.payer, // payer
       this.pubKey, // account: acct to burn tokens from
       mintPubKey, // mint: the token mint
       userWallet.publicKey, // owner: Account owner
-      burnAmount // amount: Amt of token to burn
+      amtToBurn // amount: Amt of token to burn
     );
   }
 }
@@ -122,9 +131,9 @@ export class ATA extends Acct {
 export class UserToken {
   ata: ATA;
   trove: Trove;
-  constructor(userWallet: Wallet, vault: Vault, mintPubKey: MintPubKey) {
+  constructor(userWallet: Wallet, mintPubKey: MintPubKey) {
     this.ata = new ATA(userWallet.publicKey, mintPubKey);
-    this.trove = new Trove(userWallet, vault, mintPubKey);
+    this.trove = new Trove(userWallet, mintPubKey);
   }
   public async initAta(
     userWallet: Wallet,
@@ -181,9 +190,9 @@ export class BaseAcct extends PDA {
 export class Trove extends BaseAcct {
   ata: ATA;
 
-  constructor(userWallet: Wallet, vault: Vault, mintPubKey: MintPubKey) {
+  constructor(userWallet: Wallet, mintPubKey: MintPubKey) {
     super(constants.TROVE_SEED, [
-      vault.pubKey.toBuffer(),
+      mintPubKey.toBuffer(),
       userWallet.publicKey.toBuffer(),
     ]);
     this.type = "trove";
@@ -254,14 +263,12 @@ export class User {
     mintPubKey: MintPubKey,
     tokenStr: TestTokens,
     amount: number = 200_000_000,
-    vault: Vault,
     mintAuth?: User
   ) {
     if (amount === 0) throw new Error("Please enter more than 0");
-    this.tokens[tokenStr] = new UserToken(this.wallet, vault, mintPubKey);
+    this.tokens[tokenStr] = new UserToken(this.wallet, mintPubKey);
 
     // create ata
-    // this.tokens[tokenStr].ata = new ATA(); // { pubKey: ata, bump };
     await createAtaOnChain(
       this.wallet,
       this.tokens[tokenStr].ata,

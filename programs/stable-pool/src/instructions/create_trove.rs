@@ -12,6 +12,7 @@ pub fn handle(
     ctx: Context<CreateTrove>,
     trove_bump: u8,
     ata_trove_bump: u8,
+    // vault_bump: u8,
     ceiling: u64,
 ) -> Result<()> {
     ctx.accounts.trove.locked_coll_balance = 0;
@@ -19,6 +20,8 @@ pub fn handle(
     ctx.accounts.trove.bump = trove_bump;
     ctx.accounts.trove.ata_trove_bump = ata_trove_bump;
     ctx.accounts.trove.debt_ceiling = ceiling;
+    // ctx.accounts.trove.vault = ctx.accounts.vault;
+    // ctx.accounts.trove.vault_bump = ctx.accounts.vault;
 
     Ok(())
 }
@@ -28,7 +31,7 @@ pub struct CreateTrove<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
     #[account(
-        // mut,
+        mut,
         seeds = [VAULT_SEED.as_ref(), vault.mint.as_ref()],
         bump = vault.bump,
     )]
@@ -38,8 +41,8 @@ pub struct CreateTrove<'info> {
         init,
         seeds = [
             TROVE_SEED.as_ref(),
-            vault.key().as_ref(),
-            authority.key().as_ref()
+            mint.key().as_ref(),
+            authority.key().as_ref(),
         ],
         bump,
         payer = authority,

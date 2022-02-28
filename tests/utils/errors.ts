@@ -1,4 +1,6 @@
 import { ProgramError } from "@project-serum/anchor";
+// import the custom errors we created
+import { IDL } from "../../target/types/stable_pool";
 
 export const errors = [
   { code: 0, byte: 0x0, name: "AlreadyInUse", msg: "Already in use" },
@@ -214,13 +216,16 @@ export const errors = [
     name: "AccountNotAssociatedTokenAccount",
     msg: "The given account is not the associated token account",
   },
+  ...IDL.errors.map((item) => {
+    return { ...item, byte: item.code };
+  }),
 ];
 
 export const translateError = (error) => {
   const idlErrors = new Map(errors.map((e) => [e.code, `${e.name}: ${e.msg}`]));
 
   // throw the translated error
-  console.log('the error', error);
-  console.log('the translated error ', ProgramError.parse(error, idlErrors))
+  console.log("the error", error);
+  console.log("the translated error ", ProgramError.parse(error, idlErrors));
   throw ProgramError.parse(error, idlErrors);
 };

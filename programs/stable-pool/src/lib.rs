@@ -61,4 +61,7 @@ pub mod stable_pool {
     pub fn deposit_collateral(ctx: Context<DepositCollateral>, deposit_amount: u64) -> Result<()> {
         deposit_collateral::handle(ctx, deposit_amount)
     }
+    pub fn withdraw_collateral(ctx: Context<WithdrawCollateral>, withdraw_amount: u64) -> Result<()> {
+        withdraw_collateral::handle(ctx, withdraw_amount)
+    }
 }
