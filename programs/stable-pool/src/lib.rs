@@ -6,6 +6,7 @@ pub mod enums;
 pub mod errors;
 pub mod instructions;
 pub mod states;
+pub mod utils;
 use crate::instructions::*;
 
 declare_id!("FvTjLbwbHY4v8Gfv18JKuPCJG2Hj87CG8kPNHqGeHAR4");
@@ -55,5 +56,9 @@ pub mod stable_pool {
         ceiling: u64,
     ) -> Result<()> {
         create_trove::handle(ctx, trove_bump, ata_trove_bump, ceiling)
+    }
+
+    pub fn deposit_collateral(ctx: Context<DepositCollateral>, deposit_amount: u64) -> Result<()> {
+        deposit_collateral::handle(ctx, deposit_amount)
     }
 }

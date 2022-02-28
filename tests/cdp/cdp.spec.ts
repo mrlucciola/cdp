@@ -21,6 +21,7 @@ import {
 import { createTrovePASS } from "./createTrove";
 import { Trove } from "../utils/interfaces";
 import { depositCollateralPASS } from "./depositCollateral";
+import * as constants from "../utils/constants";
 
 // init env
 chaiUse(chaiAsPromised);
@@ -90,7 +91,7 @@ describe("cdp core test suite", async () => {
 
   // trove tests
   before(async () => {
-    // get trove account
+    // derive trove account
     users.base.tokens.lpSaber.trove = new Trove(
       users.base.wallet,
       accounts.lpSaberUsdcUsdt.vault,
@@ -106,11 +107,20 @@ describe("cdp core test suite", async () => {
       accounts.lpSaberUsdcUsdt.mint
     );
   });
+
+  // depositing collateral
   it("PASS: Deposit Collateral", async () => {
-    await depositCollateralPASS(
-      users.base,
-      accounts,
+    const userlpSaber = users.base.tokens.lpSaber;
+    await userlpSaber.ata.mintToATA(
+      10 * 10 ** 9, // decimals for this mint
+      users.super,
       accounts.lpSaberUsdcUsdt.mint
     );
+
+    const ataBalPre = (await userlpSaber.ata.getBalance()).value.uiAmount;
+    await depositCollateralPASS(users.base, accounts);
+    const ataBalPost = (await userlpSaber.ata.getBalance()).value.uiAmount;
+    const diff = ataBalPost - ataBalPre;
+    console.log(`token balance: ${ataBalPre} -> ${ataBalPost} ∆=${diff}`);
   });
 });

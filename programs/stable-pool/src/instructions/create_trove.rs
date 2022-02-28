@@ -29,7 +29,7 @@ pub struct CreateTrove<'info> {
     pub authority: Signer<'info>,
     #[account(
         // mut,
-        seeds = [VAULT_SEED.as_ref(), vault.mint_coll.as_ref()],
+        seeds = [VAULT_SEED.as_ref(), vault.mint.as_ref()],
         bump = vault.bump,
     )]
     pub vault: Box<Account<'info, Vault>>,
@@ -48,15 +48,15 @@ pub struct CreateTrove<'info> {
 
     #[account(
         init,
-        associated_token::mint = mint_coll.as_ref(),
+        associated_token::mint = mint.as_ref(),
         associated_token::authority = trove.as_ref(),
         payer = authority,
     )]
     pub ata_trove: Box<Account<'info, TokenAccount>>,
 
     // mint for the collateral that is being deposited into the trove
-    #[account(constraint = mint_coll.key().as_ref() == vault.mint_coll.as_ref())]
-    pub mint_coll: Box<Account<'info, Mint>>,
+    #[account(constraint = mint.key().as_ref() == vault.mint.as_ref())]
+    pub mint: Box<Account<'info, Mint>>,
 
     #[account(address = token::ID)]
     pub token_program: Program<'info, Token>,

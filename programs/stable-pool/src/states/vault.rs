@@ -4,7 +4,7 @@ use anchor_lang::prelude::*;
 #[derive(Default)]
 pub struct Vault {
     pub bump: u8,
-    pub mint_coll: Pubkey,
+    pub mint: Pubkey,
     pub reward_mint_a: Pubkey,
     pub reward_mint_b: Pubkey,
     pub is_dual: u8,

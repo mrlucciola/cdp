@@ -20,6 +20,7 @@ import { StablePool } from "../../target/types/stable_pool";
 import { airdropSol, getAssocTokenAcct } from "./fxns";
 import { TestTokens } from "./types";
 import { createAtaOnChain, deriveAndInitAta, mintToAta } from "../config/users";
+import { mintTo, burn } from "@solana/spl-token";
 
 // init
 const programStablePool = workspace.StablePool as Program<StablePool>;
@@ -65,6 +66,44 @@ export class ATA extends Acct {
     const [ataPubKey, ataBump] = getAssocTokenAcct(authorityPubKey, mintPubKey);
     this.pubKey = ataPubKey;
     this.bump = ataBump;
+  }
+  public async getBalance() {
+    return await programStablePool.provider.connection.getTokenAccountBalance(
+      this.pubKey
+    );
+  }
+  public async mintToATA(
+    mintAmount: number,
+    mintAuth: User,
+    mintPubKey: MintPubKey
+  ) {
+    await mintTo(
+      mintAuth.provider.connection, // connection — Connection to use
+      mintAuth.wallet.payer, // payer — Payer of the transaction fees
+      mintPubKey, // mint — Mint for the account
+      this.pubKey, // destination — Address of the account to mint to
+      mintAuth.wallet.publicKey, // authority — Minting authority
+      mintAmount // mintAmount — Amount to mint
+    );
+  }
+  /**
+   * after a test ends, it can be useful to burn tokens
+   *  to reset the balance for the next test.
+   */
+  public async burnTokens(
+    burnAmount: number,
+    mintAuth: User,
+    mintPubKey: MintPubKey,
+    userWallet: Wallet
+  ) {
+    await burn(
+      mintAuth.provider.connection, // connection
+      mintAuth.wallet.payer, // payer
+      this.pubKey, // account: acct to burn tokens from
+      mintPubKey, // mint: the token mint
+      userWallet.publicKey, // owner: Account owner
+      burnAmount // amount: Amt of token to burn
+    );
   }
 }
 

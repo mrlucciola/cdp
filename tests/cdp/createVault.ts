@@ -39,7 +39,7 @@ const createVaultCall = async (
           authority: user.wallet.publicKey,
           vault: vault.pubKey,
           globalState: accounts.global.pubKey,
-          mintColl: accounts.lpSaberUsdcUsdt.mint,
+          mint: accounts.lpSaberUsdcUsdt.mint,
           systemProgram: SystemProgram.programId,
           tokenProgram: TOKEN_PROGRAM_ID,
           rent: SYSVAR_RENT_PUBKEY,
@@ -59,7 +59,6 @@ const createVaultCall = async (
   return receipt;
 };
 
-// TODO: FIX THIS TEST SO WE CAN GET PROPER CONSTRAINT MESSAGE
 export const createVaultFAIL_auth = async (
   notSuperUser: User,
   accounts: Accounts,
@@ -76,7 +75,7 @@ export const createVaultFAIL_auth = async (
 
   // if created, we cannot run this test
   if (vaultAcctInfo)
-    console.log("\n\n Vault already created, cannot run test \n");
+    console.log("\n\n Vault already created, skipping test \n");
   else {
     // params
     const riskLevel = 0;
@@ -204,6 +203,7 @@ export const createVaultPASS = async (
     );
     console.log("token vault created- confirmation: ", confirmation);
   } else console.log("token vault already created:");
+
   const vaultAcct: IdlAccounts<StablePool>["vault"] =
     await accounts.lpSaberUsdcUsdt.vault.getAccount();
   console.log("vault account:", vaultAcct);

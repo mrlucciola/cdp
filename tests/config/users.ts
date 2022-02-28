@@ -43,7 +43,7 @@ export const createAtaOnChain = async (
   ata: ATA,
   mintPubKey: MintPubKey,
   auth?: PublicKey,
-  userConnection: Connection = null,
+  userConnection: Connection = null
 ) => {
   const txn = new Transaction().add(
     createAssociatedTokenAccountInstruction(
@@ -53,7 +53,7 @@ export const createAtaOnChain = async (
       mintPubKey // mint: web3.PublicKey,
     )
   );
-  userConnection && await handleTxn(txn, userConnection, userWallet);
+  userConnection && (await handleTxn(txn, userConnection, userWallet));
 };
 
 /**
@@ -117,9 +117,7 @@ export const mintToAta = async (
   }
   const ataBalanceNew = Number((await getAcctBalance(dest.ata.pubKey)).amount);
   const diff = ataBalanceNew - ataBalanceOrig;
-  console.log(
-    `ata balance: ${ataBalanceOrig} -> ${ataBalanceNew}  ∆ = ${diff}`
-  );
+  console.log(`ata balance: ${ataBalanceOrig} -> ${ataBalanceNew}  ∆=${diff}`);
 };
 
 export class Users {

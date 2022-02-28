@@ -8,16 +8,10 @@ import {
   BN,
   Wallet,
 } from "@project-serum/anchor";
-import {
-  Connection,
-  PublicKey,
-  SystemProgram,
-  SYSVAR_RENT_PUBKEY,
-} from "@solana/web3.js";
+import { Connection, SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 // solana imports
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
-  createAssociatedTokenAccountInstruction,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 // utils
@@ -25,18 +19,7 @@ import { assert, expect } from "chai";
 // local
 import { StablePool } from "../../target/types/stable_pool";
 import { handleTxn } from "../utils/fxns";
-import { Accounts } from "../config/accounts";
-import * as constants from "../utils/constants";
-import {
-  ATA,
-  ITokenAccount,
-  MintAcct,
-  MintPubKey,
-  Trove,
-  User,
-  Vault,
-} from "../utils/interfaces";
-import { deriveAndInitAta, Users } from "../config/users";
+import { MintPubKey, Trove, Vault } from "../utils/interfaces";
 // program
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
@@ -75,7 +58,7 @@ const createTroveCall = async (
           // this is the trove's ATA for the collateral's mint, previously named tokenColl
           ataTrove: trove.ata.pubKey,
           // the mint address for the specific collateral provided to this trove
-          mintColl: mintPubKey,
+          mint: mintPubKey,
           tokenProgram: TOKEN_PROGRAM_ID,
           associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
           rent: SYSVAR_RENT_PUBKEY,
@@ -87,8 +70,7 @@ const createTroveCall = async (
 
   // send transaction
   const receipt = await handleTxn(txn, userConnection, userWallet);
-  console.log('the ata for the trove', await programStablePool.provider.connection.getAccountInfo(trove.ata.pubKey));
-  
+
   return receipt;
 };
 
@@ -104,15 +86,11 @@ export const createTrovePASS = async (
 
   // get user trove info
   const troveInfo: web3.AccountInfo<Buffer> =
-    await getProvider().connection.getAccountInfo(
-      trove.pubKey
-    );
+    await getProvider().connection.getAccountInfo(trove.pubKey);
   //
 
   // if not created, create user trove
   if (!troveInfo) {
-    console.log("no trove exists", troveInfo);
-
     const confirmation = await createTroveCall(
       userConnection,
       userWallet,
@@ -126,7 +104,7 @@ export const createTrovePASS = async (
   // get the user trove state
   const troveLpSaberAcct: IdlAccounts<StablePool>["trove"] =
     await trove.getAccount();
-  console.log(troveLpSaberAcct);
+  console.log("troveLpSaberAcct", troveLpSaberAcct);
   // final asserts
   assert(troveLpSaberAcct.debt.toNumber() == 0, "debt mismatch");
 };

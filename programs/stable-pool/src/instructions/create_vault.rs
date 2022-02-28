@@ -17,7 +17,7 @@ pub fn handle(
     debt_ceiling: u64,
     platform_type: u8,
 ) -> Result<()> {
-    ctx.accounts.vault.mint_coll = ctx.accounts.mint_coll.key();
+    ctx.accounts.vault.mint = ctx.accounts.mint.key();
     ctx.accounts.vault.total_coll = 0;
     ctx.accounts.vault.total_debt = 0;
     ctx.accounts.vault.risk_level = risk_level;
@@ -47,7 +47,7 @@ pub struct CreateVault<'info> {
     #[account(
         init,
         payer = authority,
-        seeds = [VAULT_SEED.as_ref(), mint_coll.key().as_ref()],
+        seeds = [VAULT_SEED.as_ref(), mint.key().as_ref()],
         bump,
     )]
     pub vault: Box<Account<'info, Vault>>,
@@ -59,7 +59,7 @@ pub struct CreateVault<'info> {
     )]
     pub global_state: Box<Account<'info, GlobalState>>,
 
-    pub mint_coll: Box<Account<'info, Mint>>,
+    pub mint: Box<Account<'info, Mint>>,
     #[account(address = token::ID)]
     pub token_program: Program<'info, Token>,
     pub rent: Sysvar<'info, Rent>,

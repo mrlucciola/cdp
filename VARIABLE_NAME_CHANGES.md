@@ -46,13 +46,13 @@ super(owner) -> authority
 | ----------- | ----------- |
 | mint_coll         | mint |
 | mintColl          | mint |
-| collateral_mint   | mint_coll |
-| collateralMint    | mintColl |
-| localUserCollKey  | userColl & users.base.ataLpSaber.pubKey |
-| localTokenCollKey | users.base.ataLpSaber.pubKey |
-| userTokenColl     | users.base.ataLpSaber.pubKey |
-| user_token_coll   | ata_user_coll |
-| tokenCollNonce    | token_coll_nonce & user.ataLpSaber.bump |
+| collateral_mint   | mint |
+| collateralMint    | mint |
+| localUserCollKey  | ata_user & users.base.ataLpSaber.pubKey |
+| localTokenCollKey | ata_user & users.base.ataLpSaber.pubKey |
+| userTokenColl     | ata_user & users.base.ataLpSaber.pubKey |
+| user_token_coll   | ata_user |
+| tokenCollNonce    | ata_user_bump & user.ataLpSaber.bump |
 
 ### constants
 
