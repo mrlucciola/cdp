@@ -21,8 +21,8 @@ import {
 import { createTrovePASS } from "./createTrove";
 import { Trove } from "../utils/interfaces";
 import { depositCollateralPASS } from "./depositCollateral";
-import * as constants from "../utils/constants";
 import { withdrawCollateralPASS } from "./withdrawCollateral";
+import { borrowUsdxPASS } from "./borrowUsdx";
 
 // init env
 chaiUse(chaiAsPromised);
@@ -107,49 +107,20 @@ describe("cdp core test suite", async () => {
 
   // depositing collateral
   it("PASS: Deposit Collateral", async () => {
-    const userlpSaber = users.base.tokens.lpSaber;
-    await userlpSaber.ata.mintToATA(
-      10 * 10 ** 9, // decimals for this mint
+    // mint tokens to the user's account first
+    await users.base.tokens.lpSaber.ata.mintToATA(
+      10 * 10 ** 9, // decimals for this mint = 9
       users.super,
       accounts.lpSaberUsdcUsdt.mint
     );
-
-    const userBalPre = (await userlpSaber.ata.getBalance()).value.uiAmount;
-    const troveBalPre = (await userlpSaber.trove.ata.getBalance()).value
-      .uiAmount;
     await depositCollateralPASS(users.base, accounts);
-    const userBalPost = (await userlpSaber.ata.getBalance()).value.uiAmount;
-    const troveBalPost = (await userlpSaber.trove.ata.getBalance()).value
-      .uiAmount;
-    const userDiff = userBalPost - userBalPre;
-    const troveDiff = troveBalPost - troveBalPre;
-    console.log(`user balance: ${userBalPre} -> ${userBalPost} ∆=${userDiff}`);
-    console.log(
-      `trove balance: ${troveBalPre} -> ${troveBalPost} ∆=${troveDiff}`
-    );
   });
   it("PASS: Withdraw Collateral", async () => {
-    const userlpSaber = users.base.tokens.lpSaber;
-    // set acct to 0 balance
-    // await userlpSaber.ata.burnTokens(
-    //   -1, // decimals for this mint
-    //   users.super,
-    //   accounts.lpSaberUsdcUsdt.mint,
-    //   users.base.wallet
-    // );
-
-    const troveBalPre = (await userlpSaber.trove.ata.getBalance()).value
-      .uiAmount;
-    const userBalPre = (await userlpSaber.ata.getBalance()).value.uiAmount;
     await withdrawCollateralPASS(users.base, accounts);
-    const troveBalPost = (await userlpSaber.trove.ata.getBalance()).value
-      .uiAmount;
-    const userBalPost = (await userlpSaber.ata.getBalance()).value.uiAmount;
-    const userDiff = userBalPost - userBalPre;
-    const troveDiff = troveBalPost - troveBalPre;
-    console.log(`user balance: ${userBalPre} -> ${userBalPost} ∆=${userDiff}`);
-    console.log(
-      `trove balance: ${troveBalPre} -> ${troveBalPost} ∆=${troveDiff}`
-    );
+  });
+
+  // THIS IS NOT COMPLETE, please see note on the contract fxn (search `BorrowUsdx<'info>`)
+  it("PASS: Borrow/mint USDx", async () => {
+    // await borrowUsdxPASS(users.base, accounts);
   });
 });

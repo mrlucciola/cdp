@@ -56,14 +56,18 @@ const withdrawCollateralCall = async (
     })
   );
 
-  // TODO: the 0 balance error for this is not yet handled
-  //    {"InstructionError":[0,{"Custom":6014}]}
-  //    which comes from: StablePoolError::InvalidTransferAmount
-  //    look at the handle txn fxn trycatch
   await handleTxn(txn, userConnection, userWallet);
 };
 
-export const withdrawCollateralPASS = async (user: User, accounts: Accounts) => {
+export const withdrawCollateralPASS = async (
+  user: User,
+  accounts: Accounts
+) => {
+  const userlpSaber = user.tokens.lpSaber;
+  // check balances before
+  const troveBalPre = (await userlpSaber.trove.ata.getBalance()).value.uiAmount;
+  const userBalPre = (await userlpSaber.ata.getBalance()).value.uiAmount;
+  
   await withdrawCollateralCall(
     // withdraw amount
     0.1 * LAMPORTS_PER_SOL,
@@ -72,14 +76,25 @@ export const withdrawCollateralPASS = async (user: User, accounts: Accounts) => 
     // user wallet
     user.wallet,
     // user token
-    user.tokens.lpSaber,
+    userlpSaber,
     // trove
-    user.tokens.lpSaber.trove,
+    userlpSaber.trove,
     // mint pubKey
     accounts.lpSaberUsdcUsdt.mint,
     // vault
     accounts.lpSaberUsdcUsdt.vault,
     // globalState
     accounts.global
+  );
+
+  // check balances after
+  const troveBalPost = (await userlpSaber.trove.ata.getBalance()).value
+    .uiAmount;
+  const userBalPost = (await userlpSaber.ata.getBalance()).value.uiAmount;
+  const userDiff = userBalPost - userBalPre;
+  const troveDiff = troveBalPost - troveBalPre;
+  console.log(`user balance: ${userBalPre} -> ${userBalPost} ∆=${userDiff}`);
+  console.log(
+    `trove balance: ${troveBalPre} -> ${troveBalPost} ∆=${troveDiff}`
   );
 };

@@ -56,14 +56,15 @@ const depositCollateralCall = async (
     })
   );
 
-  // TODO: the 0 balance error for this is not yet handled
-  //    {"InstructionError":[0,{"Custom":6014}]}
-  //    which comes from: StablePoolError::InvalidTransferAmount
-  //    look at the handle txn fxn trycatch
   await handleTxn(txn, userConnection, userWallet);
 };
 
 export const depositCollateralPASS = async (user: User, accounts: Accounts) => {
+  const userlpSaber = user.tokens.lpSaber;
+
+  const userBalPre = (await userlpSaber.ata.getBalance()).value.uiAmount;
+  const troveBalPre = (await userlpSaber.trove.ata.getBalance()).value.uiAmount;
+
   await depositCollateralCall(
     // deposit amount
     0.2 * LAMPORTS_PER_SOL,
@@ -81,5 +82,15 @@ export const depositCollateralPASS = async (user: User, accounts: Accounts) => {
     accounts.lpSaberUsdcUsdt.vault,
     // globalState
     accounts.global
+  );
+
+  const userBalPost = (await userlpSaber.ata.getBalance()).value.uiAmount;
+  const troveBalPost = (await userlpSaber.trove.ata.getBalance()).value
+    .uiAmount;
+  const userDiff = userBalPost - userBalPre;
+  const troveDiff = troveBalPost - troveBalPre;
+  console.log(`user balance: ${userBalPre} -> ${userBalPost} ∆=${userDiff}`);
+  console.log(
+    `trove balance: ${troveBalPre} -> ${troveBalPost} ∆=${troveDiff}`
   );
 };

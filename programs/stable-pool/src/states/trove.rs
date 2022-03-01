@@ -4,6 +4,7 @@ use anchor_lang::prelude::*;
 #[derive(Default)]
 pub struct Trove {
     pub bump: u8,
+    pub mint: Pubkey,
     pub ata_usdx_bump: u8,
     pub ata_trove_bump: u8,
     pub ata_trove: Pubkey,

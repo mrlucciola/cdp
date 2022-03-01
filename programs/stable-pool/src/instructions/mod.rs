@@ -13,3 +13,6 @@ pub use deposit_collateral::*;
 
 pub mod withdraw_collateral;
 pub use withdraw_collateral::*;
+
+pub mod borrow_usdx;
+pub use borrow_usdx::*;

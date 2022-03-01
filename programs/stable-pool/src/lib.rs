@@ -7,7 +7,9 @@ pub mod errors;
 pub mod instructions;
 pub mod states;
 pub mod utils;
+
 use crate::instructions::*;
+use crate::utils::is_global_state_paused;
 
 declare_id!("FvTjLbwbHY4v8Gfv18JKuPCJG2Hj87CG8kPNHqGeHAR4");
 
@@ -61,7 +63,19 @@ pub mod stable_pool {
     pub fn deposit_collateral(ctx: Context<DepositCollateral>, deposit_amount: u64) -> Result<()> {
         deposit_collateral::handle(ctx, deposit_amount)
     }
-    pub fn withdraw_collateral(ctx: Context<WithdrawCollateral>, withdraw_amount: u64) -> Result<()> {
+    pub fn withdraw_collateral(
+        ctx: Context<WithdrawCollateral>,
+        withdraw_amount: u64,
+    ) -> Result<()> {
         withdraw_collateral::handle(ctx, withdraw_amount)
+    }
+
+    /// THIS IS NOT COMPLETE, please see note on the contract fxn (search `BorrowUsdx<'info>`)
+    #[access_control(is_global_state_paused(&ctx.accounts.global_state))]
+    pub fn borrow_usdx(
+        ctx: Context<BorrowUsdx>,
+        borrow_amount: u64,
+    ) -> Result<()> {
+        borrow_usdx::handle(ctx, borrow_amount)
     }
 }

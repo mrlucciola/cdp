@@ -15,6 +15,7 @@ pub fn handle(
     // vault_bump: u8,
     ceiling: u64,
 ) -> Result<()> {
+    ctx.accounts.trove.mint = ctx.accounts.mint.key();
     ctx.accounts.trove.locked_coll_balance = 0;
     ctx.accounts.trove.debt = 0;
     ctx.accounts.trove.bump = trove_bump;
