@@ -19,6 +19,7 @@ import {
 // local
 // import superKeyArr from "../../.config/testUser-super-keypair.json";
 import baseKeyArr from "../../.config/testUser-base-keypair.json";
+import testKeyArr from "../../.config/testUser-test-keypair.json";
 import { StablePool } from "../../target/types/stable_pool";
 import * as constants from "../utils/constants";
 import {
@@ -36,6 +37,9 @@ const programStablePool = workspace.StablePool as Program<StablePool>;
 // will repeat what was done for super, for user
 const userBaseKeypair: web3.Keypair = web3.Keypair.fromSecretKey(
   new Uint8Array(baseKeyArr as any[])
+);
+const userTestKeypair: web3.Keypair = web3.Keypair.fromSecretKey(
+  new Uint8Array(testKeyArr as any[])
 );
 
 export const createAtaOnChain = async (
@@ -122,10 +126,12 @@ export const mintToAta = async (
 
 export class Users {
   public base: User;
+  public test: User;
   public super: User;
 
   constructor() {
     this.base = new User(userBaseKeypair);
+    this.test = new User(userTestKeypair);
     this.super = {
       wallet: programStablePool.provider.wallet as Wallet,
       provider: programStablePool.provider,
@@ -137,6 +143,8 @@ export class Users {
   public async init(mintPubKey: PublicKey) {
     await this.base.init(mintPubKey);
     await this.base.addToken(mintPubKey, "lpSaber", 200_000_000);
+    await this.test.init(mintPubKey);
+    await this.test.addToken(mintPubKey, "lpSaber", 200_000_000);
   }
 }
 

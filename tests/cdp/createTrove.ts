@@ -74,6 +74,14 @@ const createTroveCall = async (
   return receipt;
 };
 
+/**
+ * Pass when attempting to make a trove that doesn't exist
+ * @param userWallet
+ * @param userConnection
+ * @param trove
+ * @param vault
+ * @param mintPubkey
+ */
 export const createTrovePASS = async (
   userWallet: Wallet,
   userConnection: Connection,
@@ -107,32 +115,42 @@ export const createTrovePASS = async (
   assert(troveLpSaberAcct.debt.toNumber() == 0, "debt mismatch");
 };
 
-// /**
-//  * Fail when attempting to make a trove that already exists
-//  * @param provider
-//  * @param accounts
-//  * @param user
-//  */
-// export const createTroveFAIL_Duplicate = async (
-//   provider: Provider,
-//   accounts: Accounts,
-//   user: User
-// ) => {
-//   // get user trove info
-//   const troveInfo: web3.AccountInfo<Buffer> =
-//     await getProvider().connection.getAccountInfo(user.troveLpSaber.pubKey);
+/**
+ * Fail when attempting to make a trove that already exists
+ * @param userWallet
+ * @param userConnection
+ * @param trove
+ * @param vault
+ * @param mintPubkey
+ */
+export const createTroveFAIL_Duplicate = async (
+  userWallet: Wallet,
+  userConnection: Connection,
+  trove: Trove,
+  vault: Vault,
+  mintPubKey: MintPubKey
+) => {
+  // get user trove info
+  const troveInfo: web3.AccountInfo<Buffer> =
+    await getProvider().connection.getAccountInfo(trove.pubKey);
 
-//   // trove must exist for this test to be run
-//   assert(troveInfo, "User trove doesnt exist, test needs a trove");
-//   await expect(
-//     createTroveCall(
-//       provider,
-//       user,
-//       user.troveLpSaber,
-//       accounts.vaultLpSaber,
-//       accounts.mintLpSaber
-//     ),
-//     "No error was thrown when trying to create a duplicate user trove"
-//   ).is.rejected;
-//   console.log("user trove confirmed not created");
-// };
+  // if trove created, try to create another one for the same user (should fail)
+  assert(troveInfo, "User trove does not exist, test needs a trove");
+  await expect(
+    createTroveCall(
+      userConnection,
+      userWallet,
+      trove,
+      vault,
+      mintPubKey
+    ),
+    "No error was thrown was trying to create a duplicate user trove"
+  ).is.rejected;
+
+  // get the user trove state
+  const troveLpSaberAcct: IdlAccounts<StablePool>["trove"] =
+    await trove.getAccount();
+  console.log("troveLpSaberAcct", troveLpSaberAcct);
+  // final asserts
+  assert(troveLpSaberAcct.debt.toNumber() == 0, "debt mismatch");
+};
