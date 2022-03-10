@@ -1,0 +1,65 @@
+on:
+  push:
+    branches: 
+      - main-transition
+  pull_request:
+    branches:
+      - main-transition
+
+env:
+  CARGO_TERM_COLOR: always
+  SOLANA_CLI_VERSION: 1.8.6
+  NODE_VERSION: 17.0.1
+  
+jobs:
+
+  base-test:
+    name: Base Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/setup/
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/cache@v2
+        name: Cache Cargo registry + index
+        id: cache-cargo-build
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            ./target/
+          key: cargo-${{ runner.os }}-cargo-build-${{ hashFiles('**/Cargo.lock') }}
+      - run: cargo fmt -- --check
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: yarn
+      - run: yarn lint
+
+  unit-test-cdp:
+    name: Unit Test(CDP)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/setup
+      - uses: ./.github/actions/setup-solana
+      - uses: ./.github/actions/setup-anchor
+      - run: yarn
+      - run: anchor test
+
+  coverage:
+    name: Soteria Coverage Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/setup-soteria
+      - uses: ./.github/actions/setup-solana
+      - run: cargo build-bpf
+      - run: pwd
+        shell: bash
+      - name: Coverage Test
+        run: cd programs/stable-pool/ && soteria -analyzeAll .
+  
