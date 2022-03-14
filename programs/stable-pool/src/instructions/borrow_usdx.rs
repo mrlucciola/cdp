@@ -18,7 +18,7 @@ pub fn handle(ctx: Context<BorrowUsdx>, borrow_amount: u64) -> Result<()> {
 /// Borrowing usdx is based on the sum of all borrowed amounts from all troves
 /// This is still in progress. In this iteration, we are just setting the
 /// LP price to 1 LP = 1USDC + 1USDT = 2USDx
-/// 
+///
 /// This will change to: query balance in Trove (to be named to Vault)
 /// THIS IS NOT COMPLETE
 #[derive(Accounts)]
