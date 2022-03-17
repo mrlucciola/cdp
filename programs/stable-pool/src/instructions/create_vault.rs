@@ -16,6 +16,7 @@ pub fn handle(
     is_dual: u8,
     debt_ceiling: u64,
     platform_type: u8,
+    reward_mints: Vec<Pubkey>,
 ) -> Result<()> {
     ctx.accounts.vault.mint = ctx.accounts.mint.key();
     ctx.accounts.vault.total_coll = 0;
@@ -30,6 +31,13 @@ pub fn handle(
         StablePoolError::InvalidPlatformType
     );
     ctx.accounts.vault.platform_type = platform_type;
+
+    require!(reward_mints.len() > 0 && reward_mints.len() <= 2, StablePoolError::InvalidRewardMintCount);
+
+    ctx.accounts.vault.reward_mint_a = reward_mints[0];
+    if reward_mints.len() > 1 {
+        ctx.accounts.vault.reward_mint_b = reward_mints[1];
+    }
 
     Ok(())
 }

@@ -189,8 +189,8 @@ export class BaseAcct extends PDA {
  */
 export class Trove extends BaseAcct {
   ata: ATA;
-
-  constructor(userWallet: Wallet, mintPubKey: MintPubKey) {
+  ataRewards: ATA[];
+  constructor(userWallet: Wallet, mintPubKey: MintPubKey, rewardMints = []) {
     super(constants.TROVE_SEED, [
       mintPubKey.toBuffer(),
       userWallet.publicKey.toBuffer(),
@@ -199,6 +199,8 @@ export class Trove extends BaseAcct {
 
     // get ata info
     this.ata = new ATA(this.pubKey, mintPubKey);
+    this.ataRewards = rewardMints.map((mint) => new ATA(this.pubKey, mint));
+
   }
   // public async getAccount(): Promise<IdlAccounts<StablePool>["trove"]> {
   //   return await this.getAccount();

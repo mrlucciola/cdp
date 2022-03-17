@@ -34,6 +34,7 @@ const createVaultCall = async (
       new BN(isDual),
       new BN(constants.VAULT_DEBT_CEILING),
       constants.PLATFORM_TYPE_SABER,
+      [accounts.sbr.publicKey],
       {
         accounts: {
           authority: user.wallet.publicKey,

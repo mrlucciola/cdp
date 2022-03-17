@@ -3,7 +3,6 @@ import { PlatformType } from "./types";
 // seeds
 export const USDX_TOKEN_SEED = "USDX_TOKEN_SEED"; // prev: USD_TOKEN_TAG & usd-token
 // TODO: integrate below seeds
-export const TROVE_POOL_SEED = "TROVE_POOL_SEED"; // used for ATA trove    prev: USER_TROVE_POOL_TAG
 export const GLOBAL_STATE_SEED = "GLOBAL_STATE_SEED"; // prev: GLOBAL_STATE_TAG & global-state-seed
 export const VAULT_SEED = "VAULT_SEED";
 export const TROVE_SEED = "TROVE_SEED"; // prev: USER_TROVE_TAG -> USER_TROVE -> "TROVE" & user-trove -> TROVE_SEED
@@ -17,6 +16,8 @@ export const TVL_LIMIT = 1_000_000_000;
 export const GLOBAL_DEBT_CEILING = 15_000_000;
 export const VAULT_DEBT_CEILING = 10_000_000;
 export const USDX_DECIMAL = 6;
+export const SBR_DECIMAL = 6;
+export const USDCUSDT_DECIMAL = 9;
 // platform types
 // export const PLATFORM_TYPE_RAYDIUM: PlatformType = 0; // TODO: Add in another ticket. jkap 2/13/22
 // export const PLATFORM_TYPE_ORCA: PlatformType = 1; // TODO: Add in another ticket. jkap 2/13/22

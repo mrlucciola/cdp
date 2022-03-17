@@ -3,15 +3,22 @@ seeds = false
 
 [programs.localnet]
 stable_pool = "FvTjLbwbHY4v8Gfv18JKuPCJG2Hj87CG8kPNHqGeHAR4"
-stable_pool_faucet = "AGVmoEHbb6Uob1jgHWhpQs7pDgMCMkbKbYuTum71zrsx"
+
+quarry_merge_mine = "QMMD16kjauP5knBwxNUJRZ1Z5o3deBuFrqVjBVmmqto"
+quarry_mine = "QMNeHCGYnLVDn1icRAfQZpjPLBNkfGbSKRB83G5d8KB"
+quarry_mint_wrapper = "QMWoBmAyJLAsA1Lh9ugMTw2gciTihncciphzdNzdZYV"
+quarry_operator = "QoP6NfrQbaGnccXQrMLUkog2tQZ4C1RFgJcwDnT8Kmz"
+quarry_redeemer = "QRDxhMw1P2NEfiw5mYXG79bwfgHTdasY2xNP76XSea9"
+quarry_registry = "QREGBnEj9Sa5uR91AV8u3FxThgP5ZCvdZUW2bHAkfNc"
 
 [programs.devnet]
 stable_pool = "FvTjLbwbHY4v8Gfv18JKuPCJG2Hj87CG8kPNHqGeHAR4"
-stable_pool_faucet = "AGVmoEHbb6Uob1jgHWhpQs7pDgMCMkbKbYuTum71zrsx"
 
 [programs.mainnet]
 stable_pool = "FvTjLbwbHY4v8Gfv18JKuPCJG2Hj87CG8kPNHqGeHAR4"
-stable_pool_faucet = "AGVmoEHbb6Uob1jgHWhpQs7pDgMCMkbKbYuTum71zrsx"
+
+[test]
+startup_wait = 100_000 
 
 [registry]
 url = "https://anchor.projectserum.com"
@@ -23,5 +30,4 @@ wallet = "./.config/testUser-super-keypair.json"
 [scripts]
 admin-panel = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/admin-panel.spec.ts"
 analyze = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 analyze/analyze.ts"
-saber-test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/saber/saber-test.ts"
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/cdp/cdp.spec.ts"

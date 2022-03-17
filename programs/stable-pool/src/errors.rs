@@ -52,4 +52,7 @@ pub enum StablePoolError {
 
     #[msg("Invalid saber platform")]
     InvalidSaberPlatform,
+
+    #[msg("Reward Mint should be more than one")]
+    InvalidRewardMintCount,
 }

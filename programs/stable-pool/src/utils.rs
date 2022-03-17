@@ -14,3 +14,9 @@ pub fn is_global_state_paused(global_state: &Account<GlobalState>) -> Result<()>
     require!(global_state.paused == 0, StablePoolError::NotAllowed);
     Ok(())
 }
+
+pub fn pda_bump(seeds: &[&[u8]]) -> u8 {
+    let program_id = crate::ID;
+    let (_found_key, bump) = Pubkey::find_program_address(seeds, &program_id);
+    bump
+}

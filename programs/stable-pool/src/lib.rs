@@ -7,6 +7,7 @@ pub mod errors;
 pub mod instructions;
 pub mod states;
 pub mod utils;
+pub mod saber_utils;
 
 use crate::instructions::*;
 use crate::utils::is_global_state_paused;
@@ -40,6 +41,7 @@ pub mod stable_pool {
         is_dual: u8,
         debt_ceiling: u64,
         platform_type: u8,
+        reward_mints: Vec<Pubkey>,
     ) -> Result<()> {
         create_vault::handle(
             ctx,
@@ -48,6 +50,7 @@ pub mod stable_pool {
             is_dual,
             debt_ceiling,
             platform_type,
+            reward_mints,
         )
     }
 
@@ -59,7 +62,6 @@ pub mod stable_pool {
     ) -> Result<()> {
         create_trove::handle(ctx, trove_bump, ata_trove_bump, ceiling)
     }
-
     pub fn deposit_collateral(ctx: Context<DepositCollateral>, deposit_amount: u64) -> Result<()> {
         deposit_collateral::handle(ctx, deposit_amount)
     }
@@ -74,5 +76,11 @@ pub mod stable_pool {
     #[access_control(is_global_state_paused(&ctx.accounts.global_state))]
     pub fn borrow_usdx(ctx: Context<BorrowUsdx>, borrow_amount: u64) -> Result<()> {
         borrow_usdx::handle(ctx, borrow_amount)
+    }
+    pub fn create_reward_vault(ctx: Context<CreateUserRewardVault>) -> Result<()> {
+        ctx.accounts.handle()
+    }
+    pub fn create_saber_user(ctx: Context<CreateQuarryMiner>, miner_bump: u8) -> Result<()> {
+        ctx.accounts.handle(miner_bump)
     }
 }

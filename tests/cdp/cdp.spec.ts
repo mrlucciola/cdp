@@ -32,6 +32,7 @@ import {
 } from "./withdrawCollateral";
 import { borrowUsdxPASS } from "./borrowUsdx";
 import * as constants from "../utils/constants";
+import { createTroveRewardVault } from "./createRewardVault";
 
 // init env
 chaiUse(chaiAsPromised);
@@ -49,6 +50,7 @@ describe("cdp core test suite", async () => {
   before(async () => {
     accounts = new Accounts();
     await accounts.init();
+    await accounts.initQuarry();
 
     users = new Users();
     await users.init(accounts.lpSaberUsdcUsdt.mint);
@@ -101,7 +103,8 @@ describe("cdp core test suite", async () => {
     // derive trove account
     users.base.tokens.lpSaber.trove = new Trove(
       users.base.wallet,
-      accounts.lpSaberUsdcUsdt.mint
+      accounts.lpSaberUsdcUsdt.mint,
+      [accounts.sbr.publicKey]
     );
   });
   it("PASS: Create Trove", async () => {
@@ -157,7 +160,7 @@ describe("cdp core test suite", async () => {
   it("PASS: Deposit Collateral from another user", async () => {
     // mint tokens to the user's account first
     await users.test.tokens.lpSaber.ata.mintToATA(
-      10 * 10 ** 9, // decimals for this mint = 9
+      10 * 10 ** constants.USDCUSDT_DECIMAL, // decimals for this mint = 9
       users.super,
       accounts.lpSaberUsdcUsdt.mint
     );
@@ -185,5 +188,13 @@ describe("cdp core test suite", async () => {
   // THIS IS NOT COMPLETE, please see note on the contract fxn (search `BorrowUsdx<'info>`)
   it("PASS: Borrow/mint USDx", async () => {
     // await borrowUsdxPASS(users.base, accounts);
+  });
+  it("PASS: Create trove ataReward", async () => {
+    await createTroveRewardVault(
+        users.base.wallet,
+        users.base.provider.connection,
+        users.base.tokens.lpSaber.trove,
+        accounts.lpSaberUsdcUsdt.vault,
+        accounts.sbr.publicKey)
   });
 });
