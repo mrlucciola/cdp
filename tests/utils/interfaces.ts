@@ -20,7 +20,7 @@ import { StablePool } from "../../target/types/stable_pool";
 import { airdropSol, getAssocTokenAcct } from "./fxns";
 import { TestTokens } from "./types";
 import { createAtaOnChain, deriveAndInitAta, mintToAta } from "../config/users";
-import { mintTo, burn } from "@solana/spl-token";
+import { mintTo, burn, Account as SPLTokenAccount, getAccount } from "@solana/spl-token";
 
 // init
 const programStablePool = workspace.StablePool as Program<StablePool>;
@@ -116,6 +116,29 @@ export class ATA extends Acct {
   }
 }
 
+
+/**
+ * Token Account
+ * @property bump? - u8: Bump/nonce for ATA
+ */
+ export class TokenAcc extends Acct {
+  bump?: number;
+
+  constructor(tokenAccountPubkey: PublicKey) {
+    super();
+    this.pubKey = tokenAccountPubkey;
+  }
+  public async getTokenAccount() {
+    return await getAccount(programStablePool.provider.connection, this.pubKey);
+  }
+  public async getBalance() {
+    return await programStablePool.provider.connection.getTokenAccountBalance(
+      this.pubKey
+    );
+  }
+}
+
+
 /**
  * User Token object
  * Contains an ATA and a Trove
@@ -150,7 +173,12 @@ export class UserToken {
   }
 }
 
+export class WalletKeypair extends Keypair {}
+
 export class MintPubKey extends PublicKey {}
+
+export class TokenAccPubKey extends PublicKey {}
+
 
 export interface ITokenAccount {
   mint: MintPubKey;
@@ -231,6 +259,25 @@ export class Vault extends BaseAcct {
   // public async getAccount(): Promise<IdlAccounts<StablePool>["vault"]> {
   //   return await this.getAccount();
   // }
+}
+
+/**
+ * PriceFeed
+ * @property mint - PublicKey: Public Key for token mint
+ * @property price - price for this feed
+ */
+export class PriceFeed extends BaseAcct {
+  mint: MintPubKey;
+  price: number;
+  constructor(
+    mint: MintPubKey,
+    price: number
+    ) {
+    super(constants.PRICE_FEED_SEED, [mint.toBuffer()]);
+    this.type = "priceFeed";
+    this.mint = mint;
+    this.price = price;
+  }
 }
 
 export class User {

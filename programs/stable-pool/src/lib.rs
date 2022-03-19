@@ -24,6 +24,7 @@ pub mod stable_pool {
         mint_usdx_bump: u8,
         tvl_limit: u64,
         debt_ceiling: u64,
+        price_feed_updater: Pubkey,
     ) -> Result<()> {
         create_global_state::handle(
             ctx,
@@ -31,6 +32,7 @@ pub mod stable_pool {
             mint_usdx_bump,
             tvl_limit,
             debt_ceiling,
+            price_feed_updater,
         )
     }
 
@@ -82,5 +84,11 @@ pub mod stable_pool {
     }
     pub fn create_saber_user(ctx: Context<CreateQuarryMiner>, miner_bump: u8) -> Result<()> {
         ctx.accounts.handle(miner_bump)
+    }
+    pub fn create_oracle(ctx: Context<CreatePriceFeed>, price: u64) -> Result<()> {
+        create_price_feed::handle(ctx, price)
+    }
+    pub fn report_price(ctx: Context<UpdatePriceFeed>, price: u64) -> Result<()> {
+        update_price_feed::handle(ctx, price)
     }
 }

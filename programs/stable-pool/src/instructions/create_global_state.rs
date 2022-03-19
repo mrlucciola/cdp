@@ -10,6 +10,7 @@ pub fn handle(
     mint_usdx_bump: u8,
     tvl_limit: u64,
     debt_ceiling: u64,
+    price_feed_updater: Pubkey
 ) -> Result<()> {
     ctx.accounts.global_state.bump = global_state_bump;
     ctx.accounts.global_state.authority = ctx.accounts.authority.key();
@@ -22,6 +23,7 @@ pub fn handle(
     ctx.accounts.global_state.fee_num = DEFAULT_FEE_NUMERATOR;
     ctx.accounts.global_state.fee_deno = DEFAULT_FEE_DENOMINATOR;
     ctx.accounts.global_state.coll_per_risklv = DEFAULT_RATIOS;
+    ctx.accounts.global_state.price_feed_updater = price_feed_updater;
 
     Ok(())
 }

@@ -19,11 +19,11 @@ import { handleTxn } from "../utils/fxns";
 import * as constants from "../utils/constants";
 import { Accounts } from "../config/accounts";
 import { StablePool } from "../../target/types/stable_pool";
-import { User } from "../utils/interfaces";
+import { PriceFeed, User } from "../utils/interfaces";
 
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
-const createGlobalStateCall = async (accounts: Accounts, user: User) => {
+const createGlobalStateCall = async (accounts: Accounts, user: User, priceFeedUpdater: User) => {
   // create txn
   const txn = new web3.Transaction();
   // add instruction
@@ -33,6 +33,7 @@ const createGlobalStateCall = async (accounts: Accounts, user: User) => {
       accounts.usdx.bump, // prev: mintUsdNonce
       new BN(constants.TVL_LIMIT),
       new BN(constants.GLOBAL_DEBT_CEILING),
+      priceFeedUpdater.wallet.publicKey,
       {
         accounts: {
           authority: user.wallet.publicKey,
@@ -59,6 +60,7 @@ const createGlobalStateCall = async (accounts: Accounts, user: User) => {
  */
 export const createGlobalStatePASS = async (
   superUser: User,
+  priceFeedUpdater: User,
   accounts: Accounts
 ) => {
   assert(
@@ -74,7 +76,7 @@ export const createGlobalStatePASS = async (
   //    So, we will just pass on recreating global state if it exists
   const globalStateAccttInfo: web3.AccountInfo<Buffer> =
     await accounts.global.getAccountInfo();
-  if (!globalStateAccttInfo) await createGlobalStateCall(accounts, superUser);
+  if (!globalStateAccttInfo) await createGlobalStateCall(accounts, superUser, priceFeedUpdater);
   else console.log("GLOBAL STATE ALREADY CREATED", globalStateAccttInfo);
 
   // check if global state exists
@@ -114,6 +116,7 @@ export const createGlobalStatePASS = async (
  */
 export const createGlobalStateFAIL_auth = async (
   notSuperUser: User,
+  priceFeedUpdater: User,
   accounts: Accounts
 ) => {
   assert(
@@ -134,7 +137,7 @@ export const createGlobalStateFAIL_auth = async (
   );
   // 2003 = ConstraintRaw - the check that says pubkey needs to == superuser
   await expect(
-    createGlobalStateCall(accounts, notSuperUser)
+    createGlobalStateCall(accounts, notSuperUser, priceFeedUpdater)
   ).to.be.rejectedWith("2003");
 };
 
@@ -144,6 +147,7 @@ export const createGlobalStateFAIL_auth = async (
  * @param accounts
  */
 export const createGlobalStateFAIL_duplicate = async (
+  priceFeedUpdater: User,
   superUser: User,
   accounts: Accounts
 ) => {
@@ -158,7 +162,7 @@ export const createGlobalStateFAIL_duplicate = async (
   );
 
   // { code: 0, byte: 0x0, name: "AlreadyInUse", msg: "Already in use" },
-  await expect(createGlobalStateCall(accounts, superUser)).to.be.rejectedWith(
+  await expect(createGlobalStateCall(accounts, superUser, priceFeedUpdater)).to.be.rejectedWith(
     "0",
     "AlreadyInUse: Already in use"
   );

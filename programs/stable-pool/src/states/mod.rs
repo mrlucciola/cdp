@@ -6,3 +6,6 @@ pub use vault::*;
 
 pub mod trove;
 pub use trove::*;
+
+pub mod price_feed;
+pub use price_feed::*;

@@ -32,6 +32,8 @@ import {
 } from "./withdrawCollateral";
 import { borrowUsdxPASS } from "./borrowUsdx";
 import * as constants from "../utils/constants";
+import { updatePriceFeedFAIL_NotUpdater, updatePriceFeedPASS } from "./updatePriceFeed";
+import { createOracledFAIL_Duplicate, createOraclePASS } from "./createPriceFeed";
 import { createTroveRewardVault } from "./createRewardVault";
 
 // init env
@@ -66,13 +68,13 @@ describe("cdp core test suite", async () => {
   });
   // global state tests
   it("FAIL: Create Global State - User is not super", async () => {
-    await createGlobalStateFAIL_auth(users.base, accounts);
+    await createGlobalStateFAIL_auth(users.base, users.priceFeedUpdater, accounts);
   });
   it("PASS: Create Global State", async () => {
-    await createGlobalStatePASS(users.super, accounts);
+    await createGlobalStatePASS(users.super, users.priceFeedUpdater, accounts);
   });
   it("FAIL: Create Global State - duplicate", async () => {
-    await createGlobalStateFAIL_duplicate(users.super, accounts);
+    await createGlobalStateFAIL_duplicate(users.priceFeedUpdater, users.super, accounts);
   });
 
   // vault tests
@@ -97,6 +99,56 @@ describe("cdp core test suite", async () => {
       accounts.lpSaberUsdcUsdt.vault
     );
   });
+
+  // oracle tests - usdc oracle
+  it("PASS: Create Oracle", async () => {
+    await createOraclePASS(
+      users.super.provider.connection,
+      users.super.wallet,
+      accounts,
+      accounts.usdcPriceFeed
+    );
+  });
+  // oracle tests - duplicated usdc oracle
+  it("FAIL: Create Oracle - Duplicate", async () => {
+    await createOracledFAIL_Duplicate(
+      users.super.provider.connection,
+      users.super.wallet,
+      accounts,
+      accounts.usdcPriceFeed,
+    );
+  });
+  // oracle tests - usdt oracle
+  it("PASS: Create Oracle", async () => {
+    await createOraclePASS(
+      users.super.provider.connection,
+      users.super.wallet,
+      accounts,
+      accounts.usdtPriceFeed
+    );
+  });
+  it("PASS: Report Price", async () => {
+    const newPrice = 112000000;
+    accounts.usdcPriceFeed.price = newPrice
+    await updatePriceFeedPASS(
+      users.priceFeedUpdater.provider.connection,
+      users.priceFeedUpdater.wallet,
+      accounts,
+      accounts.usdcPriceFeed,
+      newPrice
+    );
+  });
+  it("FAIL: Update Price Feed - Not Updater", async () => {
+    const newPrice = 134000000;
+    await updatePriceFeedFAIL_NotUpdater(
+      users.base.provider.connection,
+      users.base.wallet,
+      accounts,
+      accounts.usdcPriceFeed,
+      newPrice,
+    );
+  });
+
 
   // trove tests
   before(async () => {

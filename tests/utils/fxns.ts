@@ -77,6 +77,22 @@ export const airdropSol = async (
   return sig;
 };
 
+export const safeAirdropSol = async (
+  provider: Provider,
+  target: web3.PublicKey,
+  lamps: number
+): Promise<void> => {
+  while (await getSolBalance(target, provider) < lamps){
+    try{
+      // Request Airdrop for user
+      await airdropSol(provider, target, lamps)
+    }
+    catch(e) {
+      console.log(e)
+    }
+  };
+};
+
 export const delay = async (ms: number) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };

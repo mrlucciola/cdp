@@ -24,3 +24,6 @@ export const USDCUSDT_DECIMAL = 9;
 export const PLATFORM_TYPE_SABER: PlatformType = 2;
 // export const PLATFORM_TYPE_MERCURIAL: PlatformType = 3; // TODO: Add in another ticket. jkap 2/13/22
 export const PLATFORM_TYPE_UNKNOWN: PlatformType = 4;
+
+export const PRICE_FEED_SEED = "PRICE_FEED_SEED";
+export const PRICE_DECIMALS = 100000000;

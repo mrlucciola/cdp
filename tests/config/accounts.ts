@@ -4,7 +4,7 @@ import { Keypair, PublicKey, Signer } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 // local
 import { StablePool } from "../../target/types/stable_pool";
-import { ITokenAccount, MintAcct, MintPubKey, GlobalStateAcct, Vault } from "../utils/interfaces";
+import { ITokenAccount, MintAcct, MintPubKey, GlobalStateAcct, Vault, PriceFeed } from "../utils/interfaces";
 import { findMinterAddress, findQuarryAddress, QuarrySDK, QUARRY_ADDRESSES } from "@quarryprotocol/quarry-sdk";
 
 import { SignerWallet, Provider as SaberProvider } from "@saberhq/solana-contrib";
@@ -21,6 +21,9 @@ export class Accounts {
   public usdx: MintAcct;
   public lpSaberUsdcUsdt: ITokenAccount;
 
+  public usdcPriceFeed: PriceFeed;
+  public usdtPriceFeed: PriceFeed;
+  
   public quarryPayer: Keypair;
   public quarryProvider: SaberProvider;
   public quarrySdk: QuarrySDK;
@@ -44,6 +47,8 @@ export class Accounts {
       vault: null as Vault,
       mint: null as PublicKey,
     };
+    this.usdcPriceFeed = null as PriceFeed
+    this.usdtPriceFeed = null as PriceFeed
   }
   public async init() {
     // init the token mint
@@ -56,6 +61,26 @@ export class Accounts {
       TOKEN_PROGRAM_ID
     )).publicKey  as MintPubKey;
     this.lpSaberUsdcUsdt.vault = new Vault(this.lpSaberUsdcUsdt.mint);
+
+    const usdcMint = (await SPLToken.createMint(
+      programStablePool.provider.connection,
+      (programStablePool.provider.wallet as Wallet).payer as Signer,
+      programStablePool.provider.wallet.publicKey,
+      null,
+      6,
+      TOKEN_PROGRAM_ID
+    )).publicKey as MintPubKey;
+    const usdtMint = (await SPLToken.createMint(
+      programStablePool.provider.connection,
+      (programStablePool.provider.wallet as Wallet).payer as Signer,
+      programStablePool.provider.wallet.publicKey,
+      null,
+      6,
+      TOKEN_PROGRAM_ID
+    )).publicKey as MintPubKey;
+    this.usdcPriceFeed = new PriceFeed(usdcMint, 103000000)
+    this.usdtPriceFeed = new PriceFeed(usdtMint, 102000000)
+    
   }
   public async initQuarry() {
     console.log("Initializing Quarry........")

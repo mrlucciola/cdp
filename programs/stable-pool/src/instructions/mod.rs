@@ -17,6 +17,12 @@ pub use withdraw_collateral::*;
 pub mod borrow_usdx;
 pub use borrow_usdx::*;
 
+pub mod create_price_feed;
+pub use create_price_feed::*;
+
+pub mod update_price_feed;
+pub use update_price_feed::*;
+
 pub mod create_reward_vault;
 pub use create_reward_vault::*;
 

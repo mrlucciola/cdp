@@ -28,4 +28,7 @@ pub struct GlobalState {
     pub fee_deno: u128,
     /// The collateral per risk
     pub coll_per_risklv: [u64; 10],
+
+    /// this wallet only can update price feed
+    pub price_feed_updater: Pubkey,
 }

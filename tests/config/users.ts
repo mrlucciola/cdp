@@ -20,6 +20,7 @@ import {
 // import superKeyArr from "../../.config/testUser-super-keypair.json";
 import baseKeyArr from "../../.config/testUser-base-keypair.json";
 import testKeyArr from "../../.config/testUser-test-keypair.json";
+import priceFeedUpdaterKeyArr from "../../.config/testUser-priceFeedUpdater-keypair.json";
 import { StablePool } from "../../target/types/stable_pool";
 import * as constants from "../utils/constants";
 import {
@@ -41,7 +42,9 @@ const userBaseKeypair: web3.Keypair = web3.Keypair.fromSecretKey(
 const userTestKeypair: web3.Keypair = web3.Keypair.fromSecretKey(
   new Uint8Array(testKeyArr as any[])
 );
-
+const userPriceFeedUpdaterKeypair: web3.Keypair = web3.Keypair.fromSecretKey(
+  new Uint8Array(priceFeedUpdaterKeyArr as any[])
+);
 export const createAtaOnChain = async (
   userWallet: Wallet,
   ata: ATA,
@@ -128,10 +131,12 @@ export class Users {
   public base: User;
   public test: User;
   public super: User;
+  public priceFeedUpdater: User;
 
   constructor() {
     this.base = new User(userBaseKeypair);
     this.test = new User(userTestKeypair);
+    this.priceFeedUpdater = new User(userPriceFeedUpdaterKeypair);
     this.super = {
       wallet: programStablePool.provider.wallet as Wallet,
       provider: programStablePool.provider,
@@ -145,6 +150,7 @@ export class Users {
     await this.base.addToken(mintPubKey, "lpSaber", 200_000_000);
     await this.test.init(mintPubKey);
     await this.test.addToken(mintPubKey, "lpSaber", 200_000_000);
+    await this.priceFeedUpdater.init(mintPubKey);
   }
 }
 

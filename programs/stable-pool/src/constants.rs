@@ -23,3 +23,7 @@ pub const DEFAULT_RATIOS: [u64; 10] = [
     88105727, // C
     86206897, // D
 ];
+
+
+pub const PRICE_FEED_SEED: &[u8] = b"PRICE_FEED_SEED";
+pub const PRICE_DECIMALS: u64 = 100000000;
