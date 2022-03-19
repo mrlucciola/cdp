@@ -31,7 +31,7 @@ pub enum StablePoolError {
 
     #[msg("This function works on devnet only")]
     InvalidCluster,
-
+    
     #[msg("TVL Exceeded")]
     TVLExceeded,
 
@@ -44,6 +44,9 @@ pub enum StablePoolError {
     #[msg("User Debt Ceiling Exceeded")]
     UserDebtCeilingExceeded,
 
+    #[msg("Can't withdraw due to debt")]
+    WithdrawNotAllowedWithDebt,
+
     #[msg("Transfer amount is invalid")]
     InvalidTransferAmount,
 
@@ -55,4 +58,5 @@ pub enum StablePoolError {
 
     #[msg("Reward Mint should be more than one")]
     InvalidRewardMintCount,
+
 }

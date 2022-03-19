@@ -64,6 +64,7 @@ pub mod stable_pool {
     ) -> Result<()> {
         create_trove::handle(ctx, trove_bump, ata_trove_bump, ceiling)
     }
+
     pub fn deposit_collateral(ctx: Context<DepositCollateral>, deposit_amount: u64) -> Result<()> {
         deposit_collateral::handle(ctx, deposit_amount)
     }
@@ -76,7 +77,10 @@ pub mod stable_pool {
 
     /// THIS IS NOT COMPLETE, please see note on the contract fxn (search `BorrowUsdx<'info>`)
     #[access_control(is_global_state_paused(&ctx.accounts.global_state))]
-    pub fn borrow_usdx(ctx: Context<BorrowUsdx>, borrow_amount: u64) -> Result<()> {
+    pub fn borrow_usdx(
+        ctx: Context<BorrowUsdx>,
+        borrow_amount: u64,
+    ) -> Result<()> {
         borrow_usdx::handle(ctx, borrow_amount)
     }
     pub fn create_reward_vault(ctx: Context<CreateUserRewardVault>) -> Result<()> {

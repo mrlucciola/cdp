@@ -4,8 +4,6 @@ pub const MINT_USDX_SEED: &[u8] = b"MINT_USDX_SEED";
 pub const USER_USDX_SEED: &[u8] = b"USER_USDX_SEED";
 pub const VAULT_SEED: &[u8] = b"VAULT_SEED";
 pub const TROVE_SEED: &[u8] = b"TROVE_SEED";
-pub const MINER_VAULT_SEED: &[u8] = b"MINER_VAULT_SEED";
-pub const TROVE_REWARD_SEED: &[u8] = b"TROVE_REWARD_SEED";
 
 // numbers
 pub const USDX_DECIMALS: u8 = 6;

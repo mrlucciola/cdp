@@ -12,8 +12,8 @@ import { TokenAmount, Token as SToken, createInitMintInstructions, u64, SPLToken
 import { SBR_DECIMAL, USDCUSDT_DECIMAL } from "../utils/constants";
 import { getAcctBalance } from "../utils/fxns";
 import { expectTX } from "@saberhq/chai-solana";
-
 const programStablePool = workspace.StablePool as Program<StablePool>;
+
 const DEFAULT_HARD_CAP = 1_000_000_000_000;
 
 export class Accounts {
@@ -36,7 +36,9 @@ export class Accounts {
   public minterKey: PublicKey;
 
   public quarryKey: PublicKey;
-  
+
+  public sbrFeeCollector: PublicKey;
+
   constructor() {
     // init global state acct
     this.global = new GlobalStateAcct();
@@ -52,6 +54,7 @@ export class Accounts {
   }
   public async init() {
     // init the token mint
+    
     this.lpSaberUsdcUsdt.mint = (await SPLToken.createMint(
       programStablePool.provider.connection,
       (programStablePool.provider.wallet as Wallet).payer as Signer,
@@ -90,7 +93,7 @@ export class Accounts {
     this.quarrySdk = QuarrySDK.load({
       provider: this.quarryProvider,
     });
-
+    
     const rewardsMintKP = Keypair.generate();
 
     let baseToken = SToken.fromMint(rewardsMintKP.publicKey, SBR_DECIMAL);
@@ -132,12 +135,12 @@ export class Accounts {
 
     let rewarder = await this.quarrySdk.mine.loadRewarderWrapper(rewarderKey);
     const rate_tx = rewarder.setAnnualRewards({
-      newAnnualRate: new u64(1000_000_000),
+      newAnnualRate: new u64(1000_000_000_000),
     });
     await rate_tx.confirm();
     console.log("Passed setting Annual Rewards");
 
-    const allowance = new u64(1_000_000);
+    const allowance = new u64(1_000_000_000);
 
     let txMinter = await this.quarrySdk.mintWrapper.newMinterWithAllowance(
       mintWrapperKey,
@@ -158,7 +161,7 @@ export class Accounts {
     console.log("Passed creating quarry ->" + [quarryKey]);
 
     let quarry = await rewarder.getQuarry(usdcUsdtLPToken);
-    const share_tx = await quarry.setRewardsShare(new u64(100_000));
+    const share_tx = await quarry.setRewardsShare(new u64(100_000_000));
     share_tx.confirm();
 
     console.log("Passed setting rewardsShare for the Quarry");

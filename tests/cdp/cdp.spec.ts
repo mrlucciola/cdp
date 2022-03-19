@@ -19,7 +19,7 @@ import {
   createVaultPASS,
 } from "./createVault";
 import { createTroveFAIL_Duplicate, createTrovePASS } from "./createTrove";
-import { Trove } from "../utils/interfaces";
+import { Miner, Trove } from "../utils/interfaces";
 import { 
   depositCollateralFAIL_NotEnoughTokens,
   depositCollateralPASS,
@@ -35,6 +35,12 @@ import * as constants from "../utils/constants";
 import { updatePriceFeedFAIL_NotUpdater, updatePriceFeedPASS } from "./updatePriceFeed";
 import { createOracledFAIL_Duplicate, createOraclePASS } from "./createPriceFeed";
 import { createTroveRewardVault } from "./createRewardVault";
+import { createSaberUser, defaultAccounts } from "../saber/create_user";
+import { QUARRY_ADDRESSES } from "@quarryprotocol/quarry-sdk";
+import { depositToSaber } from "../saber/deposit";
+import { withdrawFromSaber } from "../saber/withdraw";
+import { harvestFromSaber } from "../saber/harvest";
+import { sleep } from "@saberhq/token-utils";
 
 // init env
 chaiUse(chaiAsPromised);
@@ -48,7 +54,6 @@ describe("cdp core test suite", async () => {
   // Configure the client to use the local cluster.
   const provider = programStablePool.provider;
   setProvider(provider);
-
   before(async () => {
     accounts = new Accounts();
     await accounts.init();
@@ -57,7 +62,6 @@ describe("cdp core test suite", async () => {
     users = new Users();
     await users.init(accounts.lpSaberUsdcUsdt.mint);
   });
-
   // pre-global state tests
   it("FAIL: Create vault without global state", async () => {
     await createVaultFAIL_noGlobalState(
@@ -203,7 +207,7 @@ describe("cdp core test suite", async () => {
   it("PASS: Deposit Collateral", async () => {
     // mint tokens to the user's account first
     await users.base.tokens.lpSaber.ata.mintToATA(
-      10 * 10 ** 9, // decimals for this mint = 9
+      10 * 10 ** constants.USDCUSDT_DECIMAL, // decimals for this mint = 9
       users.super,
       accounts.lpSaberUsdcUsdt.mint
     );
@@ -243,10 +247,30 @@ describe("cdp core test suite", async () => {
   });
   it("PASS: Create trove ataReward", async () => {
     await createTroveRewardVault(
-        users.base.wallet,
-        users.base.provider.connection,
-        users.base.tokens.lpSaber.trove,
-        accounts.lpSaberUsdcUsdt.vault,
-        accounts.sbr.publicKey)
+      users.base.wallet,
+      users.base.provider.connection,
+      users.base.tokens.lpSaber.trove,
+      accounts.lpSaberUsdcUsdt.vault,
+      accounts.sbr.publicKey)
   });
+  before(async () =>{
+    users.base.miner = new Miner(
+      users.base.tokens.lpSaber.trove,
+      accounts.quarryKey,
+      accounts.lpSaberUsdcUsdt.mint
+    );
+    console.log(users.base.miner);
+  })
+  it("PASS: Create Quarry Miner", async () => {
+    await createSaberUser(
+      users.base.wallet,
+      users.base.provider.connection,
+      users.base.tokens.lpSaber.trove,
+      accounts.lpSaberUsdcUsdt.vault,
+      accounts.rewarderKey,
+      accounts.quarryKey,
+      users.base.miner,
+      accounts.lpSaberUsdcUsdt.mint)
+  });
+
 });

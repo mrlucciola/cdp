@@ -21,6 +21,8 @@ import { airdropSol, getAssocTokenAcct } from "./fxns";
 import { TestTokens } from "./types";
 import { createAtaOnChain, deriveAndInitAta, mintToAta } from "../config/users";
 import { mintTo, burn, Account as SPLTokenAccount, getAccount } from "@solana/spl-token";
+import { findMinerAddress, QUARRY_ADDRESSES } from "@quarryprotocol/quarry-sdk";
+import { findProgramAddressSync } from "@project-serum/anchor/dist/cjs/utils/pubkey";
 
 // init
 const programStablePool = workspace.StablePool as Program<StablePool>;
@@ -228,11 +230,26 @@ export class Trove extends BaseAcct {
     // get ata info
     this.ata = new ATA(this.pubKey, mintPubKey);
     this.ataRewards = rewardMints.map((mint) => new ATA(this.pubKey, mint));
-
   }
   // public async getAccount(): Promise<IdlAccounts<StablePool>["trove"]> {
   //   return await this.getAccount();
   // }
+}
+export class Miner {
+  pubkey: PublicKey;
+  bump: number;
+  ata: ATA;
+  constructor(trove: Trove, quarryKey: PublicKey, mintKey: MintPubKey) {
+    [this.pubkey, this.bump] = findProgramAddressSync(
+      [
+        Buffer.from(utils.bytes.utf8.encode("Miner")),
+        quarryKey.toBytes(),
+        trove.pubKey.toBytes(),
+      ],
+      QUARRY_ADDRESSES.Mine
+    );
+    this.ata = new ATA(this.pubkey, mintKey);
+  }
 }
 
 export class GlobalStateAcct extends BaseAcct {
@@ -286,7 +303,9 @@ export class User {
   tokens?: {
     usdx?: UserToken;
     lpSaber?: UserToken; // this doesnt get created until the pass case for trove
+    ataSBRKey?: PublicKey;
   };
+  miner?: any;
   constructor(keypair: Keypair) {
     this.wallet = new Wallet(keypair);
     this.provider = new Provider(

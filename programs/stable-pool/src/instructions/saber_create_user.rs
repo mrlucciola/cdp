@@ -24,15 +24,15 @@ impl<'info> CreateQuarryMiner<'info> {
             StablePoolError::InvalidSaberPlatform
         );
 
-        let vault_key = vault.key();
-        let owner_key = self.payer.key();
+        let mint_key = self.trove.mint;
+        let owner_key = self.authority.key();
         let bump = pda_bump(&[
             TROVE_SEED.as_ref(),
-            vault_key.as_ref(),
+            mint_key.as_ref(),
             owner_key.as_ref(),]);
         let authority_seeds = &[
             TROVE_SEED.as_ref(),
-            vault_key.as_ref(),
+            mint_key.as_ref(),
             owner_key.as_ref(),
             &[bump],
         ];
@@ -42,14 +42,15 @@ impl<'info> CreateQuarryMiner<'info> {
             self.miner.to_account_info(),
             self.quarry.to_account_info(),
             self.miner_vault.to_account_info(),
-            self.token_mint.to_account_info(),
+            self.mint.to_account_info(),
             self.rewarder.to_account_info(),
-            self.payer.to_account_info(),
+            self.authority.to_account_info(),
             self.token_program.to_account_info(),
             self.system_program.to_account_info(),
             authority_seeds,
             miner_bump,
-        )
+        )?;
+        Ok(())
     }
 }
 
@@ -58,12 +59,13 @@ impl<'info> CreateQuarryMiner<'info> {
 pub struct CreateQuarryMiner<'info> {
     // can we rename to authority
     #[account(mut)]
-    pub payer: Signer<'info>,
+    pub authority: Signer<'info>,
 
     #[account(
         mut,
-        seeds = [VAULT_SEED, token_mint.key().as_ref()],
+        seeds = [VAULT_SEED, vault.mint.as_ref()],
         bump,
+        has_one = mint
     )]
     pub vault: Box<Account<'info, Vault>>,
 
@@ -71,26 +73,29 @@ pub struct CreateQuarryMiner<'info> {
         mut,
         seeds = [
             TROVE_SEED,
-            vault.key().as_ref(),
-            payer.key().as_ref(),
+            trove.mint.as_ref(),
+            authority.key().as_ref(),
         ],
         bump,
+        has_one = mint
     )]
     pub trove: Box<Account<'info, Trove>>,
 
 
+    ///CHECK: intialized in quarry contract
     #[account(mut)]
-    pub miner: Account<'info, Miner>,
+    pub miner: AccountInfo<'info>,
 
     #[account(mut)]
     pub quarry: Account<'info, Quarry>,
     pub rewarder: Account<'info, Rewarder>,
-    pub token_mint: Account<'info, Mint>,
+
+    pub mint: Account<'info, Mint>,
 
     #[account(init,
-        associated_token::mint = token_mint,
+        associated_token::mint = mint,
         associated_token::authority = miner,
-        payer = payer,
+        payer = authority,
     )]
     pub miner_vault: Box<Account<'info, TokenAccount>>,
 

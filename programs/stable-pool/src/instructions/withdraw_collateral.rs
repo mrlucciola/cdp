@@ -15,6 +15,10 @@ pub fn handle(ctx: Context<WithdrawCollateral>, withdraw_amount: u64) -> Result<
         ctx.accounts.ata_trove.amount > 0,
         StablePoolError::InvalidTransferAmount,
     );
+    require!(
+        ctx.accounts.trove.debt == 0,
+        StablePoolError::WithdrawNotAllowedWithDebt,
+    );
     let trove_seeds: &[&[&[u8]]] = &[&[
         &TROVE_SEED,
         &ctx.accounts.mint.key().to_bytes(),

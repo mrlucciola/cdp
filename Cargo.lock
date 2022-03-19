@@ -1001,18 +1001,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "quarry-merge-mine"
-version = "3.0.0"
-dependencies = [
- "anchor-lang",
- "anchor-spl",
- "num-traits",
- "quarry-mine 3.0.0",
- "quarry-mint-wrapper 3.0.0",
- "vipers",
-]
-
-[[package]]
 name = "quarry-mine"
 version = "3.0.0"
 dependencies = [
@@ -1057,34 +1045,6 @@ checksum = "c4e60652a19b72968bf788fe24a01ea72db17eb4569405d5251c12d02a1be674"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
- "vipers",
-]
-
-[[package]]
-name = "quarry-operator"
-version = "3.0.0"
-dependencies = [
- "anchor-lang",
- "anchor-spl",
- "quarry-mine 3.0.0",
- "vipers",
-]
-
-[[package]]
-name = "quarry-redeemer"
-version = "3.0.0"
-dependencies = [
- "anchor-lang",
- "anchor-spl",
- "vipers",
-]
-
-[[package]]
-name = "quarry-registry"
-version = "3.0.0"
-dependencies = [
- "anchor-lang",
- "quarry-mine 3.0.0",
  "vipers",
 ]
 

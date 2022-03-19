@@ -13,7 +13,7 @@ pub struct GlobalState {
     pub mint_usdx_bump: u8,
     pub tvl_limit: u64,
     /// The total value locked on the CDP platform, in USD
-    ///
+    /// 
     /// TODO: determine how to calculate tvl from each type of collateral
     pub tvl_usd: u64,
     /// Is contract paused
