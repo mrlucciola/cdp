@@ -14,15 +14,15 @@ import {
   LAMPORTS_PER_SOL,
   PublicKey,
 } from "@solana/web3.js";
+// TODO: figure out why linter throws error. It is because of quarry's package
+import { mintTo, burn, getAccount } from "@solana/spl-token";
+import { QUARRY_ADDRESSES } from "@quarryprotocol/quarry-sdk";
 // local
 import * as constants from "./constants";
 import { StablePool } from "../../target/types/stable_pool";
-import { airdropSol, getAssocTokenAcct } from "./fxns";
+import { airdropSol, getAssocTokenAcct, getPda } from "./fxns";
 import { TestTokens } from "./types";
-import { createAtaOnChain, deriveAndInitAta, mintToAta } from "../config/users";
-import { mintTo, burn, Account as SPLTokenAccount, getAccount } from "@solana/spl-token";
-import { findMinerAddress, QUARRY_ADDRESSES } from "@quarryprotocol/quarry-sdk";
-import { findProgramAddressSync } from "@project-serum/anchor/dist/cjs/utils/pubkey";
+import { createAtaOnChain, mintToAta } from "../config/users";
 
 // init
 const programStablePool = workspace.StablePool as Program<StablePool>;
@@ -118,12 +118,11 @@ export class ATA extends Acct {
   }
 }
 
-
 /**
  * Token Account
- * @property bump? - u8: Bump/nonce for ATA
+ * @property bump? - u8: Bump/nonce
  */
- export class TokenAcc extends Acct {
+export class TokenAcc extends Acct {
   bump?: number;
 
   constructor(tokenAccountPubkey: PublicKey) {
@@ -131,7 +130,10 @@ export class ATA extends Acct {
     this.pubKey = tokenAccountPubkey;
   }
   public async getTokenAccount() {
-    return await getAccount(programStablePool.provider.connection, this.pubKey);
+    return await getAccount(
+      programStablePool.provider.connection,
+      this.pubKey
+    );
   }
   public async getBalance() {
     return await programStablePool.provider.connection.getTokenAccountBalance(
@@ -139,7 +141,6 @@ export class ATA extends Acct {
     );
   }
 }
-
 
 /**
  * User Token object
@@ -181,7 +182,6 @@ export class MintPubKey extends PublicKey {}
 
 export class TokenAccPubKey extends PublicKey {}
 
-
 export interface ITokenAccount {
   mint: MintPubKey;
   vault: Vault;
@@ -200,8 +200,7 @@ export class BaseAcct extends PDA {
 
   constructor(constant: string, seedsArr: Buffer[]) {
     super();
-
-    const [pubkey, bump] = utils.publicKey.findProgramAddressSync(
+    const [pubkey, bump] = getPda(
       [Buffer.from(constant), ...seedsArr],
       programStablePool.programId
     );
@@ -235,19 +234,31 @@ export class Trove extends BaseAcct {
   //   return await this.getAccount();
   // }
 }
+
+// TODO: is this MVP?
 export class Miner {
   pubkey: PublicKey;
   bump: number;
   ata: ATA;
   constructor(trove: Trove, quarryKey: PublicKey, mintKey: MintPubKey) {
-    [this.pubkey, this.bump] = findProgramAddressSync(
+    const [pubkey, bump] = getPda(
       [
         Buffer.from(utils.bytes.utf8.encode("Miner")),
-        quarryKey.toBytes(),
-        trove.pubKey.toBytes(),
+        quarryKey.toBuffer(),
+        trove.pubKey.toBuffer(),
       ],
       QUARRY_ADDRESSES.Mine
     );
+    this.pubkey = pubkey;
+    this.bump = bump;
+    // [this.pubkey, this.bump] = findProgramAddressSync(
+    //   [
+    //     Buffer.from(utils.bytes.utf8.encode("Miner")),
+    //     quarryKey.toBytes(),
+    //     trove.pubKey.toBytes(),
+    //   ],
+    //   QUARRY_ADDRESSES.Mine
+    // );
     this.ata = new ATA(this.pubkey, mintKey);
   }
 }
@@ -279,18 +290,18 @@ export class Vault extends BaseAcct {
 }
 
 /**
- * PriceFeed
+ * PriceFeed <- this is incorrectly named. Should be Oracle
+ * TODO: change price-feed to oracle
  * @property mint - PublicKey: Public Key for token mint
  * @property price - price for this feed
  */
 export class PriceFeed extends BaseAcct {
   mint: MintPubKey;
   price: number;
-  constructor(
-    mint: MintPubKey,
-    price: number
-    ) {
+  constructor(mint: MintPubKey, price: number) {
+    // TODO: price-feed -> oracle
     super(constants.PRICE_FEED_SEED, [mint.toBuffer()]);
+    // TODO: price-feed -> oracle
     this.type = "priceFeed";
     this.mint = mint;
     this.price = price;

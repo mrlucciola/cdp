@@ -1,15 +1,19 @@
 import { PlatformType } from "./types";
 
 // seeds
-export const USDX_TOKEN_SEED = "USDX_TOKEN_SEED"; // prev: USD_TOKEN_TAG & usd-token
-// TODO: integrate below seeds
-export const GLOBAL_STATE_SEED = "GLOBAL_STATE_SEED"; // prev: GLOBAL_STATE_TAG & global-state-seed
+export const USDX_TOKEN_SEED = "USDX_TOKEN_SEED";
+export const GLOBAL_STATE_SEED = "GLOBAL_STATE_SEED";
 export const VAULT_SEED = "VAULT_SEED";
-export const TROVE_SEED = "TROVE_SEED"; // prev: USER_TROVE_TAG -> USER_TROVE -> "TROVE" & user-trove -> TROVE_SEED
-export const MINT_USDX_SEED = "MINT_USDX_SEED"; // prev: USD_MINT_TAG & usd-mint
+export const TROVE_SEED = "TROVE_SEED";
+export const MINT_USDX_SEED = "MINT_USDX_SEED";
+// delete?
 export const USDX_MINT = "USDX_MINT";
 export const USDX_TOKEN = "USDX_TOKEN";
 export const USER_TROVE_POOL = "USER_TROVE_POOL";
+export const ORACLE_SEED = "ORACLE_SEED";
+// TODO: delete // TODO: price-feed -> oracle
+export const PRICE_FEED_SEED = "PRICE_FEED_SEED";
+
 // default values
 export const DEPOSIT_AMOUNT = 100_000_000; // 0.1 Saber LP
 export const TVL_LIMIT = 1_000_000_000;
@@ -25,5 +29,4 @@ export const PLATFORM_TYPE_SABER: PlatformType = 2;
 // export const PLATFORM_TYPE_MERCURIAL: PlatformType = 3; // TODO: Add in another ticket. jkap 2/13/22
 export const PLATFORM_TYPE_UNKNOWN: PlatformType = 4;
 
-export const PRICE_FEED_SEED = "PRICE_FEED_SEED";
 export const PRICE_DECIMALS = 100000000;

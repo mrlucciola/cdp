@@ -1,17 +1,7 @@
 // libraries
-import {
-  Program,
-  Provider,
-  web3,
-  workspace,
-  Wallet,
-} from "@project-serum/anchor";
-import {
-  PublicKey,
-  LAMPORTS_PER_SOL,
-  Transaction,
-  Connection,
-} from "@solana/web3.js";
+import { Program, web3, workspace, Wallet } from "@project-serum/anchor";
+import { PublicKey, Transaction, Connection } from "@solana/web3.js";
+// TODO: fix saber linter issue
 import {
   createAssociatedTokenAccountInstruction,
   mintTo,
@@ -22,14 +12,7 @@ import baseKeyArr from "../../.config/testUser-base-keypair.json";
 import testKeyArr from "../../.config/testUser-test-keypair.json";
 import priceFeedUpdaterKeyArr from "../../.config/testUser-priceFeedUpdater-keypair.json";
 import { StablePool } from "../../target/types/stable_pool";
-import * as constants from "../utils/constants";
-import {
-  airdropSol,
-  getAcctBalance,
-  getAssocTokenAcct,
-  getPda,
-  handleTxn,
-} from "../utils/fxns";
+import { getAcctBalance, getAssocTokenAcct, handleTxn } from "../utils/fxns";
 import { ATA, MintPubKey, User, UserToken, Vault } from "../utils/interfaces";
 import { TestTokens, TestUsers } from "../utils/types";
 
@@ -42,6 +25,7 @@ const userBaseKeypair: web3.Keypair = web3.Keypair.fromSecretKey(
 const userTestKeypair: web3.Keypair = web3.Keypair.fromSecretKey(
   new Uint8Array(testKeyArr as any[])
 );
+// TODO: price-feed -> oracle
 const userPriceFeedUpdaterKeypair: web3.Keypair = web3.Keypair.fromSecretKey(
   new Uint8Array(priceFeedUpdaterKeyArr as any[])
 );
@@ -131,12 +115,12 @@ export class Users {
   public base: User;
   public test: User;
   public super: User;
-  public priceFeedUpdater: User;
+  public priceFeedUpdater: User;// TODO: price-feed -> oracle
 
   constructor() {
     this.base = new User(userBaseKeypair);
     this.test = new User(userTestKeypair);
-    this.priceFeedUpdater = new User(userPriceFeedUpdaterKeypair);
+    this.priceFeedUpdater = new User(userPriceFeedUpdaterKeypair);// TODO: price-feed -> oracle
     this.super = {
       wallet: programStablePool.provider.wallet as Wallet,
       provider: programStablePool.provider,
@@ -150,7 +134,7 @@ export class Users {
     await this.base.addToken(mintPubKey, "lpSaber", 200_000_000);
     await this.test.init(mintPubKey);
     await this.test.addToken(mintPubKey, "lpSaber", 200_000_000);
-    await this.priceFeedUpdater.init(mintPubKey);
+    await this.priceFeedUpdater.init(mintPubKey);// TODO: price-feed -> oracle
   }
 }
 

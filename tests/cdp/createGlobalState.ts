@@ -5,9 +5,6 @@ import {
   workspace,
   BN,
   IdlAccounts,
-  IdlError,
-  ProgramError,
-  eventDiscriminator
 } from "@project-serum/anchor";
 import { SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 // solana imports
@@ -23,7 +20,11 @@ import { PriceFeed, User } from "../utils/interfaces";
 
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
-const createGlobalStateCall = async (accounts: Accounts, user: User, priceFeedUpdater: User) => {
+const createGlobalStateCall = async (
+  accounts: Accounts,
+  user: User,
+  priceFeedUpdater: User// TODO: price-feed -> oracle
+) => {
   // create txn
   const txn = new web3.Transaction();
   // add instruction
@@ -33,7 +34,7 @@ const createGlobalStateCall = async (accounts: Accounts, user: User, priceFeedUp
       accounts.usdx.bump, // prev: mintUsdNonce
       new BN(constants.TVL_LIMIT),
       new BN(constants.GLOBAL_DEBT_CEILING),
-      priceFeedUpdater.wallet.publicKey,
+      priceFeedUpdater.wallet.publicKey,// TODO: price-feed -> oracle
       {
         accounts: {
           authority: user.wallet.publicKey,
@@ -60,7 +61,7 @@ const createGlobalStateCall = async (accounts: Accounts, user: User, priceFeedUp
  */
 export const createGlobalStatePASS = async (
   superUser: User,
-  priceFeedUpdater: User,
+  priceFeedUpdater: User,// TODO: price-feed -> oracle
   accounts: Accounts
 ) => {
   assert(
@@ -76,7 +77,8 @@ export const createGlobalStatePASS = async (
   //    So, we will just pass on recreating global state if it exists
   const globalStateAccttInfo: web3.AccountInfo<Buffer> =
     await accounts.global.getAccountInfo();
-  if (!globalStateAccttInfo) await createGlobalStateCall(accounts, superUser, priceFeedUpdater);
+  if (!globalStateAccttInfo)
+    await createGlobalStateCall(accounts, superUser, priceFeedUpdater);// TODO: price-feed -> oracle
   else console.log("GLOBAL STATE ALREADY CREATED", globalStateAccttInfo);
 
   // check if global state exists
@@ -116,7 +118,7 @@ export const createGlobalStatePASS = async (
  */
 export const createGlobalStateFAIL_auth = async (
   notSuperUser: User,
-  priceFeedUpdater: User,
+  priceFeedUpdater: User,// TODO: price-feed -> oracle
   accounts: Accounts
 ) => {
   assert(
@@ -137,7 +139,7 @@ export const createGlobalStateFAIL_auth = async (
   );
   // 2003 = ConstraintRaw - the check that says pubkey needs to == superuser
   await expect(
-    createGlobalStateCall(accounts, notSuperUser, priceFeedUpdater)
+    createGlobalStateCall(accounts, notSuperUser, priceFeedUpdater)// TODO: price-feed -> oracle
   ).to.be.rejectedWith("2003");
 };
 
@@ -147,12 +149,12 @@ export const createGlobalStateFAIL_auth = async (
  * @param accounts
  */
 export const createGlobalStateFAIL_duplicate = async (
-  priceFeedUpdater: User,
+  priceFeedUpdater: User,// TODO: price-feed -> oracle
   superUser: User,
   accounts: Accounts
 ) => {
   // check if global state exists. It should exist for this test
-  accounts.global.getAccountInfo()
+  accounts.global.getAccountInfo();
   const globalStateAccountInfo: web3.AccountInfo<Buffer> =
     await superUser.provider.connection.getAccountInfo(accounts.global.pubKey);
 
@@ -162,9 +164,8 @@ export const createGlobalStateFAIL_duplicate = async (
   );
 
   // { code: 0, byte: 0x0, name: "AlreadyInUse", msg: "Already in use" },
-  await expect(createGlobalStateCall(accounts, superUser, priceFeedUpdater)).to.be.rejectedWith(
-    "0",
-    "AlreadyInUse: Already in use"
-  );
+  await expect(
+    createGlobalStateCall(accounts, superUser, priceFeedUpdater)// TODO: price-feed -> oracle
+  ).to.be.rejectedWith("0", "AlreadyInUse: Already in use");
   console.log("^ this is failing correctly, as expected");
 };

@@ -4,6 +4,9 @@ pub const MINT_USDX_SEED: &[u8] = b"MINT_USDX_SEED";
 pub const USER_USDX_SEED: &[u8] = b"USER_USDX_SEED";
 pub const VAULT_SEED: &[u8] = b"VAULT_SEED";
 pub const TROVE_SEED: &[u8] = b"TROVE_SEED";
+pub const ORACLE_SEED: &[u8] = b"ORACLE_SEED";
+// TODO: delete
+pub const PRICE_FEED_SEED: &[u8] = b"PRICE_FEED_SEED";
 
 // numbers
 pub const USDX_DECIMALS: u8 = 6;
@@ -22,6 +25,4 @@ pub const DEFAULT_RATIOS: [u64; 10] = [
     86206897, // D
 ];
 
-
-pub const PRICE_FEED_SEED: &[u8] = b"PRICE_FEED_SEED";
 pub const PRICE_DECIMALS: u64 = 100000000;

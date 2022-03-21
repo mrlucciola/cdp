@@ -1,19 +1,14 @@
+// TODO: delete, improperly named. migrated to 'create_oracle'
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, TokenAccount, Token, Mint};
+use anchor_spl::token::{self, Mint, Token};
 
 // local
-use crate::{
-    constants::*,
-    states::*,
-    utils::*
-};
+use crate::{constants::*, states::*};
 
-pub fn handle(
-    ctx: Context<CreatePriceFeed>,
-    price: u64, 
-) -> Result<()> {
+// TODO: price-feed -> oracle
+pub fn handle(ctx: Context<CreatePriceFeed>, price: u64) -> Result<()> {
     let price_feed = &mut ctx.accounts.price_feed;
-    
+
     price_feed.mint = ctx.accounts.mint.key();
     price_feed.decimals = ctx.accounts.mint.decimals;
     price_feed.last_updated_time = ctx.accounts.clock.unix_timestamp as u64;
@@ -24,7 +19,7 @@ pub fn handle(
 
 #[derive(Accounts)]
 #[instruction(price: u64)]
-pub struct CreatePriceFeed<'info> {
+pub struct CreatePriceFeed<'info> {// TODO: price-feed -> oracle
     #[account(mut)]
     pub authority: Signer<'info>,
     #[account(
@@ -39,7 +34,7 @@ pub struct CreatePriceFeed<'info> {
         bump,
         payer = authority
     )]
-    pub price_feed: Box<Account<'info, PriceFeed>>,
+    pub price_feed: Box<Account<'info, PriceFeed>>,// TODO: price-feed -> oracle
 
     pub mint: Box<Account<'info, Mint>>,
 

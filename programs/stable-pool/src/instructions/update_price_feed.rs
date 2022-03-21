@@ -1,33 +1,26 @@
+// TODO: remove this file. improperly named. migrated to 'report_price'
 use anchor_lang::prelude::*;
 
-use anchor_spl::token::{ Mint, TokenAccount};
+use anchor_spl::token::Mint;
 // local
-use crate::{
-    constants::*,
-    states::*,
-    utils::*,
-    errors::*
-};
+use crate::{constants::*, errors::*, states::*};
 
-pub fn handle(
-    ctx: Context<UpdatePriceFeed>,
-    price: u64, 
-) -> Result<()> {
-    require!(ctx.accounts.global_state.price_feed_updater == ctx.accounts.authority.key(), StablePoolError::NotAllowed);
-        
+// TODO: price-feed -> oracle
+pub fn handle(ctx: Context<UpdatePriceFeed>, price: u64) -> Result<()> {
+    require!(
+        ctx.accounts.global_state.price_feed_updater == ctx.accounts.authority.key(),
+        StablePoolError::NotAllowed
+    );
+
     let price_feed = &mut ctx.accounts.price_feed;
     price_feed.price = price;
     price_feed.last_updated_time = ctx.accounts.clock.unix_timestamp as u64;
     Ok(())
 }
 
-
-
-
-
 #[derive(Accounts)]
 #[instruction(price: u64)]
-pub struct UpdatePriceFeed<'info> {
+pub struct UpdatePriceFeed<'info> {// TODO: price-feed -> oracle
     #[account(mut)]
     pub authority: Signer<'info>,
     #[account(
@@ -40,7 +33,7 @@ pub struct UpdatePriceFeed<'info> {
         seeds = [PRICE_FEED_SEED,mint.key().as_ref()],
         bump,
     )]
-    pub price_feed: Box<Account<'info, PriceFeed>>,
+    pub price_feed: Box<Account<'info, PriceFeed>>,// TODO: price-feed -> oracle
     pub mint: Box<Account<'info, Mint>>,
     pub clock: Sysvar<'info, Clock>,
 }

@@ -86,12 +86,25 @@ pub mod stable_pool {
     pub fn create_reward_vault(ctx: Context<CreateUserRewardVault>) -> Result<()> {
         ctx.accounts.handle()
     }
-    pub fn create_saber_user(ctx: Context<CreateQuarryMiner>, miner_bump: u8) -> Result<()> {
-        ctx.accounts.handle(miner_bump)
+    /**
+     * previously incorrectly named as create_saber_user
+     * creates quarry miner account
+     */
+    pub fn create_quarry_miner(ctx: Context<CreateQuarryMiner>, miner_bump: u8) -> Result<()> {
+        create_quarry_miner::handle(ctx, miner_bump)
     }
     pub fn create_oracle(ctx: Context<CreatePriceFeed>, price: u64) -> Result<()> {
         create_price_feed::handle(ctx, price)
     }
+    /**
+     * Report the current price of a token in USD to on-chain oracle account.
+     * Price of a token comes from authorized reporter (backend)
+     * Account should correspond only to the token being reported on, and should include the time of update
+
+     * report_price() - aliases: ReportPrice, report_price
+     * prev: UpdatePriceFeed, update_price_feed
+     * // TODO: price-feed -> oracle
+     */
     pub fn report_price(ctx: Context<UpdatePriceFeed>, price: u64) -> Result<()> {
         update_price_feed::handle(ctx, price)
     }

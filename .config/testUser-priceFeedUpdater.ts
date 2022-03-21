@@ -7,4 +7,5 @@ export const publicAddrStr: string =
 // no secret key
 export const secretKey: string = "";
 export const keypairU8: Uint8Array = new Uint8Array(testKeyArr as any[]);
+// TODO: price-feed -> oracle
 export const userPriceFeedUpdaterKeypair: Keypair = Keypair.fromSecretKey(keypairU8);

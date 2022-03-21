@@ -29,6 +29,8 @@ pub struct GlobalState {
     /// The collateral per risk
     pub coll_per_risklv: [u64; 10],
 
-    /// this wallet only can update price feed
+    /// only this wallet can report new prices to the oracle accounts
+    pub oracle_reporter: Pubkey,
+    // TODO: delete
     pub price_feed_updater: Pubkey,
 }

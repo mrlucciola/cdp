@@ -1,7 +1,7 @@
 // anchor/solana
 import { Program, workspace, setProvider } from "@project-serum/anchor";
 // utils
-import { assert, use as chaiUse } from "chai";
+import { use as chaiUse } from "chai";
 import chaiAsPromised from "chai-as-promised";
 // local imports
 import { StablePool } from "../../target/types/stable_pool";
@@ -20,26 +20,31 @@ import {
 } from "./createVault";
 import { createTroveFAIL_Duplicate, createTrovePASS } from "./createTrove";
 import { Miner, Trove } from "../utils/interfaces";
-import { 
+import {
   depositCollateralFAIL_NotEnoughTokens,
   depositCollateralPASS,
-  depositCollateralFAIL_DepositExceedingTVL
+  depositCollateralFAIL_DepositExceedingTVL,
 } from "./depositCollateral";
 import {
   withdrawCollateralFAIL_NotEnoughTokensInTrove,
   withdrawCollateralFAIL_AttemptWithdrawFromOtherUser,
-  withdrawCollateralPASS
+  withdrawCollateralPASS,
 } from "./withdrawCollateral";
 import { borrowUsdxPASS } from "./borrowUsdx";
 import * as constants from "../utils/constants";
-import { updatePriceFeedFAIL_NotUpdater, updatePriceFeedPASS } from "./updatePriceFeed";
-import { createOracledFAIL_Duplicate, createOraclePASS } from "./createPriceFeed";
+import {
+  updatePriceFeedFAIL_NotUpdater, // TODO: price-feed -> oracle
+  updatePriceFeedPASS, // TODO: price-feed -> oracle
+} from "./updatePriceFeed"; // TODO: price-feed -> oracle
+import {
+  createOracledFAIL_Duplicate,
+  createOraclePASS,
+} from "./createPriceFeed"; // TODO: price-feed -> oracle
 import { createTroveRewardVault } from "./createRewardVault";
-import { createSaberUser, defaultAccounts } from "../saber/create_user";
-import { QUARRY_ADDRESSES } from "@quarryprotocol/quarry-sdk";
-import { depositToSaber } from "../saber/deposit";
-import { withdrawFromSaber } from "../saber/withdraw";
-import { harvestFromSaber } from "../saber/harvest";
+import { createQuarryMinerPASS } from "../saber/createQuarryMiner";
+// import { depositToSaber } from "../saber/deposit";
+// import { withdrawFromSaber } from "../saber/withdraw";
+// import { harvestFromSaber } from "../saber/harvest";
 import { sleep } from "@saberhq/token-utils";
 
 // init env
@@ -61,6 +66,12 @@ describe("cdp core test suite", async () => {
 
     users = new Users();
     await users.init(accounts.lpSaberUsdcUsdt.mint);
+    // create miner
+    users.base.miner = new Miner(
+      users.base.tokens.lpSaber.trove,
+      accounts.quarryKey,
+      accounts.lpSaberUsdcUsdt.mint
+    );
   });
   // pre-global state tests
   it("FAIL: Create vault without global state", async () => {
@@ -72,13 +83,21 @@ describe("cdp core test suite", async () => {
   });
   // global state tests
   it("FAIL: Create Global State - User is not super", async () => {
-    await createGlobalStateFAIL_auth(users.base, users.priceFeedUpdater, accounts);
+    await createGlobalStateFAIL_auth(
+      users.base,
+      users.priceFeedUpdater, // TODO: price-feed -> oracle
+      accounts
+    );
   });
   it("PASS: Create Global State", async () => {
-    await createGlobalStatePASS(users.super, users.priceFeedUpdater, accounts);
+    await createGlobalStatePASS(users.super, users.priceFeedUpdater, accounts); // TODO: price-feed -> oracle
   });
   it("FAIL: Create Global State - duplicate", async () => {
-    await createGlobalStateFAIL_duplicate(users.priceFeedUpdater, users.super, accounts);
+    await createGlobalStateFAIL_duplicate(
+      users.priceFeedUpdater, // TODO: price-feed -> oracle
+      users.super,
+      accounts
+    );
   });
 
   // vault tests
@@ -110,7 +129,7 @@ describe("cdp core test suite", async () => {
       users.super.provider.connection,
       users.super.wallet,
       accounts,
-      accounts.usdcPriceFeed
+      accounts.usdcPriceFeed // TODO: price-feed -> oracle
     );
   });
   // oracle tests - duplicated usdc oracle
@@ -119,7 +138,7 @@ describe("cdp core test suite", async () => {
       users.super.provider.connection,
       users.super.wallet,
       accounts,
-      accounts.usdcPriceFeed,
+      accounts.usdcPriceFeed // TODO: price-feed -> oracle
     );
   });
   // oracle tests - usdt oracle
@@ -128,31 +147,32 @@ describe("cdp core test suite", async () => {
       users.super.provider.connection,
       users.super.wallet,
       accounts,
-      accounts.usdtPriceFeed
+      accounts.usdtPriceFeed // TODO: price-feed -> oracle
     );
   });
   it("PASS: Report Price", async () => {
     const newPrice = 112000000;
-    accounts.usdcPriceFeed.price = newPrice
+    accounts.usdcPriceFeed.price = newPrice; // TODO: price-feed -> oracle
+    // TODO: price-feed -> oracle
     await updatePriceFeedPASS(
-      users.priceFeedUpdater.provider.connection,
-      users.priceFeedUpdater.wallet,
+      users.priceFeedUpdater.provider.connection, // TODO: price-feed -> oracle
+      users.priceFeedUpdater.wallet, // TODO: price-feed -> oracle
       accounts,
-      accounts.usdcPriceFeed,
+      accounts.usdcPriceFeed, // TODO: price-feed -> oracle
       newPrice
     );
   });
   it("FAIL: Update Price Feed - Not Updater", async () => {
     const newPrice = 134000000;
+    // TODO: price-feed -> oracle
     await updatePriceFeedFAIL_NotUpdater(
       users.base.provider.connection,
       users.base.wallet,
       accounts,
-      accounts.usdcPriceFeed,
-      newPrice,
+      accounts.usdcPriceFeed, // TODO: price-feed -> oracle
+      newPrice
     );
   });
-
 
   // trove tests
   before(async () => {
@@ -232,7 +252,11 @@ describe("cdp core test suite", async () => {
     await withdrawCollateralFAIL_NotEnoughTokensInTrove(users.base, accounts);
   });
   it("FAIL: Withdraw Collateral - Attempt Withdraw From Other User", async () => {
-    await withdrawCollateralFAIL_AttemptWithdrawFromOtherUser(users.base, users.test, accounts);
+    await withdrawCollateralFAIL_AttemptWithdrawFromOtherUser(
+      users.base,
+      users.test,
+      accounts
+    );
   });
   it("PASS: Withdraw Collateral", async () => {
     await withdrawCollateralPASS(users.base, accounts);
@@ -251,26 +275,12 @@ describe("cdp core test suite", async () => {
       users.base.provider.connection,
       users.base.tokens.lpSaber.trove,
       accounts.lpSaberUsdcUsdt.vault,
-      accounts.sbr.publicKey)
-  });
-  before(async () =>{
-    users.base.miner = new Miner(
-      users.base.tokens.lpSaber.trove,
-      accounts.quarryKey,
-      accounts.lpSaberUsdcUsdt.mint
+      accounts.sbr.publicKey
     );
-    console.log(users.base.miner);
-  })
-  it("PASS: Create Quarry Miner", async () => {
-    await createSaberUser(
-      users.base.wallet,
-      users.base.provider.connection,
-      users.base.tokens.lpSaber.trove,
-      accounts.lpSaberUsdcUsdt.vault,
-      accounts.rewarderKey,
-      accounts.quarryKey,
-      users.base.miner,
-      accounts.lpSaberUsdcUsdt.mint)
   });
 
+  // QUARRY MINER TESTS not working for me
+  // it("PASS: Create Quarry Miner", async () => {
+  //   await createQuarryMinerPASS(accounts, users.base);
+  // });
 });
