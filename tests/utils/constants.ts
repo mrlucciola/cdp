@@ -19,6 +19,7 @@ export const DEPOSIT_AMOUNT = 100_000_000; // 0.1 Saber LP
 export const TVL_LIMIT = 1_000_000_000;
 export const GLOBAL_DEBT_CEILING = 15_000_000;
 export const VAULT_DEBT_CEILING = 10_000_000;
+export const USER_DEBT_CEILING = 5_000_000;
 export const USDX_DECIMAL = 6;
 export const SBR_DECIMAL = 6;
 export const USDCUSDT_DECIMAL = 9;

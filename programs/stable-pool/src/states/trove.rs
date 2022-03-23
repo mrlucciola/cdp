@@ -9,7 +9,6 @@ pub struct Trove {
     pub ata_trove_bump: u8,
     pub ata_trove: Pubkey,
     pub debt: u64,
-    pub debt_ceiling: u64,
     pub reward_token_a: Pubkey,
     pub reward_token_b: Pubkey,
     pub trove_reward_token_a_nonce: u8, // can we get rid of this?

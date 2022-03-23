@@ -23,7 +23,8 @@ pub mod stable_pool {
         global_state_bump: u8,
         mint_usdx_bump: u8,
         tvl_limit: u64,
-        debt_ceiling: u64,
+        global_debt_ceiling: u64,
+        user_debt_ceiling: u64,
         price_feed_updater: Pubkey,
     ) -> Result<()> {
         create_global_state::handle(
@@ -31,7 +32,8 @@ pub mod stable_pool {
             global_state_bump,
             mint_usdx_bump,
             tvl_limit,
-            debt_ceiling,
+            global_debt_ceiling,
+            user_debt_ceiling,
             price_feed_updater,
         )
     }
@@ -60,9 +62,8 @@ pub mod stable_pool {
         ctx: Context<CreateTrove>,
         trove_bump: u8,
         ata_trove_bump: u8,
-        ceiling: u64,
     ) -> Result<()> {
-        create_trove::handle(ctx, trove_bump, ata_trove_bump, ceiling)
+        create_trove::handle(ctx, trove_bump, ata_trove_bump)
     }
 
     pub fn deposit_collateral(ctx: Context<DepositCollateral>, deposit_amount: u64) -> Result<()> {
@@ -107,5 +108,25 @@ pub mod stable_pool {
      */
     pub fn report_price(ctx: Context<UpdatePriceFeed>, price: u64) -> Result<()> {
         update_price_feed::handle(ctx, price)
+    }
+
+    pub fn set_global_tvl_limit(
+        ctx: Context<SetGlobalTvlLimit>,
+        limit: u64,
+    ) -> Result<()> {
+        set_global_tvl_limit::handle(ctx, limit)
+    }
+
+    pub fn set_global_debt_ceiling(
+        ctx: Context<SetGlobalDebtCeiling>,
+        ceiling: u64,
+    ) -> Result<()> {
+        set_global_debt_ceiling::handle(ctx, ceiling)
+    }
+    pub fn set_user_debt_ceiling(
+        ctx: Context<SetUserDebtCeiling>,
+        ceiling: u64,
+    ) -> Result<()> {
+        set_user_debt_ceiling::handle(ctx, ceiling)
     }
 }

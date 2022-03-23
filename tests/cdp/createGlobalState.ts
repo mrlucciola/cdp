@@ -34,6 +34,7 @@ const createGlobalStateCall = async (
       accounts.usdx.bump, // prev: mintUsdNonce
       new BN(constants.TVL_LIMIT),
       new BN(constants.GLOBAL_DEBT_CEILING),
+      new BN(constants.USER_DEBT_CEILING),
       priceFeedUpdater.wallet.publicKey,// TODO: price-feed -> oracle
       {
         accounts: {
@@ -105,8 +106,12 @@ export const createGlobalStatePASS = async (
     "Err: Global-state-total-debt != 0"
   );
   assert(
-    globalState.debtCeiling.toNumber() == constants.GLOBAL_DEBT_CEILING,
-    `GlobalState Debt Ceiling: ${globalState.debtCeiling} Debt Ceiling: ${constants.GLOBAL_DEBT_CEILING}`
+    globalState.globalDebtCeiling.toNumber() == constants.GLOBAL_DEBT_CEILING,
+    `GlobalState Global Debt Ceiling: ${globalState.globalDebtCeiling} Global Debt Ceiling: ${constants.GLOBAL_DEBT_CEILING}`
+  );
+  assert(
+    globalState.userDebtCeiling.toNumber() == constants.USER_DEBT_CEILING,
+    `GlobalState User Debt Ceiling: ${globalState.userDebtCeiling} User Debt Ceiling: ${constants.USER_DEBT_CEILING}`
   );
 };
 

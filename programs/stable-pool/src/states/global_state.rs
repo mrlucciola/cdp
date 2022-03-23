@@ -20,8 +20,10 @@ pub struct GlobalState {
     pub paused: u8,
     /// The total amount of debt minted via the CDP platform, in USDx
     pub total_debt: u64,
-    /// The limit on mintable debt, in USDx
-    pub debt_ceiling: u64,
+    /// The limit on the global mintable debt, in USDx
+    pub global_debt_ceiling: u64,
+    /// The limit on the mintable debt per user, in USDx
+    pub user_debt_ceiling: u64,
     /// The numerator for calculating the fee
     pub fee_num: u128,
     /// The denomenator for calculating the fee

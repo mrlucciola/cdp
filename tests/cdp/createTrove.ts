@@ -45,8 +45,6 @@ const createTroveCall = async (
       trove.bump,
       // ata_trove_bump
       trove.ata.bump,
-      // ceiling
-      new BN(0),
       {
         accounts: {
           // account that owns the trove

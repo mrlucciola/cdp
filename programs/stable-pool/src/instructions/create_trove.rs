@@ -13,14 +13,12 @@ pub fn handle(
     trove_bump: u8,
     ata_trove_bump: u8,
     // vault_bump: u8,
-    ceiling: u64,
 ) -> Result<()> {
     ctx.accounts.trove.mint = ctx.accounts.mint.key();
     ctx.accounts.trove.locked_coll_balance = 0;
     ctx.accounts.trove.debt = 0;
     ctx.accounts.trove.bump = trove_bump;
     ctx.accounts.trove.ata_trove_bump = ata_trove_bump;
-    ctx.accounts.trove.debt_ceiling = ceiling;
     // ctx.accounts.trove.vault = ctx.accounts.vault;
     // ctx.accounts.trove.vault_bump = ctx.accounts.vault;
 
