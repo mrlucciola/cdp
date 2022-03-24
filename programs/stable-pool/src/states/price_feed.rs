@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 
 #[account]
 #[derive(Default)]
-pub struct PriceFeed {// TODO: price-feed -> oracle
+pub struct Oracle {
     pub mint: Pubkey,
     pub price: u64,
     pub decimals: u8,

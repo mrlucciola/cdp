@@ -8,13 +8,13 @@ import {
 } from "@solana/spl-token";
 // local
 // import superKeyArr from "../../.config/testUser-super-keypair.json";
-import baseKeyArr from "../../.config/testUser-base-keypair.json";
-import testKeyArr from "../../.config/testUser-test-keypair.json";
-import priceFeedUpdaterKeyArr from "../../.config/testUser-priceFeedUpdater-keypair.json";
 import { StablePool } from "../../target/types/stable_pool";
 import { getAcctBalance, getAssocTokenAcct, handleTxn } from "../utils/fxns";
 import { ATA, MintPubKey, User, UserToken, Vault } from "../utils/interfaces";
 import { TestTokens, TestUsers } from "../utils/types";
+import baseKeyArr from "../../.config/testUser-base-keypair.json";
+import testKeyArr from "../../.config/testUser-test-keypair.json";
+import { userOracleReporterKeypair } from "../../.config/testUser-oracleReporter";
 
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
@@ -24,10 +24,6 @@ const userBaseKeypair: web3.Keypair = web3.Keypair.fromSecretKey(
 );
 const userTestKeypair: web3.Keypair = web3.Keypair.fromSecretKey(
   new Uint8Array(testKeyArr as any[])
-);
-// TODO: price-feed -> oracle
-const userPriceFeedUpdaterKeypair: web3.Keypair = web3.Keypair.fromSecretKey(
-  new Uint8Array(priceFeedUpdaterKeyArr as any[])
 );
 export const createAtaOnChain = async (
   userWallet: Wallet,
@@ -115,12 +111,12 @@ export class Users {
   public base: User;
   public test: User;
   public super: User;
-  public priceFeedUpdater: User;// TODO: price-feed -> oracle
+  public oracleReporter: User;
 
   constructor() {
     this.base = new User(userBaseKeypair);
     this.test = new User(userTestKeypair);
-    this.priceFeedUpdater = new User(userPriceFeedUpdaterKeypair);// TODO: price-feed -> oracle
+    this.oracleReporter = new User(userOracleReporterKeypair);
     this.super = {
       wallet: programStablePool.provider.wallet as Wallet,
       provider: programStablePool.provider,
@@ -134,7 +130,7 @@ export class Users {
     await this.base.addToken(mintPubKey, "lpSaber", 200_000_000);
     await this.test.init(mintPubKey);
     await this.test.addToken(mintPubKey, "lpSaber", 200_000_000);
-    await this.priceFeedUpdater.init(mintPubKey);// TODO: price-feed -> oracle
+    await this.oracleReporter.init(mintPubKey);
   }
 }
 

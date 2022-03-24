@@ -11,7 +11,7 @@ pub fn handle(
     tvl_limit: u64,
     global_debt_ceiling: u64,
     user_debt_ceiling: u64,
-    price_feed_updater: Pubkey
+    oracle_reporter: Pubkey
 ) -> Result<()> {
     ctx.accounts.global_state.bump = global_state_bump;
     ctx.accounts.global_state.authority = ctx.accounts.authority.key();
@@ -25,7 +25,7 @@ pub fn handle(
     ctx.accounts.global_state.fee_num = DEFAULT_FEE_NUMERATOR;
     ctx.accounts.global_state.fee_deno = DEFAULT_FEE_DENOMINATOR;
     ctx.accounts.global_state.coll_per_risklv = DEFAULT_RATIOS;
-    ctx.accounts.global_state.price_feed_updater = price_feed_updater;
+    ctx.accounts.global_state.oracle_reporter = oracle_reporter;
 
     Ok(())
 }

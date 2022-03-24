@@ -15,7 +15,7 @@ import { assert, expect } from "chai";
 // local
 import { StablePool } from "../../target/types/stable_pool";
 import { handleTxn } from "../utils/fxns";
-import { MintPubKey, PriceFeed } from "../utils/interfaces"; // TODO: price-feed -> oracle
+import { MintPubKey, Oracle } from "../utils/interfaces";
 import { Accounts } from "../config/accounts";
 // program
 const programStablePool = workspace.StablePool as Program<StablePool>;
@@ -25,26 +25,25 @@ const programStablePool = workspace.StablePool as Program<StablePool>;
  * @param userConnection
  * @param userWallet
  * @param accounts
- * @param priceFeed// TODO: price-feed -> oracle
+ * @param oracle
  * @returns
  */
-const updatePriceFeedCall = async (
-  // TODO: price-feed -> oracle
+const reportPriceToOracleCall = async (
   userConnection: Connection,
   userWallet: Wallet,
   accounts: Accounts,
-  priceFeed: PriceFeed // TODO: price-feed -> oracle
+  oracle: Oracle
 ) => {
   const txn = new web3.Transaction().add(
-    programStablePool.instruction.reportPrice(
+    programStablePool.instruction.reportPriceToOracle(
       // price of token
-      new BN(priceFeed.price), // TODO: price-feed -> oracle
+      new BN(oracle.price),
       {
         accounts: {
           authority: userWallet.publicKey,
           globalState: accounts.global.pubKey,
-          priceFeed: priceFeed.pubKey, // TODO: price-feed -> oracle
-          mint: priceFeed.mint, // TODO: price-feed -> oracle
+          oracle: oracle.pubKey,
+          mint: oracle.mint,
           clock: SYSVAR_CLOCK_PUBKEY,
         },
       }
@@ -56,49 +55,44 @@ const updatePriceFeedCall = async (
 
   return receipt;
 };
+
 /**
  * Pass when attempting to make a price feed that doesn't exist
  * @param userConnection
  * @param userWallet
  * @param accounts
- * @param priceFeed// TODO: price-feed -> oracle
+ * @param oracle
  */
-// TODO: price-feed -> oracle
-export const updatePriceFeedPASS = async (
+
+export const reportPriceToOraclePASS = async (
   userConnection: Connection,
   userWallet: Wallet,
   accounts: Accounts,
-  priceFeed: PriceFeed, // TODO: price-feed -> oracle
+  oracle: Oracle,
   newPrice: number
 ) => {
-  priceFeed.price = newPrice; // TODO: price-feed -> oracle
+  oracle.price = newPrice;
   // derive price feed account
   console.log("getting price feed acct");
 
   // get price feed info
-  // TODO: price-feed -> oracle
-  const priceFeedInfo: web3.AccountInfo<Buffer> =
-    await priceFeed.getAccountInfo();
+  const priceFeedInfo: web3.AccountInfo<Buffer> = await oracle.getAccountInfo();
 
   // if not created, create price feed
-  // TODO: price-feed -> oracle
   if (priceFeedInfo) {
-    // TODO: price-feed -> oracle
-    const confirmation = await updatePriceFeedCall(
+    const confirmation = await reportPriceToOracleCall(
       userConnection,
       userWallet,
       accounts,
-      priceFeed // TODO: price-feed -> oracle
+      oracle
     );
     console.log("updated price feed: ", confirmation);
   } else console.log("this price feed was not created");
 
   // get the price feed state
-  // TODO: price-feed -> oracle
-  const priceFeedAcc: IdlAccounts<StablePool>["priceFeed"] =
-    await priceFeed.getAccount();
+  const priceFeedAcc: IdlAccounts<StablePool>["oracle"] =
+    await oracle.getAccount();
   // asserts
-  // TODO: price-feed -> oracle
   assert(priceFeedAcc.price.toNumber() == newPrice, "price mismatch");
 };
 
@@ -107,41 +101,35 @@ export const updatePriceFeedPASS = async (
  * @param userConnection
  * @param userWallet
  * @param accounts
- * @param priceFeed// TODO: price-feed -> oracle
+ * @param oracle
  */
-// TODO: price-feed -> oracle
-export const updatePriceFeedFAIL_NotUpdater = async (
+export const reportPriceToOracleFAIL_NotUpdater = async (
   userConnection: Connection,
   userWallet: Wallet,
   accounts: Accounts,
-  priceFeed: PriceFeed, // TODO: price-feed -> oracle
+  oracle: Oracle,
   newPrice: number
 ) => {
-  priceFeed.price = newPrice; // TODO: price-feed -> oracle
+  oracle.price = newPrice;
   // get price feed info
-  // TODO: price-feed -> oracle
   const priceFeedInfo: web3.AccountInfo<Buffer> =
-    await getProvider().connection.getAccountInfo(priceFeed.pubKey);
-  // TODO: price-feed -> oracle
+    await getProvider().connection.getAccountInfo(oracle.pubKey);
   assert(priceFeedInfo, "Price feed does not exist, test needs a price feed");
 
   // get the price feed state
-  const priceFeedAccBefore: IdlAccounts<StablePool>["priceFeed"] =
-    await priceFeed.getAccount(); // TODO: price-feed -> oracle
+  const priceFeedAccBefore: IdlAccounts<StablePool>["oracle"] =
+    await oracle.getAccount();
 
   await expect(
-    // TODO: price-feed -> oracle
-    updatePriceFeedCall(userConnection, userWallet, accounts, priceFeed),
-    "No error was thrown was trying to update price feed by not updater"
+    reportPriceToOracleCall(userConnection, userWallet, accounts, oracle),
+    "No error was thrown was trying to update oracle by not oracle reporter"
   ).is.rejected;
 
   // get the price feed state
-  // TODO: price-feed -> oracle
-  const priceFeedAcc: IdlAccounts<StablePool>["priceFeed"] =
-    await priceFeed.getAccount();
+  const priceFeedAcc: IdlAccounts<StablePool>["oracle"] =
+    await oracle.getAccount();
   // asserts
   assert(
-    // TODO: price-feed -> oracle
     priceFeedAcc.price.toNumber() == priceFeedAccBefore.price.toNumber(),
     "price mismatch"
   );

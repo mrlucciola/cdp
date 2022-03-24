@@ -33,15 +33,15 @@ import {
 import { borrowUsdxPASS } from "./borrowUsdx";
 import * as constants from "../utils/constants";
 import {
-  updatePriceFeedFAIL_NotUpdater, // TODO: price-feed -> oracle
-  updatePriceFeedPASS, // TODO: price-feed -> oracle
-} from "./updatePriceFeed"; // TODO: price-feed -> oracle
+  reportPriceToOracleFAIL_NotUpdater,
+  reportPriceToOraclePASS,
+} from "./reportPriceToOracle";
 import {
   createOracledFAIL_Duplicate,
   createOraclePASS,
-} from "./createPriceFeed"; // TODO: price-feed -> oracle
+} from "./createOracle";
 import { createTroveRewardVault } from "./createRewardVault";
-import { createQuarryMinerPASS } from "../saber/createQuarryMiner";
+import { createSaberQuarryMinerPASS } from "../saber/createSaberQuarryMiner";
 // import { depositToSaber } from "../saber/deposit";
 // import { withdrawFromSaber } from "../saber/withdraw";
 // import { harvestFromSaber } from "../saber/harvest";
@@ -85,16 +85,16 @@ describe("cdp core test suite", async () => {
   it("FAIL: Create Global State - User is not super", async () => {
     await createGlobalStateFAIL_auth(
       users.base,
-      users.priceFeedUpdater, // TODO: price-feed -> oracle
+      users.oracleReporter,
       accounts
     );
   });
   it("PASS: Create Global State", async () => {
-    await createGlobalStatePASS(users.super, users.priceFeedUpdater, accounts); // TODO: price-feed -> oracle
+    await createGlobalStatePASS(users.super, users.oracleReporter, accounts);
   });
   it("FAIL: Create Global State - duplicate", async () => {
     await createGlobalStateFAIL_duplicate(
-      users.priceFeedUpdater, // TODO: price-feed -> oracle
+      users.oracleReporter,
       users.super,
       accounts
     );
@@ -129,7 +129,7 @@ describe("cdp core test suite", async () => {
       users.super.provider.connection,
       users.super.wallet,
       accounts,
-      accounts.usdcPriceFeed // TODO: price-feed -> oracle
+      accounts.usdcOracle
     );
   });
   // oracle tests - duplicated usdc oracle
@@ -138,7 +138,7 @@ describe("cdp core test suite", async () => {
       users.super.provider.connection,
       users.super.wallet,
       accounts,
-      accounts.usdcPriceFeed // TODO: price-feed -> oracle
+      accounts.usdcOracle
     );
   });
   // oracle tests - usdt oracle
@@ -147,29 +147,27 @@ describe("cdp core test suite", async () => {
       users.super.provider.connection,
       users.super.wallet,
       accounts,
-      accounts.usdtPriceFeed // TODO: price-feed -> oracle
+      accounts.usdtOracle
     );
   });
   it("PASS: Report Price", async () => {
     const newPrice = 112000000;
-    accounts.usdcPriceFeed.price = newPrice; // TODO: price-feed -> oracle
-    // TODO: price-feed -> oracle
-    await updatePriceFeedPASS(
-      users.priceFeedUpdater.provider.connection, // TODO: price-feed -> oracle
-      users.priceFeedUpdater.wallet, // TODO: price-feed -> oracle
+    accounts.usdcOracle.price = newPrice;
+    await reportPriceToOraclePASS(
+      users.oracleReporter.provider.connection,
+      users.oracleReporter.wallet,
       accounts,
-      accounts.usdcPriceFeed, // TODO: price-feed -> oracle
+      accounts.usdcOracle,
       newPrice
     );
   });
   it("FAIL: Update Price Feed - Not Updater", async () => {
     const newPrice = 134000000;
-    // TODO: price-feed -> oracle
-    await updatePriceFeedFAIL_NotUpdater(
+    await reportPriceToOracleFAIL_NotUpdater(
       users.base.provider.connection,
       users.base.wallet,
       accounts,
-      accounts.usdcPriceFeed, // TODO: price-feed -> oracle
+      accounts.usdcOracle,
       newPrice
     );
   });
@@ -281,6 +279,6 @@ describe("cdp core test suite", async () => {
 
   // QUARRY MINER TESTS not working for me
   // it("PASS: Create Quarry Miner", async () => {
-  //   await createQuarryMinerPASS(accounts, users.base);
+  //   await createSaberQuarryMinerPASS(accounts, users.base);
   // });
 });

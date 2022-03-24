@@ -5,9 +5,9 @@ pub mod constants;
 pub mod enums;
 pub mod errors;
 pub mod instructions;
+pub mod saber_utils;
 pub mod states;
 pub mod utils;
-pub mod saber_utils;
 
 use crate::instructions::*;
 use crate::utils::is_global_state_paused;
@@ -25,7 +25,7 @@ pub mod stable_pool {
         tvl_limit: u64,
         global_debt_ceiling: u64,
         user_debt_ceiling: u64,
-        price_feed_updater: Pubkey,
+        oracle_reporter: Pubkey,
     ) -> Result<()> {
         create_global_state::handle(
             ctx,
@@ -34,7 +34,7 @@ pub mod stable_pool {
             tvl_limit,
             global_debt_ceiling,
             user_debt_ceiling,
-            price_feed_updater,
+            oracle_reporter,
         )
     }
 
@@ -66,9 +66,17 @@ pub mod stable_pool {
         create_trove::handle(ctx, trove_bump, ata_trove_bump)
     }
 
+    /**
+     * 
+     */
     pub fn deposit_collateral(ctx: Context<DepositCollateral>, deposit_amount: u64) -> Result<()> {
         deposit_collateral::handle(ctx, deposit_amount)
     }
+
+    /**
+     * Withdraw collateral from trove
+     * TODO: rename trove -> vault
+     */
     pub fn withdraw_collateral(
         ctx: Context<WithdrawCollateral>,
         withdraw_amount: u64,
@@ -76,57 +84,83 @@ pub mod stable_pool {
         withdraw_collateral::handle(ctx, withdraw_amount)
     }
 
-    /// THIS IS NOT COMPLETE, please see note on the contract fxn (search `BorrowUsdx<'info>`)
+    /**
+     * THIS IS NOT COMPLETE, please see note on the contract fxn (search `BorrowUsdx<'info>`)
+     * 
+     * Create the Saber liquidity miner account set by the Quarry framework/standard
+     *
+     * aliases: create_saber_quarry_miner, CreateSaberQuarryMiner, createSaberQuarryMiner
+     * prev aliases: create_quarry_miner, CreateQuarryMiner, createQuarryMiner
+     */
     #[access_control(is_global_state_paused(&ctx.accounts.global_state))]
-    pub fn borrow_usdx(
-        ctx: Context<BorrowUsdx>,
-        borrow_amount: u64,
-    ) -> Result<()> {
+    pub fn borrow_usdx(ctx: Context<BorrowUsdx>, borrow_amount: u64) -> Result<()> {
         borrow_usdx::handle(ctx, borrow_amount)
     }
+
     pub fn create_reward_vault(ctx: Context<CreateUserRewardVault>) -> Result<()> {
         ctx.accounts.handle()
     }
+
     /**
-     * previously incorrectly named as create_saber_user
+     * Create the Saber liquidity miner account set by the Quarry framework/standard
+     *
+     * aliases: create_saber_quarry_miner, CreateSaberQuarryMiner, createSaberQuarryMiner
+     * prev aliases: create_quarry_miner, CreateQuarryMiner, createQuarryMiner
+     */
+    pub fn create_saber_quarry_miner(
+        ctx: Context<CreateSaberQuarryMiner>,
+        miner_bump: u8,
+    ) -> Result<()> {
+        create_saber_quarry_miner::handle(ctx, miner_bump)
+    }
+
+    /**
+     * Create the account that holds the active USD price for a given single asset (i.e. USDC)
+     *
+     * aliases: create_oracle, CreateOracle, createOracle
+     * previous aliases: create_price_feed, CreatePriceFeed, createPriceFeed
      * creates quarry miner account
      */
-    pub fn create_quarry_miner(ctx: Context<CreateQuarryMiner>, miner_bump: u8) -> Result<()> {
-        create_quarry_miner::handle(ctx, miner_bump)
+    pub fn create_oracle(ctx: Context<CreateOracle>, price: u64) -> Result<()> {
+        create_oracle::handle(ctx, price)
     }
-    pub fn create_oracle(ctx: Context<CreatePriceFeed>, price: u64) -> Result<()> {
-        create_price_feed::handle(ctx, price)
-    }
+
     /**
      * Report the current price of a token in USD to on-chain oracle account.
      * Price of a token comes from authorized reporter (backend)
      * Account should correspond only to the token being reported on, and should include the time of update
-
-     * report_price() - aliases: ReportPrice, report_price
-     * prev: UpdatePriceFeed, update_price_feed
-     * // TODO: price-feed -> oracle
+     *
+     * Should only be called by the program deployer
+     *
+     * aliases: ReportPriceToOracle, report_price_to_oracle
+     * prev: ReportPrice, report_price, reportPrice
+     * prev: UpdatePriceFeed, update_price_feed, updatePriceFeed
      */
-    pub fn report_price(ctx: Context<UpdatePriceFeed>, price: u64) -> Result<()> {
-        update_price_feed::handle(ctx, price)
+    pub fn report_price_to_oracle(ctx: Context<ReportPriceToOracle>, price: u64) -> Result<()> {
+        report_price_to_oracle::handle(ctx, price)
     }
 
-    pub fn set_global_tvl_limit(
-        ctx: Context<SetGlobalTvlLimit>,
-        limit: u64,
-    ) -> Result<()> {
+    /**
+     * Update the global state variable "global_tvl_limit"
+     * Should only be called by the program deployer
+     */
+    pub fn set_global_tvl_limit(ctx: Context<SetGlobalTvlLimit>, limit: u64) -> Result<()> {
         set_global_tvl_limit::handle(ctx, limit)
     }
 
-    pub fn set_global_debt_ceiling(
-        ctx: Context<SetGlobalDebtCeiling>,
-        ceiling: u64,
-    ) -> Result<()> {
+    /**
+     * Update the global state variable "global_debt_ceiling"
+     * Should only be called by the program deployer
+     */
+    pub fn set_global_debt_ceiling(ctx: Context<SetGlobalDebtCeiling>, ceiling: u64) -> Result<()> {
         set_global_debt_ceiling::handle(ctx, ceiling)
     }
-    pub fn set_user_debt_ceiling(
-        ctx: Context<SetUserDebtCeiling>,
-        ceiling: u64,
-    ) -> Result<()> {
+
+    /**
+     * Update the global state variable "user_debt_ceiling"
+     * Should only be called by the program deployer
+     */
+    pub fn set_user_debt_ceiling(ctx: Context<SetUserDebtCeiling>, ceiling: u64) -> Result<()> {
         set_user_debt_ceiling::handle(ctx, ceiling)
     }
 }

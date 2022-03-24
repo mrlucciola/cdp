@@ -1,4 +1,3 @@
-// TODO: fully replace saber_create_user because it was improperly named
 // libraries
 use anchor_lang::prelude::*;
 use anchor_spl::{
@@ -15,7 +14,7 @@ use crate::{
     states::{Trove, Vault},
 };
 
-pub fn handle(ctx: Context<CreateQuarryMiner>, miner_bump: u8) -> Result<()> {
+pub fn handle(ctx: Context<CreateSaberQuarryMiner>, miner_bump: u8) -> Result<()> {
     // this is not a user vault - bad prior naming convention, to be changed after MVP
     // let vault = ctx.accounts.vault.as_ref();
 
@@ -60,7 +59,7 @@ pub fn handle(ctx: Context<CreateQuarryMiner>, miner_bump: u8) -> Result<()> {
 
 #[derive(Accounts)]
 #[instruction(miner_bump:u8)]
-pub struct CreateQuarryMiner<'info> {
+pub struct CreateSaberQuarryMiner<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
 
@@ -104,9 +103,9 @@ pub struct CreateQuarryMiner<'info> {
 
     ///CHECK: It will be validated by the QuarryMine Contract
     pub quarry_program: AccountInfo<'info>,
-    // #[account(address = token::ID)]
+    #[account(address = token::ID)]
     pub token_program: Program<'info, Token>,
-    // #[account(address = associated_token::ID)]
+    #[account(address = associated_token::ID)]
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,

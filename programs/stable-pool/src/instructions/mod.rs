@@ -17,24 +17,17 @@ pub use withdraw_collateral::*;
 pub mod borrow_usdx;
 pub use borrow_usdx::*;
 
-pub mod create_price_feed;
-pub use create_price_feed::*;
+pub mod create_oracle;
+pub use create_oracle::*;
 
-// TODO: remove
-pub mod update_price_feed;
-pub use update_price_feed::*;
-
-pub mod report_price;
-pub use report_price::*;
+pub mod report_price_to_oracle;
+pub use report_price_to_oracle::*;
 
 pub mod create_reward_vault;
 pub use create_reward_vault::*;
 
-pub mod create_quarry_miner;
-pub use create_quarry_miner::*;
-// TODO: delete
-pub mod saber_create_user;
-pub use saber_create_user::*;
+pub mod create_saber_quarry_miner;
+pub use create_saber_quarry_miner::*;
 
 pub mod set_global_tvl_limit;
 pub use set_global_tvl_limit::*;

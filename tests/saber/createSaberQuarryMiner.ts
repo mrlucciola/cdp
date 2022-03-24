@@ -38,7 +38,7 @@ const programStablePool = workspace.StablePool as Program<StablePool>;
 /**
  * wasnt documented
  */
-const createQuarryMinerCall = async (
+const createSaberQuarryMinerCall = async (
   userConnection: Connection,
   userWallet: Wallet,
   trove: Trove,
@@ -49,7 +49,7 @@ const createQuarryMinerCall = async (
   tokenMint: MintPubKey
 ) => {
   const txn = new web3.Transaction().add(
-    programStablePool.instruction.createQuarryMiner(miner.bump, {
+    programStablePool.instruction.createSaberQuarryMiner(miner.bump, {
       accounts: {
         authority: userWallet.publicKey,
         vault: vault.pubKey,
@@ -77,8 +77,8 @@ const createQuarryMinerCall = async (
 /**
  * Pass when attempting to make a quarry miner that doesn't exist
  */
-export const createQuarryMinerPASS = async (accounts: Accounts, user: User) => {
-  const confirmation = await createQuarryMinerCall(
+export const createSaberQuarryMinerPASS = async (accounts: Accounts, user: User) => {
+  const confirmation = await createSaberQuarryMinerCall(
     user.provider.connection, // userConnection,
     user.wallet, // userWallet,
     user.tokens.lpSaber.trove, // trove,

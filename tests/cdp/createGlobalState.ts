@@ -16,14 +16,14 @@ import { handleTxn } from "../utils/fxns";
 import * as constants from "../utils/constants";
 import { Accounts } from "../config/accounts";
 import { StablePool } from "../../target/types/stable_pool";
-import { PriceFeed, User } from "../utils/interfaces";
+import { Oracle, User } from "../utils/interfaces";
 
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
 const createGlobalStateCall = async (
   accounts: Accounts,
   user: User,
-  priceFeedUpdater: User// TODO: price-feed -> oracle
+  oracleReporter: User
 ) => {
   // create txn
   const txn = new web3.Transaction();
@@ -35,7 +35,7 @@ const createGlobalStateCall = async (
       new BN(constants.TVL_LIMIT),
       new BN(constants.GLOBAL_DEBT_CEILING),
       new BN(constants.USER_DEBT_CEILING),
-      priceFeedUpdater.wallet.publicKey,// TODO: price-feed -> oracle
+      oracleReporter.wallet.publicKey,
       {
         accounts: {
           authority: user.wallet.publicKey,
@@ -62,7 +62,7 @@ const createGlobalStateCall = async (
  */
 export const createGlobalStatePASS = async (
   superUser: User,
-  priceFeedUpdater: User,// TODO: price-feed -> oracle
+  oracleReporter: User,
   accounts: Accounts
 ) => {
   assert(
@@ -79,7 +79,7 @@ export const createGlobalStatePASS = async (
   const globalStateAccttInfo: web3.AccountInfo<Buffer> =
     await accounts.global.getAccountInfo();
   if (!globalStateAccttInfo)
-    await createGlobalStateCall(accounts, superUser, priceFeedUpdater);// TODO: price-feed -> oracle
+    await createGlobalStateCall(accounts, superUser, oracleReporter);
   else console.log("GLOBAL STATE ALREADY CREATED", globalStateAccttInfo);
 
   // check if global state exists
@@ -123,7 +123,7 @@ export const createGlobalStatePASS = async (
  */
 export const createGlobalStateFAIL_auth = async (
   notSuperUser: User,
-  priceFeedUpdater: User,// TODO: price-feed -> oracle
+  oracleReporter: User,
   accounts: Accounts
 ) => {
   assert(
@@ -144,7 +144,7 @@ export const createGlobalStateFAIL_auth = async (
   );
   // 2003 = ConstraintRaw - the check that says pubkey needs to == superuser
   await expect(
-    createGlobalStateCall(accounts, notSuperUser, priceFeedUpdater)// TODO: price-feed -> oracle
+    createGlobalStateCall(accounts, notSuperUser, oracleReporter)
   ).to.be.rejectedWith("2003");
 };
 
@@ -154,7 +154,7 @@ export const createGlobalStateFAIL_auth = async (
  * @param accounts
  */
 export const createGlobalStateFAIL_duplicate = async (
-  priceFeedUpdater: User,// TODO: price-feed -> oracle
+  oracleReporter: User,
   superUser: User,
   accounts: Accounts
 ) => {
@@ -170,7 +170,7 @@ export const createGlobalStateFAIL_duplicate = async (
 
   // { code: 0, byte: 0x0, name: "AlreadyInUse", msg: "Already in use" },
   await expect(
-    createGlobalStateCall(accounts, superUser, priceFeedUpdater)// TODO: price-feed -> oracle
+    createGlobalStateCall(accounts, superUser, oracleReporter)
   ).to.be.rejectedWith("0", "AlreadyInUse: Already in use");
   console.log("^ this is failing correctly, as expected");
 };

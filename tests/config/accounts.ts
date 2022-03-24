@@ -26,7 +26,7 @@ import {
   MintPubKey,
   GlobalStateAcct,
   Vault,
-  PriceFeed,// TODO: price-feed -> oracle
+  Oracle,
 } from "../utils/interfaces";
 // local
 import { SBR_DECIMAL, USDCUSDT_DECIMAL } from "../utils/constants";
@@ -40,10 +40,8 @@ export class Accounts {
   public usdx: MintAcct;
   public lpSaberUsdcUsdt: ITokenAccount;
 
-  // TODO: pricefeed -> oracle
-  public usdcPriceFeed: PriceFeed;
-  // TODO: pricefeed -> oracle
-  public usdtPriceFeed: PriceFeed;
+  public usdcOracle: Oracle;
+  public usdtOracle: Oracle;
 
   public quarryPayer: Keypair;
   public quarryProvider: SaberProvider;
@@ -70,10 +68,8 @@ export class Accounts {
       vault: null as Vault,
       mint: null as PublicKey,
     };
-    // TODO: pricefeed -> oracle
-    this.usdcPriceFeed = null as PriceFeed;
-    // TODO: pricefeed -> oracle
-    this.usdtPriceFeed = null as PriceFeed;
+    this.usdcOracle = null as Oracle;
+    this.usdtOracle = null as Oracle;
   }
   public async init() {
     // init the token mint
@@ -109,10 +105,8 @@ export class Accounts {
         TOKEN_PROGRAM_ID
       )
     ).publicKey as MintPubKey;
-    // TODO: pricefeed -> oracle
-    this.usdcPriceFeed = new PriceFeed(usdcMint, 103000000);
-    // TODO: pricefeed -> oracle
-    this.usdtPriceFeed = new PriceFeed(usdtMint, 102000000);
+    this.usdcOracle = new Oracle(usdcMint, 103000000);
+    this.usdtOracle = new Oracle(usdtMint, 102000000);
   }
   public async initQuarry() {
     console.log("Initializing Quarry........");

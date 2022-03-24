@@ -11,8 +11,6 @@ export const USDX_MINT = "USDX_MINT";
 export const USDX_TOKEN = "USDX_TOKEN";
 export const USER_TROVE_POOL = "USER_TROVE_POOL";
 export const ORACLE_SEED = "ORACLE_SEED";
-// TODO: delete // TODO: price-feed -> oracle
-export const PRICE_FEED_SEED = "PRICE_FEED_SEED";
 
 // default values
 export const DEPOSIT_AMOUNT = 100_000_000; // 0.1 Saber LP

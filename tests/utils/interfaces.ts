@@ -130,10 +130,7 @@ export class TokenAcc extends Acct {
     this.pubKey = tokenAccountPubkey;
   }
   public async getTokenAccount() {
-    return await getAccount(
-      programStablePool.provider.connection,
-      this.pubKey
-    );
+    return await getAccount(programStablePool.provider.connection, this.pubKey);
   }
   public async getBalance() {
     return await programStablePool.provider.connection.getTokenAccountBalance(
@@ -290,19 +287,16 @@ export class Vault extends BaseAcct {
 }
 
 /**
- * PriceFeed <- this is incorrectly named. Should be Oracle
- * TODO: change price-feed to oracle
+ * Oracle <- this is incorrectly named. Should be Oracle
  * @property mint - PublicKey: Public Key for token mint
  * @property price - price for this feed
  */
-export class PriceFeed extends BaseAcct {
+export class Oracle extends BaseAcct {
   mint: MintPubKey;
   price: number;
   constructor(mint: MintPubKey, price: number) {
-    // TODO: price-feed -> oracle
-    super(constants.PRICE_FEED_SEED, [mint.toBuffer()]);
-    // TODO: price-feed -> oracle
-    this.type = "priceFeed";
+    super(constants.ORACLE_SEED, [mint.toBuffer()]);
+    this.type = "oracle";
     this.mint = mint;
     this.price = price;
   }

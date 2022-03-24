@@ -1,26 +1,23 @@
 // anchor imports
 import {
-  getProvider,
   Program,
   web3,
   workspace,
-  IdlAccounts,
   BN,
   Wallet,
 } from "@project-serum/anchor";
-import { Account, Connection, SystemProgram, SYSVAR_CLOCK_PUBKEY, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
+import { Connection, SystemProgram, SYSVAR_CLOCK_PUBKEY, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 // solana imports
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 // utils
-import { assert, expect } from "chai";
+import { assert } from "chai";
 // local
 import { StablePool } from "../../target/types/stable_pool";
 import { handleTxn } from "../utils/fxns";
 import { MintPubKey, Trove, Vault } from "../utils/interfaces";
-import { Accounts } from "../config/accounts";
 // program
 const programStablePool = workspace.StablePool as Program<StablePool>;
 const defaultAccounts = {

@@ -1,25 +1,23 @@
-// TODO: delete, improperly named. migrated to 'create_oracle'
+// libraries
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Mint, Token};
-
 // local
 use crate::{constants::*, states::*};
 
-// TODO: price-feed -> oracle
-pub fn handle(ctx: Context<CreatePriceFeed>, price: u64) -> Result<()> {
-    let price_feed = &mut ctx.accounts.price_feed;
+pub fn handle(ctx: Context<CreateOracle>, price: u64) -> Result<()> {
+    let oracle = &mut ctx.accounts.oracle;
 
-    price_feed.mint = ctx.accounts.mint.key();
-    price_feed.decimals = ctx.accounts.mint.decimals;
-    price_feed.last_updated_time = ctx.accounts.clock.unix_timestamp as u64;
-    price_feed.price = price;
+    oracle.mint = ctx.accounts.mint.key();
+    oracle.decimals = ctx.accounts.mint.decimals;
+    oracle.last_updated_time = ctx.accounts.clock.unix_timestamp as u64;
+    oracle.price = price;
 
     Ok(())
 }
 
 #[derive(Accounts)]
 #[instruction(price: u64)]
-pub struct CreatePriceFeed<'info> {// TODO: price-feed -> oracle
+pub struct CreateOracle<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
     #[account(
@@ -30,11 +28,11 @@ pub struct CreatePriceFeed<'info> {// TODO: price-feed -> oracle
 
     #[account(
         init,
-        seeds = [PRICE_FEED_SEED, mint.key().as_ref()],
+        seeds = [ORACLE_SEED, mint.key().as_ref()],
         bump,
         payer = authority
     )]
-    pub price_feed: Box<Account<'info, PriceFeed>>,// TODO: price-feed -> oracle
+    pub oracle: Box<Account<'info, Oracle>>,
 
     pub mint: Box<Account<'info, Mint>>,
 

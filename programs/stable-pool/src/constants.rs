@@ -5,8 +5,6 @@ pub const USER_USDX_SEED: &[u8] = b"USER_USDX_SEED";
 pub const VAULT_SEED: &[u8] = b"VAULT_SEED";
 pub const TROVE_SEED: &[u8] = b"TROVE_SEED";
 pub const ORACLE_SEED: &[u8] = b"ORACLE_SEED";
-// TODO: delete
-pub const PRICE_FEED_SEED: &[u8] = b"PRICE_FEED_SEED";
 
 // numbers
 pub const USDX_DECIMALS: u8 = 6;

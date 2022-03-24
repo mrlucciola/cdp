@@ -1,5 +1,5 @@
 import { Keypair } from "@solana/web3.js";
-import testKeyArr from "./testUser-priceFeedUpdater-keypair.json";
+import testKeyArr from "./testUser-oracleReporter-keypair.json";
 export const secretMnemonic: string =
   "sign bacon room symptom regular agree clean fever negative forward wine ball";
 export const publicAddrStr: string =
@@ -7,5 +7,4 @@ export const publicAddrStr: string =
 // no secret key
 export const secretKey: string = "";
 export const keypairU8: Uint8Array = new Uint8Array(testKeyArr as any[]);
-// TODO: price-feed -> oracle
-export const userPriceFeedUpdaterKeypair: Keypair = Keypair.fromSecretKey(keypairU8);
+export const userOracleReporterKeypair: Keypair = Keypair.fromSecretKey(keypairU8);

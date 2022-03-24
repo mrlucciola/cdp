@@ -33,6 +33,4 @@ pub struct GlobalState {
 
     /// only this wallet can report new prices to the oracle accounts
     pub oracle_reporter: Pubkey,
-    // TODO: delete
-    pub price_feed_updater: Pubkey,
 }
