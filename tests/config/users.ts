@@ -3,14 +3,23 @@ import { Program, web3, workspace, Wallet } from "@project-serum/anchor";
 import { PublicKey, Transaction, Connection } from "@solana/web3.js";
 // TODO: fix saber linter issue
 import {
+  // @ts-ignore
   createAssociatedTokenAccountInstruction,
+  // @ts-ignore
   mintTo,
 } from "@solana/spl-token";
 // local
 // import superKeyArr from "../../.config/testUser-super-keypair.json";
 import { StablePool } from "../../target/types/stable_pool";
 import { getAcctBalance, getAssocTokenAcct, handleTxn } from "../utils/fxns";
-import { ATA, MintPubKey, User, UserToken, Vault } from "../utils/interfaces";
+import {
+  ATA,
+  MintPubKey,
+  USDx,
+  User,
+  UserToken,
+  Vault,
+} from "../utils/interfaces";
 import { TestTokens, TestUsers } from "../utils/types";
 import baseKeyArr from "../../.config/testUser-base-keypair.json";
 import testKeyArr from "../../.config/testUser-test-keypair.json";
@@ -84,7 +93,7 @@ export const mintToAta = async (
   mintTokenStr: TestTokens,
   mintPubKey: PublicKey,
   mintAuth: User,
-  dest: UserToken,
+  dest: UserToken | USDx,
   amount: number = 200_000_000 // 0.2 units of token
 ) => {
   // mint to newly created ata
@@ -125,12 +134,14 @@ export class Users {
       addToken: null,
     };
   }
-  public async init(mintPubKey: PublicKey) {
-    await this.base.init(mintPubKey);
+  public async init(mintUsdxPubKey: PublicKey, mintPubKey: PublicKey) {
+    await this.base.init();
     await this.base.addToken(mintPubKey, "lpSaber", 200_000_000);
-    await this.test.init(mintPubKey);
+    this.base.tokens.usdx = new USDx(this.base.wallet, mintUsdxPubKey);
+    await this.test.init();
     await this.test.addToken(mintPubKey, "lpSaber", 200_000_000);
-    await this.oracleReporter.init(mintPubKey);
+    this.test.tokens.usdx = new USDx(this.test.wallet, mintUsdxPubKey);
+    await this.oracleReporter.init();
   }
 }
 

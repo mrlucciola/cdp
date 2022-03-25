@@ -11,13 +11,12 @@ use crate::{
 };
 
 pub fn handle(ctx: Context<DepositCollateral>, deposit_amount: u64) -> Result<()> {
+    // validation
     assert_tvl_allowed(
         ctx.accounts.global_state.tvl_limit,
         ctx.accounts.global_state.tvl_usd,
         deposit_amount,
     )?;
-
-    // validation
     require!(
         ctx.accounts.ata_user.amount > 0,
         StablePoolError::InvalidTransferAmount,

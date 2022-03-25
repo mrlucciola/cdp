@@ -24,14 +24,6 @@ pub fn handle(ctx: Context<CreateSaberQuarryMiner>, miner_bump: u8) -> Result<()
     // );
 
     let owner_key = ctx.accounts.authority.as_ref().key();
-    // let bump: u8 = ctx.accounts.trove.bump;
-    // let bump = pda_bump(&[TROVE_SEED.as_ref(), mint_key.as_ref(), owner_key.as_ref()]);
-    // let authority_seeds = &[
-    //     TROVE_SEED.as_ref(),
-    //     mint_key.as_ref(),
-    //     owner_key.as_ref(),
-    //     &[bump],
-    // ];
 
     let authority_seeds: &[&[u8]] = &[
         &TROVE_SEED,

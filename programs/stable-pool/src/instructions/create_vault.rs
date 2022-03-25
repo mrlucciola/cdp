@@ -17,6 +17,8 @@ pub fn handle(
     debt_ceiling: u64,
     platform_type: u8,
     reward_mints: Vec<Pubkey>,
+    token_a_decimals: u8,
+    token_b_decimals: u8,
 ) -> Result<()> {
     ctx.accounts.vault.mint = ctx.accounts.mint.key();
     ctx.accounts.vault.total_coll = 0;
@@ -25,6 +27,8 @@ pub fn handle(
     ctx.accounts.vault.bump = vault_bump;
     ctx.accounts.vault.is_dual = is_dual;
     ctx.accounts.vault.debt_ceiling = debt_ceiling;
+    ctx.accounts.vault.token_a_decimals = 6;
+    ctx.accounts.vault.token_b_decimals = 6;
 
     require!(
         platform_type < PlatformType::Unknown as u8,

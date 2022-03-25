@@ -18,9 +18,11 @@ export const TVL_LIMIT = 1_000_000_000;
 export const GLOBAL_DEBT_CEILING = 15_000_000;
 export const VAULT_DEBT_CEILING = 10_000_000;
 export const USER_DEBT_CEILING = 5_000_000;
-export const USDX_DECIMAL = 6;
-export const SBR_DECIMAL = 6;
-export const USDCUSDT_DECIMAL = 9;
+export const USDX_DECIMALS = 6;
+export const SBR_DECIMALS = 6;
+export const USDCUSDT_DECIMALS = 6;
+export const USDC_DECIMALS = 6;
+export const USDT_DECIMALS = 6;
 // platform types
 // export const PLATFORM_TYPE_RAYDIUM: PlatformType = 0; // TODO: Add in another ticket. jkap 2/13/22
 // export const PLATFORM_TYPE_ORCA: PlatformType = 1; // TODO: Add in another ticket. jkap 2/13/22

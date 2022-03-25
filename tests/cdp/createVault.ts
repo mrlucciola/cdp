@@ -25,7 +25,9 @@ const createVaultCall = async (
   accounts: Accounts,
   riskLevel: number,
   isDual: number,
-  vault: Vault
+  vault: Vault,
+  tokenADecimals: number,
+  tokenBDecimals: number
 ) => {
   const txnCreateUserVault = new web3.Transaction().add(
     programStablePool.instruction.createVault(
@@ -35,6 +37,8 @@ const createVaultCall = async (
       new BN(constants.VAULT_DEBT_CEILING),
       constants.PLATFORM_TYPE_SABER,
       [accounts.sbr.publicKey],
+      tokenADecimals,
+      tokenBDecimals,
       {
         accounts: {
           authority: user.wallet.publicKey,
@@ -85,7 +89,15 @@ export const createVaultFAIL_auth = async (
     // asserts
     // this does not identify the correct error code properly
     await expect(
-      createVaultCall(notSuperUser, accounts, riskLevel, isDual, vault)
+      createVaultCall(
+        notSuperUser,
+        accounts,
+        riskLevel,
+        isDual,
+        vault,
+        constants.USDC_DECIMALS,
+        constants.USDT_DECIMALS
+      )
     ).to.be.rejectedWith(
       "2003",
       "No error was thrown when trying to create a vault with a user different than the super owner"
@@ -119,7 +131,15 @@ export const createVaultFAIL_noGlobalState = async (
     const riskLevel = 0;
     const isDual = 0;
     await expect(
-      createVaultCall(superUser, accounts, riskLevel, isDual, vault),
+      createVaultCall(
+        superUser,
+        accounts,
+        riskLevel,
+        isDual,
+        vault,
+        constants.USDC_DECIMALS,
+        constants.USDT_DECIMALS
+      ),
       "The program expected this account to be already initialized"
     ).to.be.rejectedWith(
       "3012",
@@ -163,7 +183,15 @@ export const createVaultFAIL_dup = async (
   const riskLevel = 0;
   const isDual = 0;
   await expect(
-    createVaultCall(superUser, accounts, riskLevel, isDual, vault),
+    createVaultCall(
+      superUser,
+      accounts,
+      riskLevel,
+      isDual,
+      vault,
+      constants.USDC_DECIMALS,
+      constants.USDT_DECIMALS
+    ),
     "Already in use"
   ).to.be.rejectedWith(
     "0",
@@ -200,7 +228,9 @@ export const createVaultPASS = async (
       accounts,
       riskLevel,
       isDual,
-      vault
+      vault,
+      constants.USDC_DECIMALS,
+      constants.USDT_DECIMALS
     );
     console.log("token vault created- confirmation: ", confirmation);
   } else console.log("token vault already created:");

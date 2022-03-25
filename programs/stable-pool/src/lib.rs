@@ -8,7 +8,7 @@ pub mod instructions;
 pub mod saber_utils;
 pub mod states;
 pub mod utils;
-
+// crates
 use crate::instructions::*;
 use crate::utils::is_global_state_paused;
 
@@ -18,6 +18,14 @@ declare_id!("FvTjLbwbHY4v8Gfv18JKuPCJG2Hj87CG8kPNHqGeHAR4");
 pub mod stable_pool {
     use super::*;
 
+    /**
+     * Create global state account
+     * This account holds all of the global platform variables
+     *
+     * Should only be called by the program deployer
+     *
+     * aliases: create_global_state, CreateGlobalState, createGlobalState
+     */
     pub fn create_global_state(
         ctx: Context<CreateGlobalState>,
         global_state_bump: u8,
@@ -38,6 +46,19 @@ pub mod stable_pool {
         )
     }
 
+    /**
+     * TODO: rename vault -> pool
+     *
+     * Create a pool for a given collateral
+     * The CDP platform supports multiple collateral types-
+     * Each pool account holds variables that regulate user activity
+     * Pool accounts for various collateral types may have different values for different variables
+     * Pool accounts need to hold the mint and oracle values for each of its underlying tokens
+     *
+     * Should only be called by the program deployer
+     *
+     * aliases: create_vault, CreateVault, createVault
+     */
     pub fn create_vault(
         ctx: Context<CreateVault>,
         vault_bump: u8,
@@ -46,6 +67,8 @@ pub mod stable_pool {
         debt_ceiling: u64,
         platform_type: u8,
         reward_mints: Vec<Pubkey>,
+        token_a_decimals: u8,
+        token_b_decimals: u8,
     ) -> Result<()> {
         create_vault::handle(
             ctx,
@@ -55,9 +78,18 @@ pub mod stable_pool {
             debt_ceiling,
             platform_type,
             reward_mints,
+            token_a_decimals,
+            token_b_decimals,
         )
     }
 
+    /**
+     * TODO: rename trove -> vault
+     *
+     * Create a user-generated, user-authorized, single-collateral token repository
+     *
+     * aliases: create_trove, CreateTrove, createTrove
+     */
     pub fn create_trove(
         ctx: Context<CreateTrove>,
         trove_bump: u8,
@@ -67,15 +99,25 @@ pub mod stable_pool {
     }
 
     /**
-     * 
+     * TODO: rename trove -> vault
+     *
+     * Deposit collateral to a trove
+     * When collateral sits in a trove, it is able to be staked/farmed out and generate rewards
+     * (sidenote) Collateral in itself generates yield from the platform it originated from
+     *
+     * aliases: deposit_collateral, DepositCollateral, depositCollateral
      */
     pub fn deposit_collateral(ctx: Context<DepositCollateral>, deposit_amount: u64) -> Result<()> {
         deposit_collateral::handle(ctx, deposit_amount)
     }
 
     /**
-     * Withdraw collateral from trove
      * TODO: rename trove -> vault
+     *
+     * Withdraw collateral from trove
+     * Collateral token goes from Trove -> User ATA
+     *
+     * aliases: withdraw_collateral, WithdrawCollateral, withdrawCollateral
      */
     pub fn withdraw_collateral(
         ctx: Context<WithdrawCollateral>,
@@ -86,17 +128,25 @@ pub mod stable_pool {
 
     /**
      * THIS IS NOT COMPLETE, please see note on the contract fxn (search `BorrowUsdx<'info>`)
-     * 
-     * Create the Saber liquidity miner account set by the Quarry framework/standard
      *
-     * aliases: create_saber_quarry_miner, CreateSaberQuarryMiner, createSaberQuarryMiner
-     * prev aliases: create_quarry_miner, CreateQuarryMiner, createQuarryMiner
+     * Take out debt in the form of USDx
+     * Must be overcollateralized according to the LTV (collateralization ratio) set by the vault (to be named "pool")
+     * Must not exceed the global debt limit
+     * Must not exceed the vault (t.b.n pool) debt limit
+     * Must not exceed the user debt limit
+     *
+     * aliases: borrow_usdx, BorrowUsdx, borrowUsdx
      */
     #[access_control(is_global_state_paused(&ctx.accounts.global_state))]
     pub fn borrow_usdx(ctx: Context<BorrowUsdx>, borrow_amount: u64) -> Result<()> {
         borrow_usdx::handle(ctx, borrow_amount)
     }
 
+    /**
+     * TODO: refactor this to match the other style of writing functions
+     *
+     * Create the user-derived account where reward tokens are deposited to upon harvest
+     */
     pub fn create_reward_vault(ctx: Context<CreateUserRewardVault>) -> Result<()> {
         ctx.accounts.handle()
     }
@@ -119,7 +169,6 @@ pub mod stable_pool {
      *
      * aliases: create_oracle, CreateOracle, createOracle
      * previous aliases: create_price_feed, CreatePriceFeed, createPriceFeed
-     * creates quarry miner account
      */
     pub fn create_oracle(ctx: Context<CreateOracle>, price: u64) -> Result<()> {
         create_oracle::handle(ctx, price)

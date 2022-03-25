@@ -22,7 +22,7 @@ import { assert, expect } from "chai";
 // local
 import { StablePool } from "../../target/types/stable_pool";
 import { handleTxn } from "../utils/fxns";
-import { Oracle } from "../utils/interfaces";
+import { GlobalStateAcct, Oracle, User } from "../utils/interfaces";
 import { Accounts } from "../config/accounts";
 // program
 const programStablePool = workspace.StablePool as Program<StablePool>;
@@ -30,7 +30,7 @@ const programStablePool = workspace.StablePool as Program<StablePool>;
 const createOracleCall = async (
   userConnection: Connection,
   userWallet: Wallet,
-  accounts: Accounts,
+  globalState: GlobalStateAcct,
   oracle: Oracle
 ) => {
   const txn = new web3.Transaction().add(
@@ -40,9 +40,9 @@ const createOracleCall = async (
       {
         accounts: {
           authority: userWallet.publicKey,
-          globalState: accounts.global.pubKey,
+          globalState: globalState.pubKey,
           oracle: oracle.pubKey,
-          mint: oracle.mint,
+          mint: oracle.mint, // the mint account that represents the token this oracle reports for
           tokenProgram: TOKEN_PROGRAM_ID,
           clock: SYSVAR_CLOCK_PUBKEY,
           rent: SYSVAR_RENT_PUBKEY,
@@ -61,61 +61,70 @@ const createOracleCall = async (
 /**
  * This isnt even properly annotated.
  * Pass when attempting to make a oracle that doesn't exist
- * @param userConnection
- * @param userWallet
  * @param accounts
  * @param oracle
  */
 export const createOraclePASS = async (
-  userConnection: Connection,
-  userWallet: Wallet,
+  superUser: User,
   accounts: Accounts,
-  oracle: Oracle
+  token: string
 ) => {
   // derive oracle account
   console.log("getting oracle acct");
 
   // get oracle info
-  const oracleInfo: web3.AccountInfo<Buffer> = await oracle.getAccountInfo();
+  const oracleInfo: web3.AccountInfo<Buffer> = await accounts[
+    token
+  ].oracle.getAccountInfo();
 
   // if not created, create oracle
   if (!oracleInfo) {
     const confirmation = await createOracleCall(
-      userConnection,
-      userWallet,
-      accounts,
-      oracle
+      superUser.provider.connection,
+      superUser.wallet,
+      accounts.global,
+      accounts[token].oracle
     );
     console.log("created oracle: ", confirmation);
   } else console.log("this oracle already created");
 
   // get the oracle state
-  const oracleAcct: IdlAccounts<StablePool>["oracle"] =
-    await oracle.getAccount();
+  const oracleAcct: IdlAccounts<StablePool>["oracle"] = await accounts[
+    token
+  ].oracle.getAccount();
   // final asserts
-  assert(oracleAcct.price.toNumber() == oracle.price, "price mismatch");
+  assert(
+    oracleAcct.price.toNumber() == accounts[token].oracle.price,
+    "price mismatch"
+  );
 };
 
 /**
  * Fail when attempting to create a oracle that already exists
- * @param userConnection
+ * @param superUser
  * @param accounts
  * @param userWallet
  * @param oracle
  */
-export const createOracledFAIL_Duplicate = async (
-  userConnection: Connection,
-  userWallet: Wallet,
+export const createOracleFAIL_Duplicate = async (
+  superUser: User,
   accounts: Accounts,
-  oracle: Oracle
+  token: string
 ) => {
   // get oracle info
   const oracleInfo: web3.AccountInfo<Buffer> =
-    await getProvider().connection.getAccountInfo(oracle.pubKey);
+    await getProvider().connection.getAccountInfo(
+      accounts[token].oracle.pubKey
+    );
   // if oracle created, try to create another one for the same mint (should fail)
   assert(oracleInfo, "Oracle does not exist, test needs a oracle");
   await expect(
-    createOracleCall(userConnection, userWallet, accounts, oracle),
+    createOracleCall(
+      superUser.provider.connection,
+      superUser.wallet,
+      accounts.global,
+      accounts[token].oracle
+    ),
     "No error was thrown was trying to create a duplicate oracle"
   ).is.rejected;
 };

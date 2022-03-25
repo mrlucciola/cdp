@@ -1,11 +1,11 @@
 import {
-  BN, 
+  BN,
   getProvider,
   IdlAccounts,
-  Program, 
-  Wallet, 
-  web3, 
-  workspace 
+  Program,
+  Wallet,
+  web3,
+  workspace,
 } from "@project-serum/anchor";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -24,6 +24,7 @@ import {
   Vault,
 } from "../utils/interfaces";
 import { assert, expect } from "chai";
+import { USDCUSDT_DECIMALS } from "../utils/constants";
 
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
@@ -48,7 +49,6 @@ const depositCollateralCall = async (
   vault: Vault,
   globalState: GlobalStateAcct
 ) => {
-  console.log("ata balance: ", await userToken.ata.getBalance());
   const txn = new Transaction().add(
     programStablePool.instruction.depositCollateral(new BN(depositAmount), {
       accounts: {
@@ -68,32 +68,37 @@ const depositCollateralCall = async (
   await handleTxn(txn, userConnection, userWallet);
 };
 
-export const depositCollateralFAIL_NotEnoughTokens = async (user: User, accounts: Accounts) => {
+export const depositCollateralFAIL_NotEnoughTokens = async (
+  user: User,
+  accounts: Accounts
+) => {
   const depositAmount = 0.9;
   const userlpSaber = user.tokens.lpSaber;
   const ataBalPre = (await userlpSaber.ata.getBalance()).value.uiAmount;
 
-  assert(depositAmount > ataBalPre,
-    "Test requires attempting to deposit more tokens than in the ATA. Please increase deposit amount");
+  assert(
+    depositAmount > ataBalPre,
+    "Test requires attempting to deposit more tokens than in the ATA. Please increase deposit amount"
+  );
 
   await expect(
     depositCollateralCall(
-    // deposit amount
-    depositAmount * LAMPORTS_PER_SOL,
-    // user connection
-    user.provider.connection,
-    // user wallet
-    user.wallet,
-    // user token
-    user.tokens.lpSaber,
-    // trove
-    user.tokens.lpSaber.trove,
-    // mint pubKey
-    accounts.lpSaberUsdcUsdt.mint,
-    // vault
-    accounts.lpSaberUsdcUsdt.vault,
-    // globalState
-    accounts.global
+      // deposit amount
+      depositAmount * LAMPORTS_PER_SOL,
+      // user connection
+      user.provider.connection,
+      // user wallet
+      user.wallet,
+      // user token
+      user.tokens.lpSaber,
+      // trove
+      user.tokens.lpSaber.trove,
+      // mint pubKey
+      accounts.lpSaberUsdcUsdt.mint,
+      // vault
+      accounts.lpSaberUsdcUsdt.vault,
+      // globalState
+      accounts.global
     ),
     "No error was thrown when trying to deposit an amount greater than the user's balance"
   ).is.rejected;
@@ -101,32 +106,41 @@ export const depositCollateralFAIL_NotEnoughTokens = async (user: User, accounts
   const ataBalPost = (await userlpSaber.ata.getBalance()).value.uiAmount;
   const diff = ataBalPost - ataBalPre;
 
-  assert(diff == 0, "Deposit did not fail when trying to deposit more tokens than in the user's ATA");
+  assert(
+    diff == 0,
+    "Deposit did not fail when trying to deposit more tokens than in the user's ATA"
+  );
 };
 
 export const depositCollateralPASS = async (user: User, accounts: Accounts) => {
   const depositAmount = 0.2;
   const priceUsd = 1; // TODO: fix price feed
-  let globalStateAcct: IdlAccounts<StablePool>["globalState"] = await accounts.global.getAccount();
+  let globalStateAcct: IdlAccounts<StablePool>["globalState"] =
+    await accounts.global.getAccount();
 
   const userlpSaber = user.tokens.lpSaber;
 
-  // const tvlPre = globalStateAcct.tvlUsd.toNumber();
+  const tvlPre = globalStateAcct.tvlUsd.toNumber();
   const userBalPre = (await userlpSaber.ata.getBalance()).value.uiAmount;
   const troveBalPre = (await userlpSaber.trove.ata.getBalance()).value.uiAmount;
 
-  assert(userBalPre >= depositAmount,
-    "Test requirest ATA balance to be >= deposit amount. Please increase deposit amount" +
-    "ATA Balance: " + userBalPre + " Deposit Anount: " + depositAmount);
   assert(
-    depositAmount * LAMPORTS_PER_SOL * priceUsd + globalStateAcct.tvlUsd.toNumber() < globalStateAcct.tvlLimit.toNumber(),
-    "Amount attempting to deposit will exceed TVL limit. Please decrease depositAmount.\n" +
-    "Deposit Amount USD: " + (depositAmount * priceUsd * LAMPORTS_PER_SOL) + " TVL: " + globalStateAcct.tvlUsd.toNumber() + 
-    " TVL Limit: " + globalStateAcct.tvlLimit.toNumber());
-
+    userBalPre >= depositAmount,
+    "Test requirest ATA balance to be >= deposit amount. Please increase deposit amount" +
+      "ATA Balance: " +
+      userBalPre +
+      " Deposit Anount: " +
+      depositAmount
+  );
+  // assert(
+  //   depositAmount * LAMPORTS_PER_SOL * priceUsd + globalStateAcct.tvlUsd.toNumber() < globalStateAcct.tvlLimit.toNumber(),
+  //   "Amount attempting to deposit will exceed TVL limit. Please decrease depositAmount.\n" +
+  //   "Deposit Amount USD: " + (depositAmount * priceUsd * LAMPORTS_PER_SOL) + " TVL: " + globalStateAcct.tvlUsd.toNumber() +
+  //   " TVL Limit: " + globalStateAcct.tvlLimit.toNumber());
+  
   await depositCollateralCall(
     // deposit amount
-    depositAmount * LAMPORTS_PER_SOL,
+    depositAmount * 10 ** USDCUSDT_DECIMALS,
     // user connection
     user.provider.connection,
     // user wallet
@@ -154,56 +168,79 @@ export const depositCollateralPASS = async (user: User, accounts: Accounts) => {
   );
 
   const differenceThreshold = 0.0001; // set arbitrarily
-  assert(Math.abs(depositAmount + userDiff) < differenceThreshold,
-    "Expected User ATA Diff: " + (-depositAmount) + " Actual User ATA Diff: " + userDiff);
-  assert(Math.abs(troveDiff - depositAmount) < differenceThreshold,
-    "Expected Trove Diff: " + depositAmount + " Actual Trove Diff: " + troveDiff);
+  assert(
+    Math.abs(depositAmount + userDiff) < differenceThreshold,
+    "Expected User ATA Diff: " +
+      -depositAmount +
+      " Actual User ATA Diff: " +
+      userDiff
+  );
+  assert(
+    Math.abs(troveDiff - depositAmount) < differenceThreshold,
+    "Expected Trove Diff: " + depositAmount + " Actual Trove Diff: " + troveDiff
+  );
   // globalStateAcct = await accounts.global.getAccount();
   // const tvlPost = globalStateAcct.tvlUsd.toNumber();
   // // may need to change from == to <= some small delta value to account for price flucuations
   // assert(tvlPost - tvlPre == depositAmount * LAMPORTS_PER_SOL* priceUsd,
-  //   "TVL did not update correctly.\n" + 
-  //   "Expected TVL Difference: " + depositAmount * LAMPORTS_PER_SOL* priceUsd + 
+  //   "TVL did not update correctly.\n" +
+  //   "Expected TVL Difference: " + depositAmount * LAMPORTS_PER_SOL* priceUsd +
   //   " Actual TVL Difference: " + (tvlPost - tvlPre));
 };
 
 // TODO: unit test doesn't work (although passing) because TVL prices aren't implemented
-export const depositCollateralFAIL_DepositExceedingTVL = async (user: User, accounts: Accounts) => {
+export const depositCollateralFAIL_DepositExceedingTVL = async (
+  user: User,
+  accounts: Accounts
+) => {
   const depositAmount = 2;
   const userlpSaber = user.tokens.lpSaber;
   const ataBalPre = (await userlpSaber.ata.getBalance()).value.uiAmount;
 
   let priceUsd = 1; // placeholder, get from price feed
-  let globalStateAcct: IdlAccounts<StablePool>["globalState"] = await accounts.global.getAccount();
+  let globalStateAcct: IdlAccounts<StablePool>["globalState"] =
+    await accounts.global.getAccount();
   const tvlPre = globalStateAcct.tvlUsd;
 
-  assert(ataBalPre >= depositAmount, 
-    "Starting balance < amount of tokens trying to be deposited. Please increase tokens in ATA.\n" +
-    "ATA Balance:" + ataBalPre + " Deposit Amount: " + depositAmount);
   assert(
-    depositAmount * LAMPORTS_PER_SOL * priceUsd + globalStateAcct.tvlUsd.toNumber() > globalStateAcct.tvlLimit.toNumber(),
+    ataBalPre >= depositAmount,
+    "Starting balance < amount of tokens trying to be deposited. Please increase tokens in ATA.\n" +
+      "ATA Balance:" +
+      ataBalPre +
+      " Deposit Amount: " +
+      depositAmount
+  );
+  assert(
+    depositAmount * LAMPORTS_PER_SOL * priceUsd +
+      globalStateAcct.tvlUsd.toNumber() >
+      globalStateAcct.tvlLimit.toNumber(),
     "Amount attempting to deposit will not exceed TVL limit. Please increase depositAmount.\n" +
-    "Deposit Amount USD: " + (depositAmount * priceUsd * LAMPORTS_PER_SOL) + " TVL: " + globalStateAcct.tvlUsd.toNumber() + 
-    " TVL Limit: " + globalStateAcct.tvlLimit.toNumber());
+      "Deposit Amount USD: " +
+      depositAmount * priceUsd * LAMPORTS_PER_SOL +
+      " TVL: " +
+      globalStateAcct.tvlUsd.toNumber() +
+      " TVL Limit: " +
+      globalStateAcct.tvlLimit.toNumber()
+  );
 
   await expect(
     depositCollateralCall(
-    // deposit amount
-    depositAmount * LAMPORTS_PER_SOL,
-    // user connection
-    user.provider.connection,
-    // user wallet
-    user.wallet,
-    // user token
-    user.tokens.lpSaber,
-    // trove
-    user.tokens.lpSaber.trove,
-    // mint pubKey
-    accounts.lpSaberUsdcUsdt.mint,
-    // vault
-    accounts.lpSaberUsdcUsdt.vault,
-    // globalState
-    accounts.global
+      // deposit amount
+      depositAmount * LAMPORTS_PER_SOL,
+      // user connection
+      user.provider.connection,
+      // user wallet
+      user.wallet,
+      // user token
+      user.tokens.lpSaber,
+      // trove
+      user.tokens.lpSaber.trove,
+      // mint pubKey
+      accounts.lpSaberUsdcUsdt.mint,
+      // vault
+      accounts.lpSaberUsdcUsdt.vault,
+      // globalState
+      accounts.global
     )
   ).to.be.rejectedWith(
     "6010",
@@ -212,11 +249,17 @@ export const depositCollateralFAIL_DepositExceedingTVL = async (user: User, acco
 
   const ataBalPost = (await userlpSaber.ata.getBalance()).value.uiAmount;
   const diff = ataBalPost - ataBalPre;
-  
-  assert(diff == 0, "Deposit failed but token balance changed after deposit attempt");
+
+  assert(
+    diff == 0,
+    "Deposit failed but token balance changed after deposit attempt"
+  );
 
   globalStateAcct = await accounts.global.getAccount();
   const tvlPost = globalStateAcct.tvlUsd;
   // this might have to be adjusted so that pre - post < small value (due to price fluctuations)
-  assert(tvlPre.toNumber() - tvlPost.toNumber() == 0, "TVL changed after failed deposit when it should've stayed the same")
+  assert(
+    tvlPre.toNumber() - tvlPost.toNumber() == 0,
+    "TVL changed after failed deposit when it should've stayed the same"
+  );
 };

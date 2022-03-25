@@ -7,6 +7,7 @@ import { Connection, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import { assert, expect } from "chai";
 import { StablePool } from "../../target/types/stable_pool";
 import { Accounts } from "../config/accounts";
+import { USDCUSDT_DECIMALS } from "../utils/constants";
 import { handleTxn } from "../utils/fxns";
 import {
   GlobalStateAcct,
@@ -77,7 +78,7 @@ export const withdrawCollateralFAIL_NotEnoughTokensInTrove = async (
   await expect(
     withdrawCollateralCall(
     // withdraw amount
-    withdrawAmount * LAMPORTS_PER_SOL,
+    withdrawAmount * USDCUSDT_DECIMALS,
     // user connection
     user.provider.connection,
     // user wallet
@@ -179,7 +180,7 @@ export const withdrawCollateralPASS = async (
   
   await withdrawCollateralCall(
     // withdraw amount
-    withdrawAmount * LAMPORTS_PER_SOL,
+    withdrawAmount * USDCUSDT_DECIMALS,
     // user connection
     user.provider.connection,
     // user wallet

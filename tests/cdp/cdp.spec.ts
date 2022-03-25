@@ -36,10 +36,7 @@ import {
   reportPriceToOracleFAIL_NotUpdater,
   reportPriceToOraclePASS,
 } from "./reportPriceToOracle";
-import {
-  createOracledFAIL_Duplicate,
-  createOraclePASS,
-} from "./createOracle";
+import { createOracleFAIL_Duplicate, createOraclePASS } from "./createOracle";
 import { createTroveRewardVault } from "./createRewardVault";
 import { createSaberQuarryMinerPASS } from "../saber/createSaberQuarryMiner";
 // import { depositToSaber } from "../saber/deposit";
@@ -65,7 +62,7 @@ describe("cdp core test suite", async () => {
     await accounts.initQuarry();
 
     users = new Users();
-    await users.init(accounts.lpSaberUsdcUsdt.mint);
+    await users.init(accounts.usdx.pubKey, accounts.lpSaberUsdcUsdt.mint);
     // create miner
     users.base.miner = new Miner(
       users.base.tokens.lpSaber.trove,
@@ -73,6 +70,7 @@ describe("cdp core test suite", async () => {
       accounts.lpSaberUsdcUsdt.mint
     );
   });
+
   // pre-global state tests
   it("FAIL: Create vault without global state", async () => {
     await createVaultFAIL_noGlobalState(
@@ -81,6 +79,7 @@ describe("cdp core test suite", async () => {
       accounts.lpSaberUsdcUsdt.vault
     );
   });
+
   // global state tests
   it("FAIL: Create Global State - User is not super", async () => {
     await createGlobalStateFAIL_auth(
@@ -89,9 +88,11 @@ describe("cdp core test suite", async () => {
       accounts
     );
   });
+
   it("PASS: Create Global State", async () => {
     await createGlobalStatePASS(users.super, users.oracleReporter, accounts);
   });
+
   it("FAIL: Create Global State - duplicate", async () => {
     await createGlobalStateFAIL_duplicate(
       users.oracleReporter,
@@ -108,13 +109,15 @@ describe("cdp core test suite", async () => {
       accounts.lpSaberUsdcUsdt.vault
     );
   });
-  it("PASS: Create Vault", async () => {
+
+  it("PASS: Create Vault - lpSaberUsdcUsdt", async () => {
     await createVaultPASS(
       users.super,
       accounts,
       accounts.lpSaberUsdcUsdt.vault
     );
   });
+
   it("FAIL: Create Vault - duplicate", async () => {
     await createVaultFAIL_dup(
       users.super,
@@ -124,50 +127,41 @@ describe("cdp core test suite", async () => {
   });
 
   // oracle tests - usdc oracle
-  it("PASS: Create Oracle", async () => {
-    await createOraclePASS(
-      users.super.provider.connection,
-      users.super.wallet,
-      accounts,
-      accounts.usdcOracle
-    );
+  it("PASS: Create Oracle - USDC", async () => {
+    await createOraclePASS(users.super, accounts, "usdc");
   });
+
   // oracle tests - duplicated usdc oracle
   it("FAIL: Create Oracle - Duplicate", async () => {
-    await createOracledFAIL_Duplicate(
-      users.super.provider.connection,
-      users.super.wallet,
-      accounts,
-      accounts.usdcOracle
-    );
+    await createOracleFAIL_Duplicate(users.super, accounts, 'usdc');
   });
+
   // oracle tests - usdt oracle
-  it("PASS: Create Oracle", async () => {
-    await createOraclePASS(
-      users.super.provider.connection,
-      users.super.wallet,
-      accounts,
-      accounts.usdtOracle
-    );
+  it("PASS: Create Oracle - USDT", async () => {
+    await createOraclePASS(users.super, accounts, "usdt");
   });
-  it("PASS: Report Price", async () => {
-    const newPrice = 112000000;
-    accounts.usdcOracle.price = newPrice;
+
+  it("PASS: Report Price - USDC", async () => {
+    // TODO: refactor to include just the high level classes
+    const newPrice = 102000000;
+    accounts.usdc.oracle.price = newPrice;
     await reportPriceToOraclePASS(
       users.oracleReporter.provider.connection,
       users.oracleReporter.wallet,
       accounts,
-      accounts.usdcOracle,
+      accounts.usdc.oracle,
       newPrice
     );
   });
+
   it("FAIL: Update Price Feed - Not Updater", async () => {
+    // TODO: refactor to include just the high level classes
     const newPrice = 134000000;
     await reportPriceToOracleFAIL_NotUpdater(
       users.base.provider.connection,
       users.base.wallet,
       accounts,
-      accounts.usdcOracle,
+      accounts.usdc.oracle,
       newPrice
     );
   });
@@ -181,7 +175,9 @@ describe("cdp core test suite", async () => {
       [accounts.sbr.publicKey]
     );
   });
+
   it("PASS: Create Trove", async () => {
+    // TODO: refactor to include just the high level classes
     await createTrovePASS(
       users.base.wallet,
       users.base.provider.connection,
@@ -190,7 +186,9 @@ describe("cdp core test suite", async () => {
       accounts.lpSaberUsdcUsdt.mint
     );
   });
+
   it("FAIL: Create Trove - Duplicate", async () => {
+    // TODO: refactor to include just the high level classes
     await createTroveFAIL_Duplicate(
       users.base.wallet,
       users.base.provider.connection,
@@ -199,7 +197,9 @@ describe("cdp core test suite", async () => {
       accounts.lpSaberUsdcUsdt.mint
     );
   });
+
   it("PASS: Create Trove from another account", async () => {
+    // TODO: refactor to include just the high level classes
     await createTrovePASS(
       users.test.wallet,
       users.test.provider.connection,
@@ -208,7 +208,9 @@ describe("cdp core test suite", async () => {
       accounts.lpSaberUsdcUsdt.mint
     );
   });
+
   it("FAIL: Create Trove - Duplicate from another account", async () => {
+    // TODO: refactor to include just the high level classes
     await createTroveFAIL_Duplicate(
       users.test.wallet,
       users.test.provider.connection,
@@ -222,24 +224,27 @@ describe("cdp core test suite", async () => {
   it("FAIL: Deposit Collateral - Not Enough Tokens", async () => {
     await depositCollateralFAIL_NotEnoughTokens(users.test, accounts);
   });
+
   it("PASS: Deposit Collateral", async () => {
     // mint tokens to the user's account first
     await users.base.tokens.lpSaber.ata.mintToATA(
-      10 * 10 ** constants.USDCUSDT_DECIMAL, // decimals for this mint = 9
+      10 * 10 ** constants.USDCUSDT_DECIMALS, // decimals for this mint = 9
       users.super,
       accounts.lpSaberUsdcUsdt.mint
     );
     await depositCollateralPASS(users.base, accounts);
   });
+
   it("PASS: Deposit Collateral from another user", async () => {
     // mint tokens to the user's account first
     await users.test.tokens.lpSaber.ata.mintToATA(
-      10 * 10 ** constants.USDCUSDT_DECIMAL, // decimals for this mint = 9
+      10 * 10 ** constants.USDCUSDT_DECIMALS, // decimals for this mint = 9
       users.super,
       accounts.lpSaberUsdcUsdt.mint
     );
     await depositCollateralPASS(users.test, accounts);
   });
+
   it("FAIL: Deposit Collateral - Deposit Exceeding TVL", async () => {
     // mint tokens to the user's account first
     await depositCollateralFAIL_DepositExceedingTVL(users.base, accounts);
@@ -249,6 +254,7 @@ describe("cdp core test suite", async () => {
   it("FAIL: Withdraw Collateral - Not Enough Tokens in Trove", async () => {
     await withdrawCollateralFAIL_NotEnoughTokensInTrove(users.base, accounts);
   });
+
   it("FAIL: Withdraw Collateral - Attempt Withdraw From Other User", async () => {
     await withdrawCollateralFAIL_AttemptWithdrawFromOtherUser(
       users.base,
@@ -256,18 +262,17 @@ describe("cdp core test suite", async () => {
       accounts
     );
   });
+
   it("PASS: Withdraw Collateral", async () => {
     await withdrawCollateralPASS(users.base, accounts);
   });
+
   it("PASS: Withdraw Collateral from another user", async () => {
     await withdrawCollateralPASS(users.test, accounts);
   });
 
-  // THIS IS NOT COMPLETE, please see note on the contract fxn (search `BorrowUsdx<'info>`)
-  it("PASS: Borrow/mint USDx", async () => {
-    // await borrowUsdxPASS(users.base, accounts);
-  });
   it("PASS: Create trove ataReward", async () => {
+    // TODO: refactor to include just the high level classes
     await createTroveRewardVault(
       users.base.wallet,
       users.base.provider.connection,
@@ -275,6 +280,10 @@ describe("cdp core test suite", async () => {
       accounts.lpSaberUsdcUsdt.vault,
       accounts.sbr.publicKey
     );
+  });
+  // THIS IS NOT COMPLETE, please see note on the contract fxn (search `BorrowUsdx<'info>`)
+  it("PASS: Borrow/mint USDx", async () => {
+    await borrowUsdxPASS(users.base, accounts);
   });
 
   // QUARRY MINER TESTS not working for me

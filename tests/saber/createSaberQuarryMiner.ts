@@ -21,7 +21,7 @@ import { Miner, MintPubKey, Trove, User, Vault } from "../utils/interfaces";
 import { QuarrySDK, QUARRY_ADDRESSES } from "@quarryprotocol/quarry-sdk";
 import { SignerWallet } from "@saberhq/solana-contrib";
 import { Token as SToken } from "@saberhq/token-utils";
-import { USDCUSDT_DECIMAL } from "../utils/constants";
+import { USDCUSDT_DECIMALS } from "../utils/constants";
 import { Accounts } from "../config/accounts";
 
 // init
@@ -101,7 +101,7 @@ export const createSaberQuarryMinerPASS = async (accounts: Accounts, user: User)
 
   const poolMintToken = SToken.fromMint(
     accounts.lpSaberUsdcUsdt.mint,
-    USDCUSDT_DECIMAL
+    USDCUSDT_DECIMALS
   );
   const quarry = await rewarder.getQuarry(poolMintToken);
 

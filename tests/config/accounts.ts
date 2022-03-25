@@ -21,15 +21,27 @@ import {
 // local
 import { StablePool } from "../../target/types/stable_pool";
 import {
-  ITokenAccount,
+  MarketTokenAccount,
+  CollateralAccount,
   MintAcct,
   MintPubKey,
   GlobalStateAcct,
   Vault,
   Oracle,
+  ATA,
 } from "../utils/interfaces";
 // local
-import { SBR_DECIMAL, USDCUSDT_DECIMAL } from "../utils/constants";
+import {
+  PRICE_DECIMALS,
+  SBR_DECIMALS,
+  USDCUSDT_DECIMALS,
+  USDC_DECIMALS,
+  USDT_DECIMALS,
+} from "../utils/constants";
+// @ts-ignore
+import { mintTo } from "@solana/spl-token";
+import { getAssocTokenAcct } from "../utils/fxns";
+import { createAtaOnChain } from "./users";
 // init
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
@@ -38,10 +50,9 @@ const DEFAULT_HARD_CAP = 1_000_000_000_000;
 export class Accounts {
   public global: GlobalStateAcct;
   public usdx: MintAcct;
-  public lpSaberUsdcUsdt: ITokenAccount;
-
-  public usdcOracle: Oracle;
-  public usdtOracle: Oracle;
+  public lpSaberUsdcUsdt: CollateralAccount;
+  public usdc: MarketTokenAccount;
+  public usdt: MarketTokenAccount;
 
   public quarryPayer: Keypair;
   public quarryProvider: SaberProvider;
@@ -63,50 +74,58 @@ export class Accounts {
     this.global = new GlobalStateAcct();
     // init usdx mint acct
     this.usdx = new MintAcct();
+    this.usdc = new MarketTokenAccount();
+    this.usdt = new MarketTokenAccount();
     // init lp token
     this.lpSaberUsdcUsdt = {
       vault: null as Vault,
       mint: null as PublicKey,
     };
-    this.usdcOracle = null as Oracle;
-    this.usdtOracle = null as Oracle;
   }
   public async init() {
-    // init the token mint
+    // init the token mint, oracle and markettoken
+    // TODO: update to read 'num * 10 ** PRICE_DECIMALS'
+    await this.usdc.init(1.03 * PRICE_DECIMALS, 4785000017 * 10 ** USDC_DECIMALS, USDC_DECIMALS); // amount found on explorer.solana.com on 3/24/22 5:15pm EST
+    await this.usdt.init(0.97 * PRICE_DECIMALS, 1890000008 * 10 ** USDT_DECIMALS, USDT_DECIMALS); // amount found on explorer.solana.com on 3/24/22 5:15pm EST
+    // init the collateral mint
     this.lpSaberUsdcUsdt.mint = (
       await SPLToken.createMint(
         programStablePool.provider.connection,
         (programStablePool.provider.wallet as Wallet).payer as Signer,
         programStablePool.provider.wallet.publicKey,
         null,
-        USDCUSDT_DECIMAL,
+        USDCUSDT_DECIMALS,
         TOKEN_PROGRAM_ID
       )
     ).publicKey as MintPubKey;
-    this.lpSaberUsdcUsdt.vault = new Vault(this.lpSaberUsdcUsdt.mint);
 
-    const usdcMint = (
-      await SPLToken.createMint(
-        programStablePool.provider.connection,
-        (programStablePool.provider.wallet as Wallet).payer as Signer,
-        programStablePool.provider.wallet.publicKey,
-        null,
-        6,
-        TOKEN_PROGRAM_ID
-      )
-    ).publicKey as MintPubKey;
-    const usdtMint = (
-      await SPLToken.createMint(
-        programStablePool.provider.connection,
-        (programStablePool.provider.wallet as Wallet).payer as Signer,
-        programStablePool.provider.wallet.publicKey,
-        null,
-        6,
-        TOKEN_PROGRAM_ID
-      )
-    ).publicKey as MintPubKey;
-    this.usdcOracle = new Oracle(usdcMint, 103000000);
-    this.usdtOracle = new Oracle(usdtMint, 102000000);
+    const lpATASuper = new ATA(
+      programStablePool.provider.wallet.publicKey,
+      this.lpSaberUsdcUsdt.mint
+    );
+    // create an ata for the collateral mint
+    await createAtaOnChain(
+      programStablePool.provider.wallet as Wallet,
+      lpATASuper,
+      this.lpSaberUsdcUsdt.mint,
+      programStablePool.provider.wallet.publicKey,
+      programStablePool.provider.connection
+    );
+
+    await mintTo(
+      programStablePool.provider.connection, // connection — Connection to use
+      // @ts-ignore
+      programStablePool.provider.wallet.payer, // payer — Payer of the transaction fees
+      this.lpSaberUsdcUsdt.mint, // mint — Mint for the account
+      lpATASuper.pubKey, // destination — Address of the account to mint to
+      programStablePool.provider.wallet.publicKey, // authority — Minting authority
+      70142750 * 10 ** USDCUSDT_DECIMALS // mintAmount — Amount to mint in human form
+    );
+    this.lpSaberUsdcUsdt.vault = new Vault(
+      this.lpSaberUsdcUsdt.mint,
+      this.usdc,
+      this.usdt
+    );
   }
   public async initQuarry() {
     console.log("Initializing Quarry........");
@@ -120,7 +139,7 @@ export class Accounts {
 
     const rewardsMintKP = Keypair.generate();
 
-    let baseToken = SToken.fromMint(rewardsMintKP.publicKey, SBR_DECIMAL);
+    let baseToken = SToken.fromMint(rewardsMintKP.publicKey, SBR_DECIMALS);
     let baseHardCap = TokenAmount.parse(baseToken, DEFAULT_HARD_CAP.toString());
     const { tx, mintWrapper: mintWrapperKey } =
       await this.quarrySdk.mintWrapper.newWrapper({
@@ -131,7 +150,7 @@ export class Accounts {
     let txInitMint = await createInitMintInstructions({
       provider: this.quarryProvider,
       mintKP: rewardsMintKP, // Account with signing authority on the original token (baseToken)
-      decimals: SBR_DECIMAL,
+      decimals: SBR_DECIMALS,
       mintAuthority: mintWrapperKey,
       freezeAuthority: mintWrapperKey,
     });
