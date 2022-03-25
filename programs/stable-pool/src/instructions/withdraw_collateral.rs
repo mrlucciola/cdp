@@ -10,37 +10,42 @@ use crate::{
 };
 
 pub fn handle(ctx: Context<WithdrawCollateral>, withdraw_amount: u64) -> Result<()> {
+    let accts = ctx.accounts;
     // validation
     require!(
-        ctx.accounts.ata_trove.amount > 0,
+        accts.ata_trove.amount > 0,
         StablePoolError::InvalidTransferAmount,
     );
     require!(
-        ctx.accounts.trove.debt == 0,
+        accts.trove.debt == 0,
         StablePoolError::WithdrawNotAllowedWithDebt,
     );
-    let trove_seeds: &[&[&[u8]]] = &[&[
-        &TROVE_SEED,
-        &ctx.accounts.mint.key().to_bytes(),
-        &ctx.accounts.authority.key().to_bytes(),
-        &[ctx.accounts.trove.bump],
-    ]];
+    msg!("\n\nim here\n\n");
 
+    let trove_seeds: &[&[&[u8]]] = &[&[
+        TROVE_SEED.as_ref(),
+        &accts.mint.key().to_bytes(),
+        &accts.authority.key().to_bytes(),
+        &[accts.trove.bump],
+    ]];
+    msg!("\n\nim here... pt 2\n\n");
     let transfer_ctx = CpiContext::new_with_signer(
-        ctx.accounts.token_program.to_account_info(),
+        accts.token_program.to_account_info(),
         Transfer {
-            from: ctx.accounts.ata_trove.clone().to_account_info(),
-            to: ctx.accounts.ata_user.clone().to_account_info(),
-            authority: ctx.accounts.trove.clone().to_account_info(),
+            from: accts.ata_trove.clone().to_account_info(),
+            to: accts.ata_user.clone().to_account_info(),
+            authority: accts.trove.clone().to_account_info(),
         },
         trove_seeds,
     );
 
+    msg!("\n\nim here... pt 3\n\n");
+
     // send the transfer
     token::transfer(transfer_ctx, withdraw_amount)?;
 
-    ctx.accounts.vault.total_coll -= withdraw_amount;
-    ctx.accounts.trove.locked_coll_balance -= withdraw_amount;
+    accts.vault.total_coll -= withdraw_amount;
+    accts.trove.locked_coll_balance -= withdraw_amount;
 
     Ok(())
 }
@@ -49,6 +54,7 @@ pub fn handle(ctx: Context<WithdrawCollateral>, withdraw_amount: u64) -> Result<
 pub struct WithdrawCollateral<'info> {
     #[account[mut]]
     pub authority: Signer<'info>,
+    #[account[mut]]
     pub global_state: Account<'info, GlobalState>,
 
     #[account(

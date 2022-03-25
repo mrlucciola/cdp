@@ -24,6 +24,7 @@ import { TestTokens, TestUsers } from "../utils/types";
 import baseKeyArr from "../../.config/testUser-base-keypair.json";
 import testKeyArr from "../../.config/testUser-test-keypair.json";
 import { userOracleReporterKeypair } from "../../.config/testUser-oracleReporter";
+import { DECIMALS_USDCUSDT } from "../utils/constants";
 
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
@@ -136,7 +137,7 @@ export class Users {
   }
   public async init(mintUsdxPubKey: PublicKey, mintPubKey: PublicKey) {
     await this.base.init();
-    await this.base.addToken(mintPubKey, "lpSaber", 200_000_000);
+    await this.base.addToken(mintPubKey, "lpSaber", 2000 * 10 ** DECIMALS_USDCUSDT);
     this.base.tokens.usdx = new USDx(this.base.wallet, mintUsdxPubKey);
     await this.test.init();
     await this.test.addToken(mintPubKey, "lpSaber", 200_000_000);

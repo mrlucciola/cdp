@@ -26,7 +26,13 @@ import {
 } from "@solana/spl-token";
 import { QUARRY_ADDRESSES } from "@quarryprotocol/quarry-sdk";
 // local
-import * as constants from "./constants";
+import {
+  GLOBAL_STATE_SEED,
+  MINT_USDX_SEED,
+  ORACLE_SEED,
+  TROVE_SEED,
+  VAULT_SEED,
+} from "./constants";
 import { StablePool } from "../../target/types/stable_pool";
 import { airdropSol, getAssocTokenAcct, getPda } from "./fxns";
 import { TestTokens } from "./types";
@@ -63,8 +69,13 @@ export class MarketTokenAccount {
   constructor() {}
 
   // TODO: need to check if decimal = 0 there is an issue
-  public async init(initPrice: number, startingToken: number = 0, decimals: number = 0) {
-    if (startingToken > 0 && decimals === 0) throw Error("Decimals cant be zero");
+  public async init(
+    initPrice: number,
+    startingToken: number = 0,
+    decimals: number = 0
+  ) {
+    if (startingToken > 0 && decimals === 0)
+      throw Error("Decimals cant be zero");
     this.splToken = await SPLToken.createMint(
       programStablePool.provider.connection,
       (programStablePool.provider.wallet as Wallet).payer as Signer,
@@ -293,10 +304,7 @@ export class Trove extends BaseAcct {
   ata: ATA;
   ataRewards: ATA[];
   constructor(userWallet: Wallet, mintPubKey: MintPubKey, rewardMints = []) {
-    super(constants.TROVE_SEED, [
-      mintPubKey.toBuffer(),
-      userWallet.publicKey.toBuffer(),
-    ]);
+    super(TROVE_SEED, [mintPubKey.toBuffer(), userWallet.publicKey.toBuffer()]);
     this.type = "trove";
 
     // get ata info
@@ -338,7 +346,7 @@ export class Miner {
 
 export class GlobalStateAcct extends BaseAcct {
   constructor() {
-    super(constants.GLOBAL_STATE_SEED, []);
+    super(GLOBAL_STATE_SEED, []);
     this.type = "globalState";
   }
   // public async getAccount(): Promise<IdlAccounts<StablePool>["trove"]> {
@@ -347,7 +355,7 @@ export class GlobalStateAcct extends BaseAcct {
 }
 export class MintAcct extends BaseAcct {
   constructor() {
-    super(constants.MINT_USDX_SEED, []);
+    super(MINT_USDX_SEED, []);
     this.type = "mint";
   }
 }
@@ -372,7 +380,7 @@ export class Vault extends BaseAcct {
     mktTokenUsdc: MarketTokenAccount,
     mktTokenUsdt: MarketTokenAccount
   ) {
-    super(constants.VAULT_SEED, [mintPubKey.toBuffer()]);
+    super(VAULT_SEED, [mintPubKey.toBuffer()]);
     this.type = "vault";
 
     // add seed oracles
@@ -401,7 +409,7 @@ export class Oracle extends BaseAcct {
   price: number;
   // jkap - i dont think we need price
   constructor(mint: MintPubKey, price: number) {
-    super(constants.ORACLE_SEED, [mint.toBuffer()]);
+    super(ORACLE_SEED, [mint.toBuffer()]);
     this.type = "oracle";
     this.mint = mint;
     // jkap - i dont think we need price
@@ -443,7 +451,7 @@ export class User {
   public async addToken(
     mintPubKey: MintPubKey,
     tokenStr: TestTokens,
-    amount: number = 200_000_000,
+    amount: number,
     mintAuth?: User
   ) {
     if (amount === 0) throw new Error("Please enter more than 0");

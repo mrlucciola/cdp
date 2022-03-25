@@ -5,22 +5,15 @@ import {
     workspace,
     BN,
     IdlAccounts,
-    IdlError,
-    ProgramError,
-    eventDiscriminator
   } from "@project-serum/anchor";
-import { SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
-// solana imports
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 // utils
 import { assert, expect } from "chai";
 // local
 import { handleTxn } from "../utils/fxns";
-import * as constants from "../utils/constants";
+import { TVL_LIMIT_USD } from "../utils/constants";
 import { Accounts } from "../config/accounts";
 import { StablePool } from "../../target/types/stable_pool";
 import { User } from "../utils/interfaces";
-import { program } from "@project-serum/anchor/dist/cjs/spl/token";
 
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
@@ -75,10 +68,10 @@ export const setGlobalTvlLimitFAIL_auth = async (
   await accounts.global.getAccountInfo();
   assert(globalStateAccttInfo, "Global State must be created to run admin panel tests");
 
-  const newTvlLimit = 2_000_000_000;
+  const newTvlLimitUSD = 2_000_000_000;
 
   await expect(
-    setGlobalTvlLimitCall(accounts, notSuperUser, newTvlLimit)
+    setGlobalTvlLimitCall(accounts, notSuperUser, newTvlLimitUSD)
   ).to.be.rejectedWith(
     "2003",
     "No error was thrown when trying to set tvl limit with a user different than the super owner"
@@ -86,7 +79,7 @@ export const setGlobalTvlLimitFAIL_auth = async (
 
   const globalState: IdlAccounts<StablePool>["globalState"] =
     await accounts.global.getAccount();
-  assert(globalState.tvlLimit.toNumber() != newTvlLimit, 
+  assert(globalState.tvlLimit.toNumber() != newTvlLimitUSD, 
   "TVL Limit updated even though transaction was rejected.");
 };
 
@@ -120,10 +113,10 @@ export const setGlobalTvlLimitPASS = async (
   assert(globalState.tvlLimit.toNumber() == newTvlLimit, 
   "TVL Limit was not updated even though transaction succeeded.");
 
-  confirmation = await setGlobalTvlLimitCall(accounts, superUser, constants.TVL_LIMIT);
+  confirmation = await setGlobalTvlLimitCall(accounts, superUser, TVL_LIMIT_USD);
   assert(confirmation, "Failed to set TVL Limit back to original value");
 
   globalState = await accounts.global.getAccount();
-  assert(globalState.tvlLimit.toNumber() == constants.TVL_LIMIT, 
+  assert(globalState.tvlLimit.toNumber() == TVL_LIMIT_USD, 
   "TVL Limit was not updated even though transaction succeeded.");
 };

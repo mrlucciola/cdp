@@ -5,22 +5,15 @@ import {
     workspace,
     BN,
     IdlAccounts,
-    IdlError,
-    ProgramError,
-    eventDiscriminator
   } from "@project-serum/anchor";
-import { SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
-// solana imports
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 // utils
 import { assert, expect } from "chai";
 // local
 import { handleTxn } from "../utils/fxns";
-import * as constants from "../utils/constants";
+import { DEBT_CEILING_USER_USDX } from "../utils/constants";
 import { Accounts } from "../config/accounts";
 import { StablePool } from "../../target/types/stable_pool";
 import { User } from "../utils/interfaces";
-import { program } from "@project-serum/anchor/dist/cjs/spl/token";
 
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
@@ -120,10 +113,10 @@ export const setUserDebtCeilingPASS = async (
   assert(globalState.userDebtCeiling.toNumber() == newUserDebtCeiling, 
   "User Debt Ceiling was not updated even though transaction succeeded.");
 
-  confirmation = await setUserDebtCeilingCall(accounts, superUser, constants.USER_DEBT_CEILING);
+  confirmation = await setUserDebtCeilingCall(accounts, superUser, DEBT_CEILING_USER_USDX);
   assert(confirmation, "Failed to set User Debt Ceiling back to original value");
 
   globalState = await accounts.global.getAccount();
-  assert(globalState.userDebtCeiling.toNumber() == constants.USER_DEBT_CEILING, 
+  assert(globalState.userDebtCeiling.toNumber() == DEBT_CEILING_USER_USDX, 
   "User Debt Ceiling was not updated even though transaction succeeded.");
 };

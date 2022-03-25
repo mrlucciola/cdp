@@ -21,7 +21,7 @@ import { Miner, MintPubKey, Trove, User, Vault } from "../utils/interfaces";
 import { QuarrySDK, QUARRY_ADDRESSES } from "@quarryprotocol/quarry-sdk";
 import { SignerWallet } from "@saberhq/solana-contrib";
 import { Token as SToken } from "@saberhq/token-utils";
-import { USDCUSDT_DECIMALS } from "../utils/constants";
+import { DECIMALS_USDCUSDT } from "../utils/constants";
 import { Accounts } from "../config/accounts";
 
 // init
@@ -69,15 +69,17 @@ const createSaberQuarryMinerCall = async (
   );
   // send transaction
   const receipt = await handleTxn(txn, userConnection, userWallet);
-    console.log('receipt', receipt)
-    process.exit()
+  console.log("receipt", receipt);
   return receipt;
 };
 
 /**
  * Pass when attempting to make a quarry miner that doesn't exist
  */
-export const createSaberQuarryMinerPASS = async (accounts: Accounts, user: User) => {
+export const createSaberQuarryMinerPASS = async (
+  accounts: Accounts,
+  user: User
+) => {
   const confirmation = await createSaberQuarryMinerCall(
     user.provider.connection, // userConnection,
     user.wallet, // userWallet,
@@ -89,7 +91,7 @@ export const createSaberQuarryMinerPASS = async (accounts: Accounts, user: User)
     accounts.lpSaberUsdcUsdt.mint // mintPubKey
   );
   console.log("created miner: ", confirmation);
-  
+
   // jkap: this is ridiculous.
   // jkap: why even use parameters in a function if were just going to bypass?
   // jkap: who wrote this?
@@ -101,7 +103,7 @@ export const createSaberQuarryMinerPASS = async (accounts: Accounts, user: User)
 
   const poolMintToken = SToken.fromMint(
     accounts.lpSaberUsdcUsdt.mint,
-    USDCUSDT_DECIMALS
+    DECIMALS_USDCUSDT
   );
   const quarry = await rewarder.getQuarry(poolMintToken);
 
@@ -110,5 +112,4 @@ export const createSaberQuarryMinerPASS = async (accounts: Accounts, user: User)
     miner.authority.equals(user.tokens.lpSaber.trove.pubKey),
     "Miner'authority mismatch"
   );
-  
 };

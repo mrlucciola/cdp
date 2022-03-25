@@ -17,6 +17,7 @@ pub struct Vault {
     pub token_a_decimals: u8,
     pub token_b_decimals: u8,
     pub is_dual: u8,
+    pub tvl_usd: u64,
     pub total_coll: u64,
     pub total_debt: u64,
     pub debt_ceiling: u64,

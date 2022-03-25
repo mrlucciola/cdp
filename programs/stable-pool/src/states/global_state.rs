@@ -25,9 +25,9 @@ pub struct GlobalState {
     /// The limit on the mintable debt per user, in USDx
     pub user_debt_ceiling: u64,
     /// The numerator for calculating the fee
-    pub fee_num: u128,
+    pub fee_num: u32,
     /// The denomenator for calculating the fee
-    pub fee_deno: u128,
+    pub fee_deno: u32,
     /// The collateral per risk
     pub coll_per_risklv: [u64; 10],
 

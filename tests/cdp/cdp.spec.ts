@@ -31,7 +31,7 @@ import {
   withdrawCollateralPASS,
 } from "./withdrawCollateral";
 import { borrowUsdxPASS } from "./borrowUsdx";
-import * as constants from "../utils/constants";
+import { DECIMALS_USDCUSDT } from "../utils/constants";
 import {
   reportPriceToOracleFAIL_NotUpdater,
   reportPriceToOraclePASS,
@@ -228,7 +228,7 @@ describe("cdp core test suite", async () => {
   it("PASS: Deposit Collateral", async () => {
     // mint tokens to the user's account first
     await users.base.tokens.lpSaber.ata.mintToATA(
-      10 * 10 ** constants.USDCUSDT_DECIMALS, // decimals for this mint = 9
+      1000 * 10 ** DECIMALS_USDCUSDT, // decimals for this mint = 9
       users.super,
       accounts.lpSaberUsdcUsdt.mint
     );
@@ -238,7 +238,7 @@ describe("cdp core test suite", async () => {
   it("PASS: Deposit Collateral from another user", async () => {
     // mint tokens to the user's account first
     await users.test.tokens.lpSaber.ata.mintToATA(
-      10 * 10 ** constants.USDCUSDT_DECIMALS, // decimals for this mint = 9
+      10 * 10 ** DECIMALS_USDCUSDT, // decimals for this mint = 9
       users.super,
       accounts.lpSaberUsdcUsdt.mint
     );
@@ -251,25 +251,25 @@ describe("cdp core test suite", async () => {
   });
 
   // withrawing collateral
-  it("FAIL: Withdraw Collateral - Not Enough Tokens in Trove", async () => {
-    await withdrawCollateralFAIL_NotEnoughTokensInTrove(users.base, accounts);
-  });
+  // it("FAIL: Withdraw Collateral - Not Enough Tokens in Trove", async () => {
+  //   await withdrawCollateralFAIL_NotEnoughTokensInTrove(users.base, accounts);
+  // });
 
-  it("FAIL: Withdraw Collateral - Attempt Withdraw From Other User", async () => {
-    await withdrawCollateralFAIL_AttemptWithdrawFromOtherUser(
-      users.base,
-      users.test,
-      accounts
-    );
-  });
+  // it("FAIL: Withdraw Collateral - Attempt Withdraw From Other User", async () => {
+  //   await withdrawCollateralFAIL_AttemptWithdrawFromOtherUser(
+  //     users.base,
+  //     users.test,
+  //     accounts
+  //   );
+  // });
 
   it("PASS: Withdraw Collateral", async () => {
     await withdrawCollateralPASS(users.base, accounts);
   });
 
-  it("PASS: Withdraw Collateral from another user", async () => {
-    await withdrawCollateralPASS(users.test, accounts);
-  });
+  // it("PASS: Withdraw Collateral from another user", async () => {
+  //   await withdrawCollateralPASS(users.test, accounts);
+  // });
 
   it("PASS: Create trove ataReward", async () => {
     // TODO: refactor to include just the high level classes

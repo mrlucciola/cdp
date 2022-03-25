@@ -12,7 +12,7 @@ import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { assert, expect } from "chai";
 // local
 import { StablePool } from "../../target/types/stable_pool";
-import * as constants from "../utils/constants";
+import { DEBT_CEILING_VAULT_USDX, DECIMALS_USDC, DECIMALS_USDX, DECIMALS_USDT, PLATFORM_TYPE_SABER } from "../utils/constants";
 import { handleTxn } from "../utils/fxns";
 import { Accounts } from "../config/accounts";
 import { User, Vault } from "../utils/interfaces";
@@ -34,8 +34,8 @@ const createVaultCall = async (
       vault.bump,
       new BN(riskLevel),
       new BN(isDual),
-      new BN(constants.VAULT_DEBT_CEILING),
-      constants.PLATFORM_TYPE_SABER,
+      new BN(DEBT_CEILING_VAULT_USDX * 10 ** DECIMALS_USDX),
+      PLATFORM_TYPE_SABER,
       [accounts.sbr.publicKey],
       tokenADecimals,
       tokenBDecimals,
@@ -95,8 +95,8 @@ export const createVaultFAIL_auth = async (
         riskLevel,
         isDual,
         vault,
-        constants.USDC_DECIMALS,
-        constants.USDT_DECIMALS
+        DECIMALS_USDC,
+        DECIMALS_USDT
       )
     ).to.be.rejectedWith(
       "2003",
@@ -137,8 +137,8 @@ export const createVaultFAIL_noGlobalState = async (
         riskLevel,
         isDual,
         vault,
-        constants.USDC_DECIMALS,
-        constants.USDT_DECIMALS
+        DECIMALS_USDC,
+        DECIMALS_USDT
       ),
       "The program expected this account to be already initialized"
     ).to.be.rejectedWith(
@@ -189,8 +189,8 @@ export const createVaultFAIL_dup = async (
       riskLevel,
       isDual,
       vault,
-      constants.USDC_DECIMALS,
-      constants.USDT_DECIMALS
+      DECIMALS_USDC,
+      DECIMALS_USDT
     ),
     "Already in use"
   ).to.be.rejectedWith(
@@ -229,8 +229,8 @@ export const createVaultPASS = async (
       riskLevel,
       isDual,
       vault,
-      constants.USDC_DECIMALS,
-      constants.USDT_DECIMALS
+      DECIMALS_USDC,
+      DECIMALS_USDT
     );
     console.log("token vault created- confirmation: ", confirmation);
   } else console.log("token vault already created:");

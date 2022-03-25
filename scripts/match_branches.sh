@@ -1,0 +1,1 @@
+cat ../cdp-frontend/.git/HEAD | sed 's/.*heads\///g'

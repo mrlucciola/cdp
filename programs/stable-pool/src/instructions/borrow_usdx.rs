@@ -1,38 +1,118 @@
+use std::ops::Div;
+
 // libraries
 use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::{self, AssociatedToken},
-    token::{self, accessor::amount, Mint, Token, TokenAccount},
+    token::{self, accessor::amount, mint_to, Mint, MintTo, Token, TokenAccount},
 };
 // local
 use crate::{
     constants::*,
+    errors::StablePoolError,
     states::{global_state::GlobalState, Oracle, Trove, Vault}, // TODO: rename trove -> vault
     utils::calc_lp_price,
 };
 
-// BorrowUsdx
-pub fn handle(ctx: Context<BorrowUsdx>, borrow_amount: u64) -> Result<()> {
-    let oracle_a = ctx.accounts.oracle_a.clone();
-    let oracle_b = ctx.accounts.oracle_b.clone();
+// borrow_amount is in 10 ** DECIMALS_USDX
+pub fn handle(ctx: Context<BorrowUsdx>, usdx_borrow_amt_requested: u64) -> Result<()> {
     let amount_ata_a = amount(&ctx.accounts.ata_market_a.to_account_info())?;
     let amount_ata_b = amount(&ctx.accounts.ata_market_b.to_account_info())?;
-    msg!("oracle a price: {}", &oracle_a.price);
-    msg!("oracle b price: {}", &oracle_b.price);
-    msg!("lp mint supply: {}", &ctx.accounts.mint_coll.supply);
-    msg!("token amount a: {}", &amount_ata_a);
-    msg!("token amount b: {}", &amount_ata_b);
+
+    /// This price is not in human format, its multiplied by decimal amount
     let collat_price = calc_lp_price(
-        ctx.accounts.mint_coll.supply,
+        ctx.accounts.mint_coll.supply.clone(),
         amount_ata_a,
-        ctx.accounts.vault.token_a_decimals,
-        oracle_a.price,
+        ctx.accounts.oracle_a.price,
         amount_ata_b,
-        ctx.accounts.vault.token_b_decimals,
-        oracle_b.price,
+        ctx.accounts.oracle_b.price,
     )?;
 
-    msg!("Collateral value here: {:?}", collat_price);
+    let user_collat_amt = ctx.accounts.ata_coll.amount;
+    let collat_value = collat_price
+        .checked_mul(user_collat_amt)
+        .unwrap()
+        .checked_div(10u64.checked_pow(DECIMALS_PRICE as u32).unwrap())
+        .unwrap();
+
+    msg!("borrow_amount: {}", usdx_borrow_amt_requested);
+    msg!("Collateral   amt here: {}", ctx.accounts.ata_coll.amount);
+    msg!("Collateral price here: {}", collat_price);
+    msg!("Collateral value here: {}", collat_value);
+    msg!(
+        "Global ceiling: {}",
+        &ctx.accounts.global_state.global_debt_ceiling
+    );
+    msg!("Global current: {}", &ctx.accounts.global_state.total_debt);
+    msg!("Vault ceiling: {}", &ctx.accounts.vault.debt_ceiling);
+    msg!("Vault current: {}", &ctx.accounts.vault.total_debt);
+    msg!(
+        "\nUser ceiling: {}",
+        &ctx.accounts.global_state.user_debt_ceiling
+    );
+
+    // assertions
+    // calculate the future total_debt values for global state, vault, and user
+    //   immediately after successful borrow
+    let future_total_debt_global_state =
+        ctx.accounts.global_state.total_debt + usdx_borrow_amt_requested;
+    let future_total_debt_vault = ctx.accounts.vault.total_debt + usdx_borrow_amt_requested;
+    msg!("THIS IS INCORRECT - PLACEHOLDER - USE THE USERSTATE ACCOUNT TOTAL_DEBT VALUE");
+    // let future_total_debt_user = ctx.accounts.user_state.total_debt + usdx_borrow_amt_requested;
+    let future_total_debt_user = ctx.accounts.ata_usdx.amount + usdx_borrow_amt_requested;
+
+    // the future debt has to be less than the ceilings
+    require!(
+        future_total_debt_global_state < ctx.accounts.global_state.global_debt_ceiling,
+        StablePoolError::GlobalDebtCeilingExceeded,
+    );
+    msg!(
+        "future_total_debt_vault: {}    ctx.accounts.vault.debt_ceiling: {}",
+        future_total_debt_vault,
+        ctx.accounts.vault.debt_ceiling
+    );
+    require!(
+        future_total_debt_vault < ctx.accounts.vault.debt_ceiling,
+        StablePoolError::VaultDebtCeilingExceeded,
+    );
+    require!(
+        future_total_debt_user < ctx.accounts.global_state.user_debt_ceiling,
+        StablePoolError::UserDebtCeilingExceeded,
+    );
+
+    // user can only borrow up to the max LTV for this collateral
+    // TODO: you can only borrow up to the max of a single trove in a single transaction
+    // this measn that in order to borrow from collateral across multiple collateral types,
+    // you have to submit one txn per collateral type
+    let ltv = *DEFAULT_RATIOS.get(0).unwrap_or(&0) as u128; // risk_level
+                                                            // let ltv_pct = ltv.div() as f32;
+    let ltv_max = ltv
+        .checked_mul(collat_value as u128)
+        .unwrap()
+        .checked_div(10_u128.checked_pow(DEFAULT_RATIOS_DECIMALS as u32).unwrap())
+        .unwrap();
+    msg!("ltv      : {}", ltv);
+    msg!("ltv_max  : {}", ltv_max);
+    require!(
+        usdx_borrow_amt_requested < (ltv_max as u64),
+        StablePoolError::LTVExceeded
+    );
+
+    // mint - the global state is the authority for USDx minting
+    let global_state_seed: &[&[&[u8]]] =
+        &[&[&GLOBAL_STATE_SEED, &[ctx.accounts.global_state.bump]]];
+    let mint_ctx = CpiContext::new_with_signer(
+        ctx.accounts.token_program.to_account_info(),
+        MintTo {
+            mint: ctx.accounts.mint_usdx.to_account_info(),
+            to: ctx.accounts.ata_usdx.to_account_info(),
+            authority: ctx.accounts.global_state.to_account_info(),
+        },
+        global_state_seed,
+    );
+
+    // mint
+    mint_to(mint_ctx, usdx_borrow_amt_requested)?;
 
     Ok(())
 }
@@ -77,18 +157,21 @@ pub struct BorrowUsdx<'info> {
     )]
     pub trove: Box<Account<'info, Trove>>, // TODO: rename trove -> vault
     #[account(
-        seeds=[MINT_USDX_SEED],
-        bump,
+        mut,
+        seeds=[MINT_USDX_SEED.as_ref()],
+        bump=global_state.mint_usdx_bump,
         constraint=mint_usdx.key() == global_state.mint_usdx,
     )]
     pub mint_usdx: Box<Account<'info, Mint>>,
     #[account(
-        init,
+        // TODO: don't init here, create ata outside the contract
+        init_if_needed,
         payer=authority,
         associated_token::mint = mint_usdx.as_ref(),
         associated_token::authority = authority.as_ref(),
     )]
     pub ata_usdx: Box<Account<'info, TokenAccount>>,
+    pub ata_coll: Box<Account<'info, TokenAccount>>,
     #[account(address = associated_token::ID)]
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub token_program: Program<'info, Token>,

@@ -32,8 +32,11 @@ pub enum StablePoolError {
     #[msg("This function works on devnet only")]
     InvalidCluster,
     
-    #[msg("TVL Exceeded")]
-    TVLExceeded,
+    #[msg("Global TVL Exceeded")]
+    GlobalTVLExceeded,
+
+    #[msg("LTV Exceeded")]
+    LTVExceeded,
 
     #[msg("Global Debt Ceiling Exceeded")]
     GlobalDebtCeilingExceeded,

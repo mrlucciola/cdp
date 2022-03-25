@@ -51,7 +51,7 @@ pub struct CreateGlobalState<'info> {
     #[account(
         init,
         payer = authority,
-        mint::decimals = USDX_DECIMALS,
+        mint::decimals = DECIMALS_USDX,
         mint::authority = global_state,
         seeds = [MINT_USDX_SEED.as_ref()],
         bump,

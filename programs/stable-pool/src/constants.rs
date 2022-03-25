@@ -7,9 +7,12 @@ pub const TROVE_SEED: &[u8] = b"TROVE_SEED";
 pub const ORACLE_SEED: &[u8] = b"ORACLE_SEED";
 
 // numbers
-pub const USDX_DECIMALS: u8 = 6;
-pub const DEFAULT_FEE_NUMERATOR: u128 = 3;
-pub const DEFAULT_FEE_DENOMINATOR: u128 = 1000;
+pub const DECIMALS_USD: u8 = 6;
+pub const DECIMALS_USDX: u8 = 6;
+pub const DECIMALS_PRICE: u64 = 8;
+pub const DEFAULT_FEE_NUMERATOR: u32 = 3;
+pub const DEFAULT_FEE_DENOMINATOR: u32 = 1000;
+pub const DEFAULT_RATIOS_DECIMALS: u8 = 8;
 pub const DEFAULT_RATIOS: [u64; 10] = [
     99009901, // AAA
     97799511, // AA
@@ -22,5 +25,3 @@ pub const DEFAULT_RATIOS: [u64; 10] = [
     88105727, // C
     86206897, // D
 ];
-
-pub const PRICE_DECIMALS: u64 = 100000000;

@@ -12,7 +12,7 @@ import {
 } from "@solana/web3.js";
 import { StablePool } from "../../target/types/stable_pool";
 import { Accounts } from "../config/accounts";
-import { USDX_DECIMALS } from "../utils/constants";
+import { DECIMALS_USDX } from "../utils/constants";
 import { handleTxn } from "../utils/fxns";
 import {
   GlobalStateAcct,
@@ -54,6 +54,7 @@ const borrowUsdxCall = async (
 
       mintUsdx: mintUsdx.pubKey,
       ataUsdx: userUSDx.ata.pubKey,
+      ataColl: userToken.ata.pubKey,
       
       associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
       tokenProgram: TOKEN_PROGRAM_ID,
@@ -73,6 +74,7 @@ const borrowUsdxCall = async (
       trove: userToken.trove.pubKey,
       mintUsdx: await mintUsdx.getAccountInfo(),
       ataUsdx: await userUSDx.ata.getAccountInfo(),
+      ataColl: userToken.ata.getBalance(),
     },
   })
 
@@ -94,6 +96,7 @@ const borrowUsdxCall = async (
 
         mintUsdx: mintUsdx.pubKey,
         ataUsdx: userUSDx.ata.pubKey,
+        ataColl: userToken.ata.pubKey,
 
         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
         tokenProgram: TOKEN_PROGRAM_ID,
@@ -104,6 +107,8 @@ const borrowUsdxCall = async (
   );
 
   await handleTxn(txn, userConnection, userWallet);
+  console.log('\n\n\n\ handled borrow')
+  console.log(await userToken.ata.getBalance())
 };
 // THIS IS NOT COMPLETE, please see note on the contract fxn (search `BorrowUsdx<'info>`)
 export const borrowUsdxPASS = async (user: User, accounts: Accounts) => {
@@ -112,7 +117,7 @@ export const borrowUsdxPASS = async (user: User, accounts: Accounts) => {
   // THIS IS NOT COMPLETE, please see note on the contract fxn (search `BorrowUsdx<'info>`)
   await borrowUsdxCall(
     // borrow/mint amount
-    900 * USDX_DECIMALS,
+    900 * 10 ** DECIMALS_USDX,
     // user connection
     user.provider.connection,
     // user wallet

@@ -24,7 +24,7 @@ import {
   Vault,
 } from "../utils/interfaces";
 import { assert, expect } from "chai";
-import { USDCUSDT_DECIMALS } from "../utils/constants";
+import { DECIMALS_PRICE, DECIMALS_USDCUSDT } from "../utils/constants";
 
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
@@ -58,7 +58,11 @@ const depositCollateralCall = async (
         trove: trove.pubKey,
         ataTrove: trove.ata.pubKey,
         ataUser: userToken.ata.pubKey,
-        mint: mintPubKey,
+        mintCollat: mintPubKey,
+        oracleA: vault.oracles.usdc.pubKey,
+        oracleB: vault.oracles.usdt.pubKey,
+        ataMarketA: vault.ataMarketTokens.usdc.pubKey,
+        ataMarketB: vault.ataMarketTokens.usdt.pubKey,
         tokenProgram: TOKEN_PROGRAM_ID,
         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
       },
@@ -72,9 +76,9 @@ export const depositCollateralFAIL_NotEnoughTokens = async (
   user: User,
   accounts: Accounts
 ) => {
-  const depositAmount = 0.9;
   const userlpSaber = user.tokens.lpSaber;
-  const ataBalPre = (await userlpSaber.ata.getBalance()).value.uiAmount;
+  const depositAmount = 0.9 * 10 ** DECIMALS_USDCUSDT;
+  const ataBalPre = Number((await userlpSaber.ata.getBalance()).value.amount);
 
   assert(
     depositAmount > ataBalPre,
@@ -84,7 +88,7 @@ export const depositCollateralFAIL_NotEnoughTokens = async (
   await expect(
     depositCollateralCall(
       // deposit amount
-      depositAmount * LAMPORTS_PER_SOL,
+      depositAmount,
       // user connection
       user.provider.connection,
       // user wallet
@@ -103,7 +107,7 @@ export const depositCollateralFAIL_NotEnoughTokens = async (
     "No error was thrown when trying to deposit an amount greater than the user's balance"
   ).is.rejected;
 
-  const ataBalPost = (await userlpSaber.ata.getBalance()).value.uiAmount;
+  const ataBalPost = Number((await userlpSaber.ata.getBalance()).value.amount);
   const diff = ataBalPost - ataBalPre;
 
   assert(
@@ -113,34 +117,35 @@ export const depositCollateralFAIL_NotEnoughTokens = async (
 };
 
 export const depositCollateralPASS = async (user: User, accounts: Accounts) => {
-  const depositAmount = 0.2;
-  const priceUsd = 1; // TODO: fix price feed
-  let globalStateAcct: IdlAccounts<StablePool>["globalState"] =
+  // amt to deposit with precision
+  const depositAmount = 0.2 * 10 ** DECIMALS_USDCUSDT;
+  // price, with precision
+  const priceUsd = 1.02 * 10 ** DECIMALS_PRICE; // TODO: fix price feed
+  const globalStateAcct: IdlAccounts<StablePool>["globalState"] =
     await accounts.global.getAccount();
 
   const userlpSaber = user.tokens.lpSaber;
 
-  const tvlPre = globalStateAcct.tvlUsd.toNumber();
-  const userBalPre = (await userlpSaber.ata.getBalance()).value.uiAmount;
-  const troveBalPre = (await userlpSaber.trove.ata.getBalance()).value.uiAmount;
+  // const tvlPre = globalStateAcct.tvlUsd.toNumber();
+  const userBalPre = Number((await userlpSaber.ata.getBalance()).value.amount);
+  const troveBalPre = Number(
+    (await userlpSaber.trove.ata.getBalance()).value.amount
+  );
 
   assert(
     userBalPre >= depositAmount,
-    "Test requirest ATA balance to be >= deposit amount. Please increase deposit amount" +
-      "ATA Balance: " +
-      userBalPre +
-      " Deposit Anount: " +
-      depositAmount
+    "Test requires ATA balance to be >= deposit amount. Please increase deposit amount" +
+      `\nATA bal.: ${userBalPre}   deposit amt: ${depositAmount}`
   );
   // assert(
   //   depositAmount * LAMPORTS_PER_SOL * priceUsd + globalStateAcct.tvlUsd.toNumber() < globalStateAcct.tvlLimit.toNumber(),
   //   "Amount attempting to deposit will exceed TVL limit. Please decrease depositAmount.\n" +
   //   "Deposit Amount USD: " + (depositAmount * priceUsd * LAMPORTS_PER_SOL) + " TVL: " + globalStateAcct.tvlUsd.toNumber() +
   //   " TVL Limit: " + globalStateAcct.tvlLimit.toNumber());
-  
+
   await depositCollateralCall(
     // deposit amount
-    depositAmount * 10 ** USDCUSDT_DECIMALS,
+    depositAmount,
     // user connection
     user.provider.connection,
     // user wallet
@@ -157,9 +162,10 @@ export const depositCollateralPASS = async (user: User, accounts: Accounts) => {
     accounts.global
   );
 
-  const userBalPost = (await userlpSaber.ata.getBalance()).value.uiAmount;
-  const troveBalPost = (await userlpSaber.trove.ata.getBalance()).value
-    .uiAmount;
+  const userBalPost = Number((await userlpSaber.ata.getBalance()).value.amount);
+  const troveBalPost = Number(
+    (await userlpSaber.trove.ata.getBalance()).value.amount
+  );
   const userDiff = userBalPost - userBalPre;
   const troveDiff = troveBalPost - troveBalPre;
   console.log(`user balance: ${userBalPre} -> ${userBalPost} ∆=${userDiff}`);
@@ -193,40 +199,42 @@ export const depositCollateralFAIL_DepositExceedingTVL = async (
   user: User,
   accounts: Accounts
 ) => {
-  const depositAmount = 2;
+  const depositAmountUi = 2;
+  const depositAmountPrecise = depositAmountUi * 10 ** DECIMALS_USDCUSDT;
+  const priceUsdUi = 1.02; // placeholder, get from price feed
+  const priceUsdPrecise = priceUsdUi * 10 ** DECIMALS_PRICE;
   const userlpSaber = user.tokens.lpSaber;
-  const ataBalPre = (await userlpSaber.ata.getBalance()).value.uiAmount;
+  const ataBalPre = Number((await userlpSaber.ata.getBalance()).value.amount);
 
-  let priceUsd = 1; // placeholder, get from price feed
-  let globalStateAcct: IdlAccounts<StablePool>["globalState"] =
+  const globalStateAcct: IdlAccounts<StablePool>["globalState"] =
     await accounts.global.getAccount();
   const tvlPre = globalStateAcct.tvlUsd;
 
   assert(
-    ataBalPre >= depositAmount,
+    ataBalPre >= depositAmountPrecise,
     "Starting balance < amount of tokens trying to be deposited. Please increase tokens in ATA.\n" +
       "ATA Balance:" +
       ataBalPre +
       " Deposit Amount: " +
-      depositAmount
+      depositAmountPrecise
   );
   assert(
-    depositAmount * LAMPORTS_PER_SOL * priceUsd +
-      globalStateAcct.tvlUsd.toNumber() >
+    depositAmountPrecise * priceUsdPrecise + globalStateAcct.tvlUsd.toNumber() >
       globalStateAcct.tvlLimit.toNumber(),
     "Amount attempting to deposit will not exceed TVL limit. Please increase depositAmount.\n" +
-      "Deposit Amount USD: " +
-      depositAmount * priceUsd * LAMPORTS_PER_SOL +
-      " TVL: " +
-      globalStateAcct.tvlUsd.toNumber() +
-      " TVL Limit: " +
-      globalStateAcct.tvlLimit.toNumber()
+      `Deposit Amount USD: ${depositAmountPrecise * priceUsdPrecise}\n` +
+      `TVL: ${globalStateAcct.tvlUsd.toNumber()}   TVL Limit: ${globalStateAcct.tvlLimit.toNumber()}`
   );
 
+  // console.log(`tvlLimit: ${globalStateAcct.tvlLimit.toNumber()}`);
+  // console.log(`tvlUsd: ${globalStateAcct.tvlUsd.toNumber()}`);
+  // console.log(
+  //   `depositAmountPrecise * 100000: ${depositAmountPrecise * 100000}`
+  // );
   await expect(
     depositCollateralCall(
       // deposit amount
-      depositAmount * LAMPORTS_PER_SOL,
+      depositAmountPrecise * 100000,
       // user connection
       user.provider.connection,
       // user wallet
@@ -243,23 +251,22 @@ export const depositCollateralFAIL_DepositExceedingTVL = async (
       accounts.global
     )
   ).to.be.rejectedWith(
-    "6010",
+    "6016",
     "No error was thrown when trying to deposit an amount greater the platform's TVL"
   );
 
-  const ataBalPost = (await userlpSaber.ata.getBalance()).value.uiAmount;
+  const ataBalPost = Number((await userlpSaber.ata.getBalance()).value.amount);
   const diff = ataBalPost - ataBalPre;
 
   assert(
-    diff == 0,
+    diff === 0,
     "Deposit failed but token balance changed after deposit attempt"
   );
 
-  globalStateAcct = await accounts.global.getAccount();
-  const tvlPost = globalStateAcct.tvlUsd;
+  const tvlPost = (await accounts.global.getAccount()).tvlUsd;
   // this might have to be adjusted so that pre - post < small value (due to price fluctuations)
   assert(
-    tvlPre.toNumber() - tvlPost.toNumber() == 0,
+    tvlPre.toNumber() - tvlPost.toNumber() === 0,
     "TVL changed after failed deposit when it should've stayed the same"
   );
 };

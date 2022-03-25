@@ -27,8 +27,8 @@ pub fn handle(
     ctx.accounts.vault.bump = vault_bump;
     ctx.accounts.vault.is_dual = is_dual;
     ctx.accounts.vault.debt_ceiling = debt_ceiling;
-    ctx.accounts.vault.token_a_decimals = 6;
-    ctx.accounts.vault.token_b_decimals = 6;
+    ctx.accounts.vault.token_a_decimals = token_a_decimals;
+    ctx.accounts.vault.token_b_decimals = token_b_decimals;
 
     require!(
         platform_type < PlatformType::Unknown as u8,
@@ -36,7 +36,10 @@ pub fn handle(
     );
     ctx.accounts.vault.platform_type = platform_type;
 
-    require!(reward_mints.len() > 0 && reward_mints.len() <= 2, StablePoolError::InvalidRewardMintCount);
+    require!(
+        reward_mints.len() > 0 && reward_mints.len() <= 2,
+        StablePoolError::InvalidRewardMintCount
+    );
 
     ctx.accounts.vault.reward_mint_a = reward_mints[0];
     if reward_mints.len() > 1 {

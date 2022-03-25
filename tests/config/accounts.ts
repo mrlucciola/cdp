@@ -32,11 +32,11 @@ import {
 } from "../utils/interfaces";
 // local
 import {
-  PRICE_DECIMALS,
-  SBR_DECIMALS,
-  USDCUSDT_DECIMALS,
-  USDC_DECIMALS,
-  USDT_DECIMALS,
+  DECIMALS_SBR,
+  DECIMALS_USDCUSDT,
+  DECIMALS_USDC,
+  DECIMALS_USDT,
+  DECIMALS_PRICE,
 } from "../utils/constants";
 // @ts-ignore
 import { mintTo } from "@solana/spl-token";
@@ -84,9 +84,9 @@ export class Accounts {
   }
   public async init() {
     // init the token mint, oracle and markettoken
-    // TODO: update to read 'num * 10 ** PRICE_DECIMALS'
-    await this.usdc.init(1.03 * PRICE_DECIMALS, 4785000017 * 10 ** USDC_DECIMALS, USDC_DECIMALS); // amount found on explorer.solana.com on 3/24/22 5:15pm EST
-    await this.usdt.init(0.97 * PRICE_DECIMALS, 1890000008 * 10 ** USDT_DECIMALS, USDT_DECIMALS); // amount found on explorer.solana.com on 3/24/22 5:15pm EST
+    // TODO: update to read 'num * 10 ** DECIMALS_PRICE'
+    await this.usdc.init(1.03 * 10 ** DECIMALS_PRICE, 25331785.961795 * 10 ** DECIMALS_USDC, DECIMALS_USDC); // amount found on explorer.solana.com on 3/24/22 5:15pm EST
+    await this.usdt.init(0.97 * 10 ** DECIMALS_PRICE, 16555962.623743 * 10 ** DECIMALS_USDT, DECIMALS_USDT); // amount found on explorer.solana.com on 3/24/22 5:15pm EST
     // init the collateral mint
     this.lpSaberUsdcUsdt.mint = (
       await SPLToken.createMint(
@@ -94,7 +94,7 @@ export class Accounts {
         (programStablePool.provider.wallet as Wallet).payer as Signer,
         programStablePool.provider.wallet.publicKey,
         null,
-        USDCUSDT_DECIMALS,
+        DECIMALS_USDCUSDT,
         TOKEN_PROGRAM_ID
       )
     ).publicKey as MintPubKey;
@@ -119,7 +119,7 @@ export class Accounts {
       this.lpSaberUsdcUsdt.mint, // mint — Mint for the account
       lpATASuper.pubKey, // destination — Address of the account to mint to
       programStablePool.provider.wallet.publicKey, // authority — Minting authority
-      70142750 * 10 ** USDCUSDT_DECIMALS // mintAmount — Amount to mint in human form
+      40262269.031312 * 10 ** DECIMALS_USDCUSDT // mintAmount — Amount to mint in human form
     );
     this.lpSaberUsdcUsdt.vault = new Vault(
       this.lpSaberUsdcUsdt.mint,
@@ -139,7 +139,7 @@ export class Accounts {
 
     const rewardsMintKP = Keypair.generate();
 
-    let baseToken = SToken.fromMint(rewardsMintKP.publicKey, SBR_DECIMALS);
+    let baseToken = SToken.fromMint(rewardsMintKP.publicKey, DECIMALS_SBR);
     let baseHardCap = TokenAmount.parse(baseToken, DEFAULT_HARD_CAP.toString());
     const { tx, mintWrapper: mintWrapperKey } =
       await this.quarrySdk.mintWrapper.newWrapper({
@@ -150,7 +150,7 @@ export class Accounts {
     let txInitMint = await createInitMintInstructions({
       provider: this.quarryProvider,
       mintKP: rewardsMintKP, // Account with signing authority on the original token (baseToken)
-      decimals: SBR_DECIMALS,
+      decimals: DECIMALS_SBR,
       mintAuthority: mintWrapperKey,
       freezeAuthority: mintWrapperKey,
     });

@@ -1,41 +1,89 @@
 // modules
+use crate::states::Oracle;
 use anchor_lang::prelude::*;
 use anchor_spl::associated_token::AssociatedToken;
-use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
+use anchor_spl::token::{self, accessor::amount, Mint, Token, TokenAccount, Transfer};
 // local
 use crate::{
     constants::*,
     errors::StablePoolError,
     states::{GlobalState, Trove, Vault},
-    utils::assert_tvl_allowed,
+    utils::calc_lp_price,
 };
 
-pub fn handle(ctx: Context<DepositCollateral>, deposit_amount: u64) -> Result<()> {
+pub fn handle(ctx: Context<DepositCollateral>, collat_token_deposit_amt: u64) -> Result<()> {
+    let accts = ctx.accounts;
+    let amount_ata_a = amount(&accts.ata_market_a.to_account_info())?;
+    let amount_ata_b = amount(&accts.ata_market_b.to_account_info())?;
     // validation
-    assert_tvl_allowed(
-        ctx.accounts.global_state.tvl_limit,
-        ctx.accounts.global_state.tvl_usd,
-        deposit_amount,
-    )?;
+    // the tvl value in usd, estimated at time of deposit
+    let tvl_usd = &accts.global_state.tvl_usd;
+
+    // user amount in the ata has to be greater than 0
     require!(
-        ctx.accounts.ata_user.amount > 0,
+        accts.ata_user.amount > 0,
+        StablePoolError::InvalidTransferAmount,
+    );
+    require!(
+        accts.ata_user.amount > collat_token_deposit_amt,
         StablePoolError::InvalidTransferAmount,
     );
 
+    // calculate the price of the collateral in usd then add that to the usd
+    // calculate the entire vault amount plus the amount to be added, and set that as the new value
+    let collat_price = calc_lp_price(
+        accts.mint_collat.supply.clone(),
+        amount_ata_a,
+        accts.oracle_a.price,
+        amount_ata_b,
+        accts.oracle_b.price,
+    )?;
+
+    // the token amount across all user accounts that deposited this collateral
+    let orig_vault_token_amt = accts.vault.total_coll;
+    // calculate vault_tvl_usd
+    let orig_vault_token_value_usd = collat_price
+        .checked_mul(orig_vault_token_amt)
+        .unwrap()
+        .checked_div(10u64.checked_pow(DECIMALS_PRICE as u32).unwrap())
+        .unwrap();
+
+    // calculate the value of the token to be deposited
+    let deposit_token_value_usd = (collat_price as u128)
+        .checked_mul(collat_token_deposit_amt as u128)
+        .unwrap()// handle this properly
+        .checked_div(10u64.checked_pow(DECIMALS_PRICE as u32).unwrap() as u128)
+        .unwrap();
+
+    // TODO: rename tvl_limit -> tvl_ceiling_usd
+    let global_tvl_ceiling_usd = accts.global_state.tvl_limit as u128;
+
+    // global tvl limit has to be less than the next tvl if deposit were to go thru
+    require!(
+        (*tvl_usd as u128) + (collat_token_deposit_amt as u128) <= global_tvl_ceiling_usd,
+        StablePoolError::GlobalTVLExceeded
+    );
+    // send the transfer
     let transfer_ctx = CpiContext::new(
-        ctx.accounts.token_program.to_account_info(),
+        accts.token_program.to_account_info(),
         Transfer {
-            from: ctx.accounts.ata_user.clone().to_account_info(),
-            to: ctx.accounts.ata_trove.clone().to_account_info(),
-            authority: ctx.accounts.authority.clone().to_account_info(),
+            from: accts.ata_user.clone().to_account_info(),
+            to: accts.ata_trove.clone().to_account_info(),
+            authority: accts.authority.clone().to_account_info(),
         },
     );
+    token::transfer(transfer_ctx, collat_token_deposit_amt)?;
 
-    // send the transfer
-    token::transfer(transfer_ctx, deposit_amount)?;
+    // TODO: rename vault -> pool
+    // TODO: rename trove -> vault
+    // add the tokens to the vault and trove
+    accts.vault.total_coll += collat_token_deposit_amt;
+    accts.trove.locked_coll_balance += collat_token_deposit_amt;
 
-    ctx.accounts.vault.total_coll += deposit_amount;
-    ctx.accounts.trove.locked_coll_balance += deposit_amount;
+    // the usd value of all user deposited collateral for this collateral type
+    let new_vault_tvl_usd = (orig_vault_token_value_usd as u128) + deposit_token_value_usd;
+    // update the global state
+    accts.global_state.tvl_usd = new_vault_tvl_usd as u64;
 
     Ok(())
 }
@@ -49,7 +97,7 @@ pub struct DepositCollateral<'info> {
 
     #[account(
         mut,
-        seeds=[VAULT_SEED.as_ref(), mint.key().as_ref()],
+        seeds=[VAULT_SEED.as_ref(), mint_collat.key().as_ref()],
         bump=vault.bump
     )]
     pub vault: Box<Account<'info, Vault>>,
@@ -58,7 +106,7 @@ pub struct DepositCollateral<'info> {
         mut,
         seeds=[
             TROVE_SEED.as_ref(),
-            mint.key().as_ref(),
+            mint_collat.key().as_ref(),
             authority.key().as_ref(),
         ],
         bump=trove.bump
@@ -67,20 +115,26 @@ pub struct DepositCollateral<'info> {
 
     #[account(
         mut,
-        associated_token::mint = mint.as_ref(),
+        associated_token::mint = mint_collat.as_ref(),
         associated_token::authority = trove.as_ref(),
     )]
     pub ata_trove: Account<'info, TokenAccount>,
 
     #[account(
         mut,
-        associated_token::mint = mint.as_ref(),
+        associated_token::mint = mint_collat.as_ref(),
         associated_token::authority = authority.as_ref(),
     )]
     pub ata_user: Account<'info, TokenAccount>,
 
-    #[account(constraint = mint.key().as_ref() == vault.mint.as_ref())]
-    pub mint: Box<Account<'info, Mint>>,
+    #[account(constraint = mint_collat.key().as_ref() == vault.mint.as_ref())]
+    pub mint_collat: Box<Account<'info, Mint>>,
+
+    pub oracle_a: Account<'info, Oracle>,
+    pub oracle_b: Account<'info, Oracle>,
+    pub ata_market_a: Box<Account<'info, TokenAccount>>,
+    pub ata_market_b: Box<Account<'info, TokenAccount>>,
+
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
 }

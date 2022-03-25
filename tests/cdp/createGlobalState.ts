@@ -13,10 +13,16 @@ import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { assert, expect } from "chai";
 // local
 import { handleTxn } from "../utils/fxns";
-import * as constants from "../utils/constants";
+import {
+  DEBT_CEILING_GLOBAL_USDX,
+  DEBT_CEILING_USER_USDX,
+  DECIMALS_USD,
+  DECIMALS_USDX,
+  TVL_LIMIT_USD,
+} from "../utils/constants";
 import { Accounts } from "../config/accounts";
 import { StablePool } from "../../target/types/stable_pool";
-import { Oracle, User } from "../utils/interfaces";
+import { User } from "../utils/interfaces";
 
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
@@ -32,9 +38,9 @@ const createGlobalStateCall = async (
     programStablePool.instruction.createGlobalState(
       accounts.global.bump, // prev: globalStateNonce
       accounts.usdx.bump, // prev: mintUsdNonce
-      new BN(constants.TVL_LIMIT),
-      new BN(constants.GLOBAL_DEBT_CEILING),
-      new BN(constants.USER_DEBT_CEILING),
+      new BN(TVL_LIMIT_USD * 10 ** DECIMALS_USD),
+      new BN(DEBT_CEILING_GLOBAL_USDX * 10 ** DECIMALS_USDX),
+      new BN(DEBT_CEILING_USER_USDX * 10 ** DECIMALS_USDX),
       oracleReporter.wallet.publicKey,
       {
         accounts: {
@@ -97,8 +103,8 @@ export const createGlobalStatePASS = async (
     "\n USDx mint is not correct"
   );
   assert(
-    globalState.tvlLimit.toNumber() == constants.TVL_LIMIT,
-    `Global-state TVL Limit: ${globalState.tvlLimit} \nTVL Limit: ${constants.TVL_LIMIT}`
+    globalState.tvlLimit.toNumber() == TVL_LIMIT_USD * 10 ** DECIMALS_USD,
+    `Global-state TVL Limit: ${globalState.tvlLimit} \nTVL Limit: ${TVL_LIMIT_USD}`
   );
   assert(globalState.tvlUsd.toNumber() == 0, "Err: Global-state.tvl != 0");
   assert(
@@ -106,12 +112,12 @@ export const createGlobalStatePASS = async (
     "Err: Global-state-total-debt != 0"
   );
   assert(
-    globalState.globalDebtCeiling.toNumber() == constants.GLOBAL_DEBT_CEILING,
-    `GlobalState Global Debt Ceiling: ${globalState.globalDebtCeiling} Global Debt Ceiling: ${constants.GLOBAL_DEBT_CEILING}`
+    globalState.globalDebtCeiling.toNumber() == DEBT_CEILING_GLOBAL_USDX * 10 ** DECIMALS_USDX,
+    `GlobalState Global Debt Ceiling: ${globalState.globalDebtCeiling} Global Debt Ceiling: ${DEBT_CEILING_GLOBAL_USDX * 10 ** DECIMALS_USDX}`
   );
   assert(
-    globalState.userDebtCeiling.toNumber() == constants.USER_DEBT_CEILING,
-    `GlobalState User Debt Ceiling: ${globalState.userDebtCeiling} User Debt Ceiling: ${constants.USER_DEBT_CEILING}`
+    globalState.userDebtCeiling.toNumber() === DEBT_CEILING_USER_USDX * 10 ** DECIMALS_USDX,
+    `GlobalState User Debt Ceiling: ${globalState.userDebtCeiling} User Debt Ceiling: ${DEBT_CEILING_USER_USDX * 10 ** DECIMALS_USDX}`
   );
 };
 
