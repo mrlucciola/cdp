@@ -1,4 +1,4 @@
-// anchor imports
+// anchor/solana imports
 import {
   Program,
   web3,
@@ -7,7 +7,6 @@ import {
   IdlAccounts,
 } from "@project-serum/anchor";
 import { SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
-// solana imports
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 // utils
 import { assert, expect } from "chai";
@@ -36,11 +35,14 @@ const createGlobalStateCall = async (
   // add instruction
   txn.add(
     programStablePool.instruction.createGlobalState(
-      accounts.global.bump, // prev: globalStateNonce
-      accounts.usdx.bump, // prev: mintUsdNonce
+      // TODO: remove
+      accounts.global.bump,
+      // TODO: remove
+      accounts.usdx.bump,
       new BN(TVL_LIMIT_USD * 10 ** DECIMALS_USD),
       new BN(DEBT_CEILING_GLOBAL_USDX * 10 ** DECIMALS_USDX),
       new BN(DEBT_CEILING_USER_USDX * 10 ** DECIMALS_USDX),
+      // for verifying
       oracleReporter.wallet.publicKey,
       {
         accounts: {
@@ -63,8 +65,6 @@ const createGlobalStateCall = async (
 /**
  * Creates global state account and usdx mint account
  * auth needs to be 7Lw3e19CJUvR5qWRj8J6NKrV2tywiJqS9oDu1m8v4rsi, this will fail otherwise
- * @param superUser
- * @param accounts
  */
 export const createGlobalStatePASS = async (
   superUser: User,
@@ -112,20 +112,24 @@ export const createGlobalStatePASS = async (
     "Err: Global-state-total-debt != 0"
   );
   assert(
-    globalState.globalDebtCeiling.toNumber() == DEBT_CEILING_GLOBAL_USDX * 10 ** DECIMALS_USDX,
-    `GlobalState Global Debt Ceiling: ${globalState.globalDebtCeiling} Global Debt Ceiling: ${DEBT_CEILING_GLOBAL_USDX * 10 ** DECIMALS_USDX}`
+    globalState.globalDebtCeiling.toNumber() ==
+      DEBT_CEILING_GLOBAL_USDX * 10 ** DECIMALS_USDX,
+    `GlobalState Global Debt Ceiling: ${
+      globalState.globalDebtCeiling
+    } Global Debt Ceiling: ${DEBT_CEILING_GLOBAL_USDX * 10 ** DECIMALS_USDX}`
   );
   assert(
-    globalState.userDebtCeiling.toNumber() === DEBT_CEILING_USER_USDX * 10 ** DECIMALS_USDX,
-    `GlobalState User Debt Ceiling: ${globalState.userDebtCeiling} User Debt Ceiling: ${DEBT_CEILING_USER_USDX * 10 ** DECIMALS_USDX}`
+    globalState.userDebtCeiling.toNumber() ===
+      DEBT_CEILING_USER_USDX * 10 ** DECIMALS_USDX,
+    `GlobalState User Debt Ceiling: ${
+      globalState.userDebtCeiling
+    } User Debt Ceiling: ${DEBT_CEILING_USER_USDX * 10 ** DECIMALS_USDX}`
   );
 };
 
 /**
  * In this FAIL test - auth is not 7Lw3e19CJUvR5qWRj8J6NKrV2tywiJqS9oDu1m8v4rsi
  * Verify that the user being passed into the fxn is not super
- * @param notSuperUser
- * @param accounts
  */
 export const createGlobalStateFAIL_auth = async (
   notSuperUser: User,
@@ -156,8 +160,6 @@ export const createGlobalStateFAIL_auth = async (
 
 /**
  * In this FAIL test - we try to create a new global state when it already exists
- * @param superUser
- * @param accounts
  */
 export const createGlobalStateFAIL_duplicate = async (
   oracleReporter: User,

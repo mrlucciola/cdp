@@ -51,7 +51,7 @@ pub fn handle(ctx: Context<DepositCollateral>, collat_token_deposit_amt: u64) ->
     // calculate the value of the token to be deposited
     let deposit_token_value_usd = (collat_price as u128)
         .checked_mul(collat_token_deposit_amt as u128)
-        .unwrap()// handle this properly
+        .unwrap() // handle this properly
         .checked_div(10u64.checked_pow(DECIMALS_PRICE as u32).unwrap() as u128)
         .unwrap();
 

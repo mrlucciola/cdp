@@ -1,5 +1,4 @@
-// This file should be renamed to create-oracle
-// anchor imports
+// anchor/solana imports
 import {
   getProvider,
   Program,
@@ -15,7 +14,6 @@ import {
   SYSVAR_CLOCK_PUBKEY,
   SYSVAR_RENT_PUBKEY,
 } from "@solana/web3.js";
-// solana imports
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 // utils
 import { assert, expect } from "chai";
@@ -43,6 +41,7 @@ const createOracleCall = async (
           globalState: globalState.pubKey,
           oracle: oracle.pubKey,
           mint: oracle.mint, // the mint account that represents the token this oracle reports for
+          // system accts
           tokenProgram: TOKEN_PROGRAM_ID,
           clock: SYSVAR_CLOCK_PUBKEY,
           rent: SYSVAR_RENT_PUBKEY,

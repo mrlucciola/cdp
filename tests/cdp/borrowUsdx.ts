@@ -1,3 +1,4 @@
+// anchor/solana imports
 import { BN, Program, Wallet, workspace } from "@project-serum/anchor";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -5,11 +6,11 @@ import {
 } from "@solana/spl-token";
 import {
   Connection,
-  LAMPORTS_PER_SOL,
   SystemProgram,
   SYSVAR_RENT_PUBKEY,
   Transaction,
 } from "@solana/web3.js";
+// local
 import { StablePool } from "../../target/types/stable_pool";
 import { Accounts } from "../config/accounts";
 import { DECIMALS_USDX } from "../utils/constants";
@@ -18,7 +19,6 @@ import {
   GlobalStateAcct,
   MintAcct,
   MintPubKey,
-  Trove,
   USDx,
   User,
   UserToken,
@@ -26,6 +26,7 @@ import {
 } from "../utils/interfaces";
 
 const programStablePool = workspace.StablePool as Program<StablePool>;
+
 // THIS IS NOT COMPLETE, please see note on the contract fxn (search `BorrowUsdx<'info>`)
 const borrowUsdxCall = async (
   borrowAmount: number,
@@ -36,51 +37,10 @@ const borrowUsdxCall = async (
   mintUsdx: MintAcct,
   vault: Vault,
   globalState: GlobalStateAcct,
-  mintColl: MintPubKey,
+  mintColl: MintPubKey
 ) => {
-  console.log(new BN(borrowAmount), {
-    accounts: {
-      authority: userWallet.publicKey,
-      globalState: globalState.pubKey,
-
-      oracleA: vault.oracles.usdc.pubKey,
-      oracleB: vault.oracles.usdt.pubKey,
-      ataMarketA: vault.ataMarketTokens.usdc.pubKey,
-      ataMarketB: vault.ataMarketTokens.usdt.pubKey,
-
-      mintColl, // the collat token mint that the vault represents
-      vault: vault.pubKey,
-      trove: userToken.trove.pubKey,
-
-      mintUsdx: mintUsdx.pubKey,
-      ataUsdx: userUSDx.ata.pubKey,
-      ataColl: userToken.ata.pubKey,
-      
-      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-      tokenProgram: TOKEN_PROGRAM_ID,
-      systemProgram: SystemProgram.programId,
-      rent: SYSVAR_RENT_PUBKEY,
-    },
-  })
-  console.log(new BN(borrowAmount), {
-    accounts: {
-      authority: userWallet.publicKey,
-      globalState: globalState.pubKey,
-      oracleA: await vault.oracles.usdc.getAccountInfo(),
-      oracleB: await vault.oracles.usdt.getAccountInfo(),
-      ataMarketA: await vault.ataMarketTokens.usdc.getAccountInfo(),
-      ataMarketB: await vault.ataMarketTokens.usdt.getAccountInfo(),
-      vault: vault.pubKey,
-      trove: userToken.trove.pubKey,
-      mintUsdx: await mintUsdx.getAccountInfo(),
-      ataUsdx: await userUSDx.ata.getAccountInfo(),
-      ataColl: userToken.ata.getBalance(),
-    },
-  })
-
   const txn = new Transaction().add(
-    programStablePool.instruction.borrowUsdx(
-      new BN(borrowAmount), {
+    programStablePool.instruction.borrowUsdx(new BN(borrowAmount), {
       accounts: {
         authority: userWallet.publicKey,
         globalState: globalState.pubKey,
@@ -91,13 +51,14 @@ const borrowUsdxCall = async (
         ataMarketB: vault.ataMarketTokens.usdt.pubKey,
 
         mintColl, // the collat token mint that the vault represents
-        vault: vault.pubKey,
-        trove: userToken.trove.pubKey,
+        vault: vault.pubKey, // TODO: rename vault -> pool
+        trove: userToken.trove.pubKey, // TODO: rename trove -> vault
 
         mintUsdx: mintUsdx.pubKey,
         ataUsdx: userUSDx.ata.pubKey,
-        ataColl: userToken.ata.pubKey,
+        ataColl: userToken.ata.pubKey, // why do we need this?
 
+        // system accts
         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
         tokenProgram: TOKEN_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
@@ -107,17 +68,18 @@ const borrowUsdxCall = async (
   );
 
   await handleTxn(txn, userConnection, userWallet);
-  console.log('\n\n\n\ handled borrow')
-  console.log(await userToken.ata.getBalance())
+  console.log(await userToken.ata.getBalance());
 };
 // THIS IS NOT COMPLETE, please see note on the contract fxn (search `BorrowUsdx<'info>`)
 export const borrowUsdxPASS = async (user: User, accounts: Accounts) => {
   const usdxUser = user.tokens.usdx;
+  const borrowAmtUi = 900;
+  const borrowAmtPrecise = borrowAmtUi * 10 ** DECIMALS_USDX;
 
   // THIS IS NOT COMPLETE, please see note on the contract fxn (search `BorrowUsdx<'info>`)
   await borrowUsdxCall(
     // borrow/mint amount
-    900 * 10 ** DECIMALS_USDX,
+    borrowAmtPrecise,
     // user connection
     user.provider.connection,
     // user wallet
@@ -136,9 +98,6 @@ export const borrowUsdxPASS = async (user: User, accounts: Accounts) => {
     accounts.lpSaberUsdcUsdt.mint
   );
 
-  const userBalPost = (await usdxUser.ata.getBalance()).value.uiAmount;
-  const userDiff = userBalPost - 0;
-  console.log(
-    `user USDX balance: ${0} -> ${userBalPost} ∆=${userDiff}`
-  );
+  const userBalPost = Number((await usdxUser.ata.getBalance()).value.amount);
+  console.log(`user USDX balance: ${0} -> ${userBalPost} ∆=${userBalPost}`);
 };

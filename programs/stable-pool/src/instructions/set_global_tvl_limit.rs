@@ -3,10 +3,7 @@ use anchor_lang::prelude::*;
 // local
 use crate::{constants::*, states::global_state::GlobalState};
 
-pub fn handle(
-    ctx: Context<SetGlobalTvlLimit>,
-    limit: u64, 
-) -> Result<()> {
+pub fn handle(ctx: Context<SetGlobalTvlLimit>, limit: u64) -> Result<()> {
     ctx.accounts.global_state.tvl_limit = limit;
 
     Ok(())

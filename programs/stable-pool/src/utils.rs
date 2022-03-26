@@ -44,8 +44,6 @@ pub fn calc_lp_price(
     let prod = numer.checked_div(lp_supply as u128).unwrap();
     // = 2 * prod
     let lp_price = (prod as u128).checked_mul(2).unwrap();
-    // let p_decimals_lp: u64 = 10u64.pow(DECIMALS_PRICE as u32);
-    // let lp_price: f32 = ((prod as u128).checked_mul(2).unwrap() as f32).div(p_decimals_lp as f32);
 
     Ok(lp_price as u64)
 }

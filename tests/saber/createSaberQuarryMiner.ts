@@ -5,7 +5,6 @@ import {
   Connection,
   PublicKey,
   SystemProgram,
-  SYSVAR_CLOCK_PUBKEY,
   SYSVAR_RENT_PUBKEY,
 } from "@solana/web3.js";
 import {
@@ -92,9 +91,6 @@ export const createSaberQuarryMinerPASS = async (
   );
   console.log("created miner: ", confirmation);
 
-  // jkap: this is ridiculous.
-  // jkap: why even use parameters in a function if were just going to bypass?
-  // jkap: who wrote this?
   const quarryProvider = new SignerWallet(
     (programStablePool.provider.wallet as any).payer
   ).createProvider(programStablePool.provider.connection);

@@ -1,12 +1,11 @@
 // anchor imports
+import { Program, web3, workspace, Wallet } from "@project-serum/anchor";
 import {
-  Program,
-  web3,
-  workspace,
-  BN,
-  Wallet,
-} from "@project-serum/anchor";
-import { Connection, SystemProgram, SYSVAR_CLOCK_PUBKEY, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
+  Connection,
+  SystemProgram,
+  SYSVAR_CLOCK_PUBKEY,
+  SYSVAR_RENT_PUBKEY,
+} from "@solana/web3.js";
 // solana imports
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -20,21 +19,11 @@ import { handleTxn } from "../utils/fxns";
 import { MintPubKey, Trove, Vault } from "../utils/interfaces";
 // program
 const programStablePool = workspace.StablePool as Program<StablePool>;
-const defaultAccounts = {
-  tokenProgram: TOKEN_PROGRAM_ID,
-  clock: SYSVAR_CLOCK_PUBKEY,
-  systemProgram: SystemProgram.programId,
-  rent: SYSVAR_RENT_PUBKEY,
-  associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID
-};
+
 /**
- *
- * @param userConnection
- * @param userWallet
- * @param trove
- * @param vault
- * @param rewardMint
- * @returns
+ * The rpc call that creates a rewards vault
+ * A reward vault has ...
+ * It does ...
  */
 const createRewardVaultCall = async (
   userConnection: Connection,
@@ -43,22 +32,24 @@ const createRewardVaultCall = async (
   vault: Vault,
   rewardMint: MintPubKey
 ) => {
-  console.log([rewardMint] + '')
+  console.log([rewardMint] + "");
   const txn = new web3.Transaction().add(
-    programStablePool.instruction.createRewardVault(
-      {
-        accounts: {
-          authority: userWallet.publicKey,
-          vault: vault.pubKey,
-          trove: trove.pubKey,
+    programStablePool.instruction.createRewardVault({
+      accounts: {
+        authority: userWallet.publicKey,
+        vault: vault.pubKey,
+        trove: trove.pubKey,
 
-          rewardVault: trove.ataRewards[0].pubKey,
-          rewardMint,
+        rewardVault: trove.ataRewards[0].pubKey,
+        rewardMint,
 
-          ...defaultAccounts,
-        },
-      }
-    )
+        // system accts
+        tokenProgram: TOKEN_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
+        rent: SYSVAR_RENT_PUBKEY,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+      },
+    })
   );
 
   // send transaction
@@ -69,11 +60,6 @@ const createRewardVaultCall = async (
 
 /**
  * Pass when attempting to make a trove that doesn't exist
- * @param userWallet
- * @param userConnection
- * @param trove
- * @param vault
- * @param mintPubkey
  */
 export const createTroveRewardVault = async (
   userWallet: Wallet,
@@ -82,7 +68,6 @@ export const createTroveRewardVault = async (
   vault: Vault,
   mintPubKey: MintPubKey
 ) => {
-
   const confirmation = await createRewardVaultCall(
     userConnection,
     userWallet,
@@ -93,6 +78,8 @@ export const createTroveRewardVault = async (
   console.log("created reward vault: ", confirmation);
 
   const troveReward = await trove.ataRewards[0].getBalance();
-  assert(troveReward.value.amount == '0', "trove ata of reward balance mismatch");
-
+  assert(
+    troveReward.value.amount == "0",
+    "trove ata of reward balance mismatch"
+  );
 };

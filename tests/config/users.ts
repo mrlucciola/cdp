@@ -9,31 +9,20 @@ import {
   mintTo,
 } from "@solana/spl-token";
 // local
-// import superKeyArr from "../../.config/testUser-super-keypair.json";
 import { StablePool } from "../../target/types/stable_pool";
 import { getAcctBalance, getAssocTokenAcct, handleTxn } from "../utils/fxns";
-import {
-  ATA,
-  MintPubKey,
-  USDx,
-  User,
-  UserToken,
-  Vault,
-} from "../utils/interfaces";
-import { TestTokens, TestUsers } from "../utils/types";
+import { ATA, MintPubKey, USDx, User, UserToken } from "../utils/interfaces";
 import baseKeyArr from "../../.config/testUser-base-keypair.json";
-import testKeyArr from "../../.config/testUser-test-keypair.json";
+import { userTestKeypair } from "../../.config/testUser-test";
 import { userOracleReporterKeypair } from "../../.config/testUser-oracleReporter";
 import { DECIMALS_USDCUSDT } from "../utils/constants";
+import { TestTokens } from "../utils/types";
 
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
 // will repeat what was done for super, for user
 const userBaseKeypair: web3.Keypair = web3.Keypair.fromSecretKey(
   new Uint8Array(baseKeyArr as any[])
-);
-const userTestKeypair: web3.Keypair = web3.Keypair.fromSecretKey(
-  new Uint8Array(testKeyArr as any[])
 );
 export const createAtaOnChain = async (
   userWallet: Wallet,
@@ -130,14 +119,17 @@ export class Users {
     this.super = {
       wallet: programStablePool.provider.wallet as Wallet,
       provider: programStablePool.provider,
-      // createTrove: null,
       init: null,
       addToken: null,
     };
   }
   public async init(mintUsdxPubKey: PublicKey, mintPubKey: PublicKey) {
     await this.base.init();
-    await this.base.addToken(mintPubKey, "lpSaber", 2000 * 10 ** DECIMALS_USDCUSDT);
+    await this.base.addToken(
+      mintPubKey,
+      "lpSaber",
+      2000 * 10 ** DECIMALS_USDCUSDT
+    );
     this.base.tokens.usdx = new USDx(this.base.wallet, mintUsdxPubKey);
     await this.test.init();
     await this.test.addToken(mintPubKey, "lpSaber", 200_000_000);
@@ -145,17 +137,3 @@ export class Users {
     await this.oracleReporter.init();
   }
 }
-
-/**
- * create usdx and assign to state var
- * @param mintPubKey
- * @param user
- */
-export const deriveUsdxAcct = async (mintPubKey: PublicKey, user: User) => {
-  const [userUsdxKey, userUsdxBump] = getAssocTokenAcct(
-    user.wallet.publicKey,
-    mintPubKey
-  );
-  // add to state
-  // user.tokens.usdx.ata = { pubKey: userUsdxKey, bump: userUsdxBump };
-};

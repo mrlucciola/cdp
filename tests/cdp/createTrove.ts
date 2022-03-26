@@ -5,7 +5,6 @@ import {
   web3,
   workspace,
   IdlAccounts,
-  BN,
   Wallet,
 } from "@project-serum/anchor";
 import { Connection, SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
@@ -108,7 +107,7 @@ export const createTrovePASS = async (
   // get the user trove state
   const troveLpSaberAcct: IdlAccounts<StablePool>["trove"] =
     await trove.getAccount();
-  console.log("troveLpSaberAcct", troveLpSaberAcct);
+  console.log("troveLpSaberAcct.debt:", troveLpSaberAcct.debt);
   // final asserts
   assert(troveLpSaberAcct.debt.toNumber() == 0, "debt mismatch");
 };
@@ -135,20 +134,14 @@ export const createTroveFAIL_Duplicate = async (
   // if trove created, try to create another one for the same user (should fail)
   assert(troveInfo, "User trove does not exist, test needs a trove");
   await expect(
-    createTroveCall(
-      userConnection,
-      userWallet,
-      trove,
-      vault,
-      mintPubKey
-    ),
+    createTroveCall(userConnection, userWallet, trove, vault, mintPubKey),
     "No error was thrown was trying to create a duplicate user trove"
   ).is.rejected;
 
   // get the user trove state
   const troveLpSaberAcct: IdlAccounts<StablePool>["trove"] =
     await trove.getAccount();
-  console.log("troveLpSaberAcct", troveLpSaberAcct);
+  console.log("troveLpSaberAcct debt: ", troveLpSaberAcct.debt);
   // final asserts
   assert(troveLpSaberAcct.debt.toNumber() == 0, "debt mismatch");
 };

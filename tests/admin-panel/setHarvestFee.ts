@@ -10,7 +10,7 @@ import {
 import { assert, expect } from "chai";
 // local
 import { handleTxn } from "../utils/fxns";
-import { TVL_LIMIT_USD } from "../utils/constants";
+import * as constants from "../utils/constants";
 import { Accounts } from "../config/accounts";
 import { StablePool } from "../../target/types/stable_pool";
 import { User } from "../utils/interfaces";
@@ -18,17 +18,19 @@ import { User } from "../utils/interfaces";
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
 /**
- * Calls setGlobalTvlLimit
- * @param limit - new TVL limit
+ * Calls setHarvestFee
+ * @param accounts
+ * @param user
+ * @param feeNum - new fee Numerator value
  * @returns transaction receipt
  */
-const setGlobalTvlLimitCall = async (
+const setHarvestFeeCall = async (
   accounts: Accounts,
   user: User,
-  limit: number
+  feeNum: number
 ) => {
-  const txnSetGlobalTvlLimit = new web3.Transaction().add(
-    programStablePool.instruction.setGlobalTvlLimit(new BN(limit), {
+  const txnSetHarvestFee = new web3.Transaction().add(
+    programStablePool.instruction.setHarvestFee(new BN(feeNum), {
       accounts: {
         authority: user.wallet.publicKey,
         globalState: accounts.global.pubKey,
@@ -38,7 +40,7 @@ const setGlobalTvlLimitCall = async (
   );
   // send transaction
   const receipt = await handleTxn(
-    txnSetGlobalTvlLimit,
+    txnSetHarvestFee,
     user.provider.connection,
     user.wallet
   );
@@ -46,9 +48,11 @@ const setGlobalTvlLimitCall = async (
 };
 
 /**
- * Verify that global tvl limit cannot be set by a non-super user
+ * Verify that harvest fee cannot be set by a non-super user
+ * @param notSuperUser
+ * @param accounts
  */
-export const setGlobalTvlLimitFAIL_auth = async (
+export const setHarvestFeeFAIL_auth = async (
   notSuperUser: User,
   accounts: Accounts
 ) => {
@@ -65,27 +69,29 @@ export const setGlobalTvlLimitFAIL_auth = async (
     "Global State must be created to run admin panel tests"
   );
 
-  const newTvlLimitUSD = 2_000_000_000;
+  const newHarvestFee = 100;
 
   await expect(
-    setGlobalTvlLimitCall(accounts, notSuperUser, newTvlLimitUSD)
+    setHarvestFeeCall(accounts, notSuperUser, newHarvestFee)
   ).to.be.rejectedWith(
-    "2003",
-    "No error was thrown when trying to set tvl limit with a user different than the super owner"
+    "2001",
+    "No error was thrown when trying to set harvest fee with a user different than the super owner"
   );
 
   const globalState: IdlAccounts<StablePool>["globalState"] =
     await accounts.global.getAccount();
   assert(
-    globalState.tvlLimit.toNumber() != newTvlLimitUSD,
-    "TVL Limit updated even though transaction was rejected."
+    globalState.feeNum.toNumber() != newHarvestFee,
+    "Harvest Fee updated even though transaction was rejected."
   );
 };
 
 /**
- * Verify super user can set global TVL limit
+ * Verify super user can set harvest fee
+ * @param superUser
+ * @param accounts
  */
-export const setGlobalTvlLimitPASS = async (
+export const setHarvestFeePASS = async (
   superUser: User,
   accounts: Accounts
 ) => {
@@ -102,33 +108,33 @@ export const setGlobalTvlLimitPASS = async (
     "Global State must be created to run admin panel tests"
   );
 
-  const newTvlLimitUsd = 2_000_000_000;
+  const newHarvestFee = 100;
 
-  let confirmation = await setGlobalTvlLimitCall(
+  let confirmation = await setHarvestFeeCall(
     accounts,
     superUser,
-    newTvlLimitUsd
+    newHarvestFee
   );
-  assert(confirmation, "Failed to set TVL Limit");
+  assert(confirmation, "Failed to set Harvest Fee");
 
   let globalState: IdlAccounts<StablePool>["globalState"] =
     await accounts.global.getAccount();
 
   assert(
-    globalState.tvlLimit.toNumber() == newTvlLimitUsd,
-    "TVL Limit was not updated even though transaction succeeded."
+    globalState.feeNum.toNumber() == newHarvestFee,
+    "Harvest Fee was not updated even though transaction succeeded."
   );
 
-  confirmation = await setGlobalTvlLimitCall(
+  confirmation = await setHarvestFeeCall(
     accounts,
     superUser,
-    TVL_LIMIT_USD
+    constants.DEFAULT_FEE_NUMERATOR
   );
-  assert(confirmation, "Failed to set TVL Limit back to original value");
+  assert(confirmation, "Failed to set Harvest Fee back to original value");
 
   globalState = await accounts.global.getAccount();
   assert(
-    globalState.tvlLimit.toNumber() == TVL_LIMIT_USD,
-    "TVL Limit was not updated even though transaction succeeded."
+    globalState.feeNum.toNumber() == constants.DEFAULT_FEE_NUMERATOR,
+    "Harvest Fee was not updated even though transaction succeeded."
   );
 };

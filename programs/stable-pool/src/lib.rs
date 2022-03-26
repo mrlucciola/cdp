@@ -129,6 +129,8 @@ pub mod stable_pool {
     /**
      * THIS IS NOT COMPLETE, please see note on the contract fxn (search `BorrowUsdx<'info>`)
      *
+     * Create the Saber liquidity miner account set by the Quarry framework/standard
+     *
      * Take out debt in the form of USDx
      * Must be overcollateralized according to the LTV (collateralization ratio) set by the vault (to be named "pool")
      * Must not exceed the global debt limit
@@ -211,5 +213,13 @@ pub mod stable_pool {
      */
     pub fn set_user_debt_ceiling(ctx: Context<SetUserDebtCeiling>, ceiling: u64) -> Result<()> {
         set_user_debt_ceiling::handle(ctx, ceiling)
+    }
+
+    /**
+     * TODO: Need to create treasury
+     * This function updates the harvest fee on the global state
+     */
+    pub fn set_harvest_fee(ctx: Context<SetHarvestFee>, fee_num: u64) -> Result<()> {
+        set_harvest_fee::handle(ctx, fee_num)
     }
 }

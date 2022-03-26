@@ -18,6 +18,6 @@ no-log-ix-name = []
 [dependencies]
 anchor-lang = {version = "0.22.1", features = ["init-if-needed"]}
 anchor-spl = "0.22.1"
+quarry-mine = {version = "3.0.0", features = ["cpi"]}
 solana-program = "1.9.8"
 spl-token = {version = "3.3.0", features = ["no-entrypoint"]}
-quarry-mine = {version = "3.0.0", features = ["cpi"]}

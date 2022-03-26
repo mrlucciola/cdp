@@ -3,10 +3,7 @@ use anchor_lang::prelude::*;
 // local
 use crate::{constants::*, states::global_state::GlobalState};
 
-pub fn handle(
-    ctx: Context<SetUserDebtCeiling>,
-    ceiling: u64, 
-) -> Result<()> {
+pub fn handle(ctx: Context<SetUserDebtCeiling>, ceiling: u64) -> Result<()> {
     ctx.accounts.global_state.user_debt_ceiling = ceiling;
 
     Ok(())

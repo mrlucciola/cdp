@@ -14,7 +14,6 @@ stable_pool = "FvTjLbwbHY4v8Gfv18JKuPCJG2Hj87CG8kPNHqGeHAR4"
 stable_pool = "FvTjLbwbHY4v8Gfv18JKuPCJG2Hj87CG8kPNHqGeHAR4"
 
 [test]
-startup_wait = 100_000 
 
 [registry]
 url = "https://anchor.projectserum.com"
@@ -26,5 +25,6 @@ wallet = "./.config/testUser-super-keypair.json"
 [scripts]
 admin-panel = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/admin-panel/admin-panel.spec.ts"
 analyze = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 analyze/analyze.ts"
-test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/cdp/cdp.spec.ts"
-spec-test="anchor build -p stable_pool; cp -Rv ./libs/* ./target/deploy/; anchor test --skip-build"
+core = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/cdp/cdp.spec.ts"
+spec-test = "anchor build -p stable_pool; cp -Rv ./libs/* ./target/deploy/; anchor test --skip-build"
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/cdp/cdp.spec.ts tests/admin-panel/admin-panel.spec.ts"

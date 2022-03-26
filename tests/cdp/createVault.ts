@@ -12,7 +12,13 @@ import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { assert, expect } from "chai";
 // local
 import { StablePool } from "../../target/types/stable_pool";
-import { DEBT_CEILING_VAULT_USDX, DECIMALS_USDC, DECIMALS_USDX, DECIMALS_USDT, PLATFORM_TYPE_SABER } from "../utils/constants";
+import {
+  DEBT_CEILING_VAULT_USDX,
+  DECIMALS_USDC,
+  DECIMALS_USDX,
+  DECIMALS_USDT,
+  PLATFORM_TYPE_SABER,
+} from "../utils/constants";
 import { handleTxn } from "../utils/fxns";
 import { Accounts } from "../config/accounts";
 import { User, Vault } from "../utils/interfaces";

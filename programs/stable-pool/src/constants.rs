@@ -10,8 +10,8 @@ pub const ORACLE_SEED: &[u8] = b"ORACLE_SEED";
 pub const DECIMALS_USD: u8 = 6;
 pub const DECIMALS_USDX: u8 = 6;
 pub const DECIMALS_PRICE: u64 = 8;
-pub const DEFAULT_FEE_NUMERATOR: u32 = 3;
-pub const DEFAULT_FEE_DENOMINATOR: u32 = 1000;
+pub const DEFAULT_FEE_NUMERATOR: u64 = 30;
+pub const DEFAULT_FEE_DENOMINATOR: u64 = 10000;
 pub const DEFAULT_RATIOS_DECIMALS: u8 = 8;
 pub const DEFAULT_RATIOS: [u64; 10] = [
     99009901, // AAA

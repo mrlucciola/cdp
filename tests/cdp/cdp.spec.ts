@@ -133,7 +133,7 @@ describe("cdp core test suite", async () => {
 
   // oracle tests - duplicated usdc oracle
   it("FAIL: Create Oracle - Duplicate", async () => {
-    await createOracleFAIL_Duplicate(users.super, accounts, 'usdc');
+    await createOracleFAIL_Duplicate(users.super, accounts, "usdc");
   });
 
   // oracle tests - usdt oracle

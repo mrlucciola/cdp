@@ -1,4 +1,4 @@
-// anchor imports
+// anchor/solana imports
 import {
   getProvider,
   Program,
@@ -9,13 +9,12 @@ import {
   IdlAccounts,
 } from "@project-serum/anchor";
 import { Connection, SYSVAR_CLOCK_PUBKEY } from "@solana/web3.js";
-// solana imports
 // utils
 import { assert, expect } from "chai";
 // local
 import { StablePool } from "../../target/types/stable_pool";
 import { handleTxn } from "../utils/fxns";
-import { MintPubKey, Oracle } from "../utils/interfaces";
+import { Oracle } from "../utils/interfaces";
 import { Accounts } from "../config/accounts";
 // program
 const programStablePool = workspace.StablePool as Program<StablePool>;

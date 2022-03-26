@@ -11,7 +11,7 @@ pub fn handle(
     tvl_limit: u64,
     global_debt_ceiling: u64,
     user_debt_ceiling: u64,
-    oracle_reporter: Pubkey
+    oracle_reporter: Pubkey,
 ) -> Result<()> {
     ctx.accounts.global_state.bump = global_state_bump;
     ctx.accounts.global_state.authority = ctx.accounts.authority.key();

@@ -20,7 +20,6 @@ pub fn handle(ctx: Context<WithdrawCollateral>, withdraw_amount: u64) -> Result<
         accts.trove.debt == 0,
         StablePoolError::WithdrawNotAllowedWithDebt,
     );
-    msg!("\n\nim here\n\n");
 
     let trove_seeds: &[&[&[u8]]] = &[&[
         TROVE_SEED.as_ref(),
@@ -28,7 +27,7 @@ pub fn handle(ctx: Context<WithdrawCollateral>, withdraw_amount: u64) -> Result<
         &accts.authority.key().to_bytes(),
         &[accts.trove.bump],
     ]];
-    msg!("\n\nim here... pt 2\n\n");
+
     let transfer_ctx = CpiContext::new_with_signer(
         accts.token_program.to_account_info(),
         Transfer {
@@ -38,8 +37,6 @@ pub fn handle(ctx: Context<WithdrawCollateral>, withdraw_amount: u64) -> Result<
         },
         trove_seeds,
     );
-
-    msg!("\n\nim here... pt 3\n\n");
 
     // send the transfer
     token::transfer(transfer_ctx, withdraw_amount)?;

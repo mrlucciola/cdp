@@ -1,7 +1,7 @@
 // anchor/solana
 import { Program, workspace, setProvider } from "@project-serum/anchor";
 // utils
-import { assert, use as chaiUse } from "chai";
+import { use as chaiUse } from "chai";
 import chaiAsPromised from "chai-as-promised";
 // local imports
 import { StablePool } from "../../target/types/stable_pool";
@@ -9,17 +9,18 @@ import { Users } from "../config/users";
 import { Accounts } from "../config/accounts";
 // test imports
 import {
-    setGlobalTvlLimitFAIL_auth,
-    setGlobalTvlLimitPASS,
+  setGlobalTvlLimitFAIL_auth,
+  setGlobalTvlLimitPASS,
 } from "./setGlobalTvlLimit";
 import {
-    setGlobalDebtCeilingFAIL_auth,
-    setGlobalDebtCeilingPASS,
+  setGlobalDebtCeilingFAIL_auth,
+  setGlobalDebtCeilingPASS,
 } from "./setGlobalDebtCeiling";
 import {
-    setUserDebtCeilingFAIL_auth,
-    setUserDebtCeilingPASS,
+  setUserDebtCeilingFAIL_auth,
+  setUserDebtCeilingPASS,
 } from "./setUserDebtCeiling";
+import { setHarvestFeeFAIL_auth, setHarvestFeePASS } from "./setHarvestFee";
 
 // init env
 chaiUse(chaiAsPromised);
@@ -59,5 +60,11 @@ describe("Admin Panel Test Suite", async () => {
   });
   it("PASS: Set User Debt Ceiling", async () => {
     await setUserDebtCeilingPASS(users.super, accounts);
+  });
+  it("FAIL: Set Harvest fee - User is not super", async () => {
+    await setHarvestFeeFAIL_auth(users.base, accounts);
+  });
+  it("PASS: Set Harvest fee", async () => {
+    await setHarvestFeePASS(users.super, accounts);
   });
 });

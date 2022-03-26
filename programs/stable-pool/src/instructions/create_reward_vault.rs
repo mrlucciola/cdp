@@ -1,21 +1,19 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Mint, Token, TokenAccount};
 use anchor_spl::associated_token::{self, AssociatedToken};
+use anchor_spl::token::{self, Mint, Token, TokenAccount};
 
 // local
 use crate::{
-    constants::*, 
-    states::{Vault, Trove,},
-
+    constants::*,
+    states::{Trove, Vault},
 };
 
 impl<'info> CreateUserRewardVault<'info> {
     /// create ata for reward of user trove
     pub fn handle(&mut self) -> Result<()> {
-        if self.reward_mint.key() == self.vault.reward_mint_a{
+        if self.reward_mint.key() == self.vault.reward_mint_a {
             self.trove.reward_token_a = self.reward_vault.key();
-        }
-        else {
+        } else {
             self.trove.reward_token_b = self.reward_vault.key();
         }
         Ok(())

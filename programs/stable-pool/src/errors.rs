@@ -31,7 +31,7 @@ pub enum StablePoolError {
 
     #[msg("This function works on devnet only")]
     InvalidCluster,
-    
+
     #[msg("Global TVL Exceeded")]
     GlobalTVLExceeded,
 
@@ -41,6 +41,7 @@ pub enum StablePoolError {
     #[msg("Global Debt Ceiling Exceeded")]
     GlobalDebtCeilingExceeded,
 
+    // TODO: rename vault -> pool
     #[msg("Vault Debt Ceiling Exceeded")]
     VaultDebtCeilingExceeded,
 
@@ -61,5 +62,4 @@ pub enum StablePoolError {
 
     #[msg("Reward Mint should be more than one")]
     InvalidRewardMintCount,
-
 }

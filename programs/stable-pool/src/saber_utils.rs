@@ -1,15 +1,10 @@
 use anchor_lang::prelude::*;
-use quarry_mine::cpi::{
-    create_miner, 
-    accounts::{
-        CreateMiner,
-    }
-};
+use quarry_mine::cpi::{accounts::CreateMiner, create_miner};
 
 pub fn create_miner_pda<'info>(
     quarry_program: AccountInfo<'info>,
     authority: AccountInfo<'info>,
-    miner: AccountInfo<'info>, 
+    miner: AccountInfo<'info>,
     quarry: AccountInfo<'info>,
     miner_vault: AccountInfo<'info>,
     token_mint: AccountInfo<'info>,
@@ -19,11 +14,11 @@ pub fn create_miner_pda<'info>(
     system_program: AccountInfo<'info>,
     authority_seeds: &[&[u8]],
     miner_bump: u8,
-) -> Result<()>{
+) -> Result<()> {
     create_miner(
         CpiContext::new(
             quarry_program,
-            CreateMiner{
+            CreateMiner {
                 authority,
                 miner,
                 quarry,
@@ -33,8 +28,9 @@ pub fn create_miner_pda<'info>(
                 payer,
                 token_program,
                 system_program,
-            }
-        ).with_signer(&[&authority_seeds[..]]),
-        miner_bump
+            },
+        )
+        .with_signer(&[&authority_seeds[..]]),
+        miner_bump,
     )
 }

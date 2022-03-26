@@ -1,17 +1,15 @@
 import {
   BN,
-  getProvider,
   IdlAccounts,
   Program,
   Wallet,
-  web3,
   workspace,
 } from "@project-serum/anchor";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { Connection, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
+import { Connection, Transaction } from "@solana/web3.js";
 import { StablePool } from "../../target/types/stable_pool";
 import { Accounts } from "../config/accounts";
 import { handleTxn } from "../utils/fxns";

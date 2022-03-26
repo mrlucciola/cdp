@@ -2,6 +2,9 @@
 import { workspace, Program, Wallet } from "@project-serum/anchor";
 import { Keypair, PublicKey, Signer } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+// @ts-ignore
+import { mintTo } from "@solana/spl-token";
+// utils
 import {
   findMinterAddress,
   QuarrySDK,
@@ -27,7 +30,6 @@ import {
   MintPubKey,
   GlobalStateAcct,
   Vault,
-  Oracle,
   ATA,
 } from "../utils/interfaces";
 // local
@@ -38,9 +40,6 @@ import {
   DECIMALS_USDT,
   DECIMALS_PRICE,
 } from "../utils/constants";
-// @ts-ignore
-import { mintTo } from "@solana/spl-token";
-import { getAssocTokenAcct } from "../utils/fxns";
 import { createAtaOnChain } from "./users";
 // init
 const programStablePool = workspace.StablePool as Program<StablePool>;
@@ -85,8 +84,16 @@ export class Accounts {
   public async init() {
     // init the token mint, oracle and markettoken
     // TODO: update to read 'num * 10 ** DECIMALS_PRICE'
-    await this.usdc.init(1.03 * 10 ** DECIMALS_PRICE, 25331785.961795 * 10 ** DECIMALS_USDC, DECIMALS_USDC); // amount found on explorer.solana.com on 3/24/22 5:15pm EST
-    await this.usdt.init(0.97 * 10 ** DECIMALS_PRICE, 16555962.623743 * 10 ** DECIMALS_USDT, DECIMALS_USDT); // amount found on explorer.solana.com on 3/24/22 5:15pm EST
+    await this.usdc.init(
+      1.03 * 10 ** DECIMALS_PRICE,
+      25331785.961795 * 10 ** DECIMALS_USDC,
+      DECIMALS_USDC
+    ); // amount found on explorer.solana.com on 3/24/22 5:15pm EST
+    await this.usdt.init(
+      0.97 * 10 ** DECIMALS_PRICE,
+      16555962.623743 * 10 ** DECIMALS_USDT,
+      DECIMALS_USDT
+    ); // amount found on explorer.solana.com on 3/24/22 5:15pm EST
     // init the collateral mint
     this.lpSaberUsdcUsdt.mint = (
       await SPLToken.createMint(

@@ -11,8 +11,7 @@ use crate::{
 pub fn handle(
     ctx: Context<CreateTrove>,
     trove_bump: u8,
-    ata_trove_bump: u8,
-    // vault_bump: u8,
+    ata_trove_bump: u8, // TODO: remove
 ) -> Result<()> {
     ctx.accounts.trove.mint = ctx.accounts.mint.key();
     ctx.accounts.trove.locked_coll_balance = 0;
@@ -20,7 +19,6 @@ pub fn handle(
     ctx.accounts.trove.bump = trove_bump;
     ctx.accounts.trove.ata_trove_bump = ata_trove_bump;
     // ctx.accounts.trove.vault = ctx.accounts.vault;
-    // ctx.accounts.trove.vault_bump = ctx.accounts.vault;
 
     Ok(())
 }

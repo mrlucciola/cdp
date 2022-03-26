@@ -5,13 +5,7 @@ import {
   workspace,
   BN,
   IdlAccounts,
-  IdlError,
-  ProgramError,
-  eventDiscriminator,
 } from "@project-serum/anchor";
-import { SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
-// solana imports
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 // utils
 import { assert, expect } from "chai";
 // local
@@ -20,7 +14,6 @@ import { DEBT_CEILING_GLOBAL_USDX } from "../utils/constants";
 import { Accounts } from "../config/accounts";
 import { StablePool } from "../../target/types/stable_pool";
 import { User } from "../utils/interfaces";
-import { program } from "@project-serum/anchor/dist/cjs/spl/token";
 
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
@@ -76,10 +69,10 @@ export const setGlobalDebtCeilingFAIL_auth = async (
     "Global State must be created to run admin panel tests"
   );
 
-  const newGlobalDebtCeiling = 20_000_000;
+  const newGlobalDebtCeilingUsd = 20_000_000;
 
   await expect(
-    setGlobalDebtCeilingCall(accounts, notSuperUser, newGlobalDebtCeiling)
+    setGlobalDebtCeilingCall(accounts, notSuperUser, newGlobalDebtCeilingUsd)
   ).to.be.rejectedWith(
     "2003",
     "No error was thrown when trying to set global debt ceiling with a user different than the super owner"
@@ -88,7 +81,7 @@ export const setGlobalDebtCeilingFAIL_auth = async (
   const globalState: IdlAccounts<StablePool>["globalState"] =
     await accounts.global.getAccount();
   assert(
-    globalState.globalDebtCeiling.toNumber() != newGlobalDebtCeiling,
+    globalState.globalDebtCeiling.toNumber() != newGlobalDebtCeilingUsd,
     "Global Debt Ceiling updated even though transaction was rejected."
   );
 };
@@ -115,12 +108,12 @@ export const setGlobalDebtCeilingPASS = async (
     "Global State must be created to run admin panel tests"
   );
 
-  const newGlobalDebtCeiling = 20_000_000;
+  const newGlobalDebtCeilingUsd = 20_000_000;
 
   let confirmation = await setGlobalDebtCeilingCall(
     accounts,
     superUser,
-    newGlobalDebtCeiling
+    newGlobalDebtCeilingUsd
   );
   assert(confirmation, "Failed to set Global Debt Ceiling");
 
@@ -128,7 +121,7 @@ export const setGlobalDebtCeilingPASS = async (
     await accounts.global.getAccount();
 
   assert(
-    globalState.globalDebtCeiling.toNumber() == newGlobalDebtCeiling,
+    globalState.globalDebtCeiling.toNumber() == newGlobalDebtCeilingUsd,
     "Global Debt Ceiling was not updated even though transaction succeeded."
   );
 
