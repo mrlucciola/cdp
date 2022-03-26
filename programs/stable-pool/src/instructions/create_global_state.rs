@@ -26,7 +26,7 @@ pub fn handle(
     ctx.accounts.global_state.fee_deno = DEFAULT_FEE_DENOMINATOR;
     ctx.accounts.global_state.coll_per_risklv = DEFAULT_RATIOS;
     ctx.accounts.global_state.oracle_reporter = oracle_reporter;
-
+    ctx.accounts.global_state.paused = 0;
     Ok(())
 }
 

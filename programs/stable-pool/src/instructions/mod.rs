@@ -11,6 +11,9 @@ pub use set_global_debt_ceiling::*;
 pub mod set_user_debt_ceiling;
 pub use set_user_debt_ceiling::*;
 
+pub mod toggle_emer_state;
+pub use toggle_emer_state::*;
+
 pub mod set_harvest_fee;
 pub use set_harvest_fee::*;
 

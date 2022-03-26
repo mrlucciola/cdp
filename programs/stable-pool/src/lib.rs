@@ -222,4 +222,12 @@ pub mod stable_pool {
     pub fn set_harvest_fee(ctx: Context<SetHarvestFee>, fee_num: u64) -> Result<()> {
         set_harvest_fee::handle(ctx, fee_num)
     }
+
+    /**
+     * Update the global state variable "paused"
+     * Should only be called by the program deployer
+     */
+    pub fn toggle_emer_state(ctx: Context<ToggleEmerState>, new_state: u8) -> Result<()> {
+        toggle_emer_state::handle(ctx, new_state)
+    }
 }

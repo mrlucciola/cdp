@@ -22,6 +22,12 @@ import {
 } from "./setUserDebtCeiling";
 import { setHarvestFeeFAIL_auth, setHarvestFeePASS } from "./setHarvestFee";
 
+import {
+  toggleEmerStateFAIL_auth,
+  toggleEmerStateFAIL_SetSameValueTwice,
+  toggleEmerStatePASS,
+} from "./toggleEmerState";
+
 // init env
 chaiUse(chaiAsPromised);
 // constants
@@ -43,28 +49,46 @@ describe("Admin Panel Test Suite", async () => {
     users = new Users();
   });
 
+  // set global tvl limit
   it("FAIL: Set Global Tvl Limit - User is not super", async () => {
     await setGlobalTvlLimitFAIL_auth(users.base, accounts);
   });
   it("PASS: Set Global Tvl Limit", async () => {
     await setGlobalTvlLimitPASS(users.super, accounts);
   });
+
+  // set global debt ceiling
   it("FAIL: Set Global Debt Ceiling - User is not super", async () => {
     await setGlobalDebtCeilingFAIL_auth(users.base, accounts);
   });
   it("PASS: Set Global Debt Ceiling", async () => {
     await setGlobalDebtCeilingPASS(users.super, accounts);
   });
+
+  // set user debt ceiling
   it("FAIL: Set User Debt Ceiling - User is not super", async () => {
     await setUserDebtCeilingFAIL_auth(users.base, accounts);
   });
   it("PASS: Set User Debt Ceiling", async () => {
     await setUserDebtCeilingPASS(users.super, accounts);
   });
+
+  // set harvest fee
   it("FAIL: Set Harvest fee - User is not super", async () => {
     await setHarvestFeeFAIL_auth(users.base, accounts);
   });
   it("PASS: Set Harvest fee", async () => {
     await setHarvestFeePASS(users.super, accounts);
+  });
+
+  // toggle emergency state
+  it("PASS: Toggle Emergency State", async () => {
+    await toggleEmerStatePASS(users.super, accounts);
+  });
+  it("FAIL: Toggle Emergency State - User is not super", async () => {
+    await toggleEmerStateFAIL_auth(users.base, accounts);
+  });
+  it("FAIL: Toggle Emergency State - assigning same value twice", async () => {
+    await toggleEmerStateFAIL_SetSameValueTwice(users.super, accounts);
   });
 });

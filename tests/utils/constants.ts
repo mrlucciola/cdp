@@ -9,6 +9,7 @@ export const MINT_USDX_SEED = "MINT_USDX_SEED";
 export const ORACLE_SEED = "ORACLE_SEED";
 
 // default platform values
+export const EMER_STATE_DISABLED = 0;
 export const TVL_LIMIT_USD = 1_000_000;
 export const DEBT_CEILING_GLOBAL_USDX = 500_000;
 export const DEBT_CEILING_VAULT_USDX = 500_000;
