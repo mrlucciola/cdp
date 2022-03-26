@@ -125,10 +125,10 @@ pub struct BorrowUsdx<'info> {
     #[account(
         mut,
         // TODO: rename vault -> pool
-        seeds=[VAULT_SEED.as_ref(), vault.mint.as_ref()],
+        seeds=[VAULT_SEED.as_ref(), vault.mint_collat.as_ref()],// TODO: rename vault -> pool
         // TODO: rename vault -> pool
         bump=vault.bump,
-        constraint = vault.mint.as_ref() == trove.mint.as_ref(),// TODO: rename trove -> vault
+        constraint = vault.mint_collat.as_ref() == trove.mint.as_ref(),// TODO: rename trove -> vault
     )]
     pub vault: Box<Account<'info, Vault>>, // TODO: rename vault -> pool
     #[account(
@@ -139,7 +139,7 @@ pub struct BorrowUsdx<'info> {
             authority.key().as_ref(),
         ],
         bump=trove.bump,// TODO: rename trove -> vault
-        constraint = vault.mint.as_ref() == trove.mint.as_ref(),// TODO: rename trove -> vault
+        constraint = vault.mint_collat.as_ref() == trove.mint.as_ref(),// TODO: rename trove -> vault
     )]
     pub trove: Box<Account<'info, Trove>>, // TODO: rename trove -> vault
     #[account(

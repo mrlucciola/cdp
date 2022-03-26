@@ -86,7 +86,7 @@ pub struct WithdrawCollateral<'info> {
     )]
     pub ata_user: Account<'info, TokenAccount>,
 
-    #[account(constraint = mint.key().as_ref() == vault.mint.as_ref())]
+    #[account(constraint = mint.key().as_ref() == vault.mint_collat.as_ref())]
     pub mint: Box<Account<'info, Mint>>,
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,

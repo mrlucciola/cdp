@@ -11,7 +11,7 @@ use crate::{
 impl<'info> CreateUserRewardVault<'info> {
     /// create ata for reward of user trove
     pub fn handle(&mut self) -> Result<()> {
-        if self.reward_mint.key() == self.vault.reward_mint_a {
+        if self.reward_mint.key() == self.vault.reward_mint_a {// TODO: rename vault -> pool
             self.trove.reward_token_a = self.reward_vault.key();
         } else {
             self.trove.reward_token_b = self.reward_vault.key();
@@ -26,10 +26,10 @@ pub struct CreateUserRewardVault<'info> {
     pub authority: Signer<'info>,
 
     #[account(
-        seeds = [VAULT_SEED, vault.mint.as_ref()],
+        seeds = [VAULT_SEED, vault.mint_collat.as_ref()],// TODO: rename vault -> pool
         bump,
     )]
-    pub vault: Box<Account<'info, Vault>>,
+    pub vault: Box<Account<'info, Vault>>, // TODO: rename vault -> pool
 
     #[account(
         mut,
@@ -47,7 +47,7 @@ pub struct CreateUserRewardVault<'info> {
     pub reward_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(
-        constraint = reward_mint.key() == vault.reward_mint_a || reward_mint.key() == vault.reward_mint_b
+        constraint = reward_mint.key() == vault.reward_mint_a || reward_mint.key() == vault.reward_mint_b// TODO: rename vault -> pool
     )]
     pub reward_mint: Box<Account<'info, Mint>>,
 

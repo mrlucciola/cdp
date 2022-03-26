@@ -42,6 +42,8 @@ const createVaultCall = async (
       new BN(isDual),
       new BN(DEBT_CEILING_VAULT_USDX * 10 ** DECIMALS_USDX),
       PLATFORM_TYPE_SABER,
+      accounts.usdc.mint,
+      accounts.usdt.mint,
       [accounts.sbr.publicKey],
       tokenADecimals,
       tokenBDecimals,
@@ -50,12 +52,13 @@ const createVaultCall = async (
           authority: user.wallet.publicKey,
           vault: vault.pubKey,
           globalState: accounts.global.pubKey,
-          mint: accounts.lpSaberUsdcUsdt.mint,
+          mintCollat: accounts.lpSaberUsdcUsdt.mint,
+
+          // system accts
           systemProgram: SystemProgram.programId,
           tokenProgram: TOKEN_PROGRAM_ID,
           rent: SYSVAR_RENT_PUBKEY,
         },
-        signers: [user.wallet.payer],
       }
     )
   );

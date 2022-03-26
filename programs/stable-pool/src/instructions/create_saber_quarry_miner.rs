@@ -15,11 +15,11 @@ use crate::{
 };
 
 pub fn handle(ctx: Context<CreateSaberQuarryMiner>, miner_bump: u8) -> Result<()> {
-    // this is not a user vault - bad prior naming convention, to be changed after MVP
-    // let vault = ctx.accounts.vault.as_ref();
+    // this is not a user vault - bad prior naming convention, to be changed after MVP // TODO: rename vault -> pool
+    // let vault = ctx.accounts.vault.as_ref();// TODO: rename vault -> pool
 
     // require!(
-    //     vault.platform_type == PlatformType::Saber as u8,
+    //     vault.platform_type == PlatformType::Saber as u8,// TODO: rename vault -> pool
     //     StablePoolError::InvalidSaberPlatform
     // );
 
@@ -27,13 +27,13 @@ pub fn handle(ctx: Context<CreateSaberQuarryMiner>, miner_bump: u8) -> Result<()
 
     let authority_seeds: &[&[u8]] = &[
         &TROVE_SEED,
-        &ctx.accounts.trove.mint.to_bytes(),
+        &ctx.accounts.trove.mint.to_bytes(), // TODO: rename trove -> vault
         &owner_key.to_bytes(),
-        &[ctx.accounts.trove.bump],
+        &[ctx.accounts.trove.bump], // TODO: rename trove -> vault
     ];
     create_miner_pda(
         ctx.accounts.quarry_program.to_account_info(),
-        ctx.accounts.trove.to_account_info(),
+        ctx.accounts.trove.to_account_info(), // TODO: rename trove -> vault
         ctx.accounts.miner.to_account_info(),
         ctx.accounts.quarry.to_account_info(),
         ctx.accounts.miner_vault.to_account_info(),
@@ -57,23 +57,22 @@ pub struct CreateSaberQuarryMiner<'info> {
 
     #[account(
         mut,
-        seeds = [VAULT_SEED, vault.mint.as_ref()],
+        seeds = [VAULT_SEED, vault.mint_collat.as_ref()],// TODO: rename vault -> pool
         bump,
-        has_one = mint
     )]
-    pub vault: Box<Account<'info, Vault>>,
+    pub vault: Box<Account<'info, Vault>>,// TODO: rename vault -> pool
 
     #[account(
         mut,
         seeds = [
             TROVE_SEED,
-            trove.mint.as_ref(),
+            trove.mint.as_ref(),// TODO: rename trove -> vault
             authority.key().as_ref(),
         ],
         bump,
         has_one = mint
     )]
-    pub trove: Box<Account<'info, Trove>>,
+    pub trove: Box<Account<'info, Trove>>, // TODO: rename trove -> vault
 
     ///CHECK: intialized in quarry contract
     #[account(mut)]
@@ -81,8 +80,9 @@ pub struct CreateSaberQuarryMiner<'info> {
 
     #[account(mut)]
     pub quarry: Box<Account<'info, Quarry>>,
+    /// what constraints
     pub rewarder: Box<Account<'info, Rewarder>>,
-
+    /// what constraints
     pub mint: Box<Account<'info, Mint>>,
 
     #[account(

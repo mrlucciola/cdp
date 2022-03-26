@@ -127,7 +127,7 @@ pub struct DepositCollateral<'info> {
     )]
     pub ata_user: Account<'info, TokenAccount>,
 
-    #[account(constraint = mint_collat.key().as_ref() == vault.mint.as_ref())]
+    #[account(constraint = mint_collat.key().as_ref() == vault.mint_collat.as_ref())]
     pub mint_collat: Box<Account<'info, Mint>>,
 
     pub oracle_a: Account<'info, Oracle>,
