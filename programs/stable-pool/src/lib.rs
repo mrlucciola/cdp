@@ -57,7 +57,7 @@ pub mod stable_pool {
      *
      * Should only be called by the program deployer
      *
-     * aliases: create_pool, CreatePool, createVault
+     * aliases: create_pool, CreatePool, createPool
      * aliases: create_vault, CreateVault, createVault
      */
     pub fn create_pool(
@@ -89,25 +89,23 @@ pub mod stable_pool {
     }
 
     /**
-     * TODO: rename trove -> vault
      *
      * Create a user-generated, user-authorized, single-collateral token repository
      *
+     * aliases: create_vault, CreateVault, createVault
      * aliases: create_trove, CreateTrove, createTrove
      */
-    pub fn create_trove(
-        ctx: Context<CreateTrove>,
-        trove_bump: u8,
-        ata_trove_bump: u8,
+    pub fn create_vault(
+        ctx: Context<CreateVault>,
+        vault_bump: u8,
+        ata_vault_bump: u8,
     ) -> Result<()> {
-        create_trove::handle(ctx, trove_bump, ata_trove_bump)
+        create_vault::handle(ctx, vault_bump, ata_vault_bump)
     }
 
     /**
-     * TODO: rename trove -> vault
-     *
-     * Deposit collateral to a trove
-     * When collateral sits in a trove, it is able to be staked/farmed out and generate rewards
+     * Deposit collateral to a vault
+     * When collateral sits in a vault, it is able to be staked/farmed out and generate rewards
      * (sidenote) Collateral in itself generates yield from the platform it originated from
      *
      * aliases: deposit_collateral, DepositCollateral, depositCollateral
@@ -117,10 +115,9 @@ pub mod stable_pool {
     }
 
     /**
-     * TODO: rename trove -> vault
      *
-     * Withdraw collateral from trove
-     * Collateral token goes from Trove -> User ATA
+     * Withdraw collateral from vault
+     * Collateral token goes from Vault -> User ATA
      *
      * aliases: withdraw_collateral, WithdrawCollateral, withdrawCollateral
      */

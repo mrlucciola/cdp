@@ -30,7 +30,7 @@ import {
   GLOBAL_STATE_SEED,
   MINT_USDX_SEED,
   ORACLE_SEED,
-  TROVE_SEED,
+  VAULT_SEED,
   POOL_SEED,
 } from "./constants";
 import { StablePool } from "../../target/types/stable_pool";
@@ -223,11 +223,11 @@ export class USDx {
 
 /**
  * User Token object
- * Contains an ATA and a Trove
+ * Contains an ATA and a Vault
  * @class ATA
  * @property pubKey - PublicKey: Public Key for ATA
  * @property bump? - u8: Bump/nonce for ATA
- * @class Trove
+ * @class Vault
  * @property pubKey - PublicKey: Public Key for ATA
  * @property bump - u8: Bump/nonce for ATA
  * @property ATA
@@ -235,10 +235,10 @@ export class USDx {
  */
 export class UserToken {
   ata: ATA;
-  trove: Trove;
+  vault: Vault;
   constructor(userWallet: Wallet, mintPubKey: MintPubKey) {
     this.ata = new ATA(userWallet.publicKey, mintPubKey);
-    this.trove = new Trove(userWallet, mintPubKey);
+    this.vault = new Vault(userWallet, mintPubKey);
   }
 
   // TODO: this method throws an error, havent debugged yet
@@ -294,24 +294,24 @@ export class BaseAcct extends PDA {
 }
 
 /**
- * Trove
+ * Vault
  * Just a public key
  * @property pubKey - PublicKey: Public Key for account
  * @property bump - u8: Bump/nonce
  * @method getAccountInfo - gets account state information on chain
  */
-export class Trove extends BaseAcct {
+export class Vault extends BaseAcct {
   ata: ATA;
   ataRewards: ATA[];
   constructor(userWallet: Wallet, mintPubKey: MintPubKey, rewardMints = []) {
-    super(TROVE_SEED, [mintPubKey.toBuffer(), userWallet.publicKey.toBuffer()]);
-    this.type = "trove";
+    super(VAULT_SEED, [mintPubKey.toBuffer(), userWallet.publicKey.toBuffer()]);
+    this.type = "vault";
 
     // get ata info
     this.ata = new ATA(this.pubKey, mintPubKey);
     this.ataRewards = rewardMints.map((mint) => new ATA(this.pubKey, mint));
   }
-  // public async getAccount(): Promise<IdlAccounts<StablePool>["trove"]> {
+  // public async getAccount(): Promise<IdlAccounts<StablePool>["vault"]> {
   //   return await this.getAccount();
   // }
 }
@@ -321,12 +321,12 @@ export class Miner {
   pubkey: PublicKey;
   bump: number;
   ata: ATA;
-  constructor(trove: Trove, quarryKey: PublicKey, mintKey: MintPubKey) {
+  constructor(vault: Vault, quarryKey: PublicKey, mintKey: MintPubKey) {
     const [pubkey, bump] = getPda(
       [
         Buffer.from(utils.bytes.utf8.encode("Miner")),
         quarryKey.toBuffer(),
-        trove.pubKey.toBuffer(),
+        vault.pubKey.toBuffer(),
       ],
       QUARRY_ADDRESSES.Mine
     );
@@ -336,7 +336,7 @@ export class Miner {
     //   [
     //     Buffer.from(utils.bytes.utf8.encode("Miner")),
     //     quarryKey.toBytes(),
-    //     trove.pubKey.toBytes(),
+    //     vault.pubKey.toBytes(),
     //   ],
     //   QUARRY_ADDRESSES.Mine
     // );
@@ -349,7 +349,7 @@ export class GlobalStateAcct extends BaseAcct {
     super(GLOBAL_STATE_SEED, []);
     this.type = "globalState";
   }
-  // public async getAccount(): Promise<IdlAccounts<StablePool>["trove"]> {
+  // public async getAccount(): Promise<IdlAccounts<StablePool>["vault"]> {
   //   return await this.getAccount();
   // }
 }
@@ -422,7 +422,7 @@ export class User {
   provider: Provider;
   tokens?: {
     usdx?: USDx;
-    lpSaber?: UserToken; // this doesnt get created until the pass case for trove
+    lpSaber?: UserToken; // this doesnt get created until the pass case for vault
     ataSBRKey?: PublicKey;
   };
   miner?: any;

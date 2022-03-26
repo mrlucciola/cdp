@@ -7,7 +7,7 @@ use anchor_spl::token::{self, accessor::amount, Mint, Token, TokenAccount, Trans
 use crate::{
     constants::*,
     errors::StablePoolError,
-    states::{GlobalState, Trove, Pool},
+    states::{GlobalState, Vault, Pool},
     utils::calc_lp_price,
 };
 
@@ -68,16 +68,15 @@ pub fn handle(ctx: Context<DepositCollateral>, collat_token_deposit_amt: u64) ->
         accts.token_program.to_account_info(),
         Transfer {
             from: accts.ata_user.clone().to_account_info(),
-            to: accts.ata_trove.clone().to_account_info(),
+            to: accts.ata_vault.clone().to_account_info(),
             authority: accts.authority.clone().to_account_info(),
         },
     );
     token::transfer(transfer_ctx, collat_token_deposit_amt)?;
 
-    // TODO: rename trove -> vault
-    // add the tokens to the pool and trove
+    // add the tokens to the pool and vault
     accts.pool.total_coll += collat_token_deposit_amt;
-    accts.trove.locked_coll_balance += collat_token_deposit_amt;
+    accts.vault.locked_coll_balance += collat_token_deposit_amt;
 
     // the usd value of all user deposited collateral for this collateral type
     let new_pool_tvl_usd = (orig_pool_token_value_usd as u128) + deposit_token_value_usd;
@@ -104,20 +103,20 @@ pub struct DepositCollateral<'info> {
     #[account(
         mut,
         seeds=[
-            TROVE_SEED.as_ref(),
+            VAULT_SEED.as_ref(),
             mint_collat.key().as_ref(),
             authority.key().as_ref(),
         ],
-        bump=trove.bump
+        bump=vault.bump
     )]
-    pub trove: Box<Account<'info, Trove>>,
+    pub vault: Box<Account<'info, Vault>>,
 
     #[account(
         mut,
         associated_token::mint = mint_collat.as_ref(),
-        associated_token::authority = trove.as_ref(),
+        associated_token::authority = vault.as_ref(),
     )]
-    pub ata_trove: Account<'info, TokenAccount>,
+    pub ata_vault: Account<'info, TokenAccount>,
 
     #[account(
         mut,

@@ -1,10 +1,6 @@
 // anchor imports
 import { Program, web3, workspace, Wallet } from "@project-serum/anchor";
-import {
-  Connection,
-  SystemProgram,
-  SYSVAR_RENT_PUBKEY,
-} from "@solana/web3.js";
+import { Connection, SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 // solana imports
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -15,7 +11,7 @@ import { assert } from "chai";
 // local
 import { StablePool } from "../../target/types/stable_pool";
 import { handleTxn } from "../utils/fxns";
-import { MintPubKey, Trove, Pool } from "../utils/interfaces";
+import { MintPubKey, Vault, Pool } from "../utils/interfaces";
 // program
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
@@ -27,7 +23,7 @@ const programStablePool = workspace.StablePool as Program<StablePool>;
 const createRewardVaultCall = async (
   userConnection: Connection,
   userWallet: Wallet,
-  trove: Trove,
+  vault: Vault,
   pool: Pool,
   rewardMint: MintPubKey
 ) => {
@@ -37,9 +33,9 @@ const createRewardVaultCall = async (
       accounts: {
         authority: userWallet.publicKey,
         pool: pool.pubKey,
-        trove: trove.pubKey,
+        vault: vault.pubKey,
 
-        rewardVault: trove.ataRewards[0].pubKey,
+        rewardVault: vault.ataRewards[0].pubKey,
         rewardMint,
 
         // system accts
@@ -58,27 +54,27 @@ const createRewardVaultCall = async (
 };
 
 /**
- * Pass when attempting to make a trove that doesn't exist
+ * Pass when attempting to make a vault that doesn't exist
  */
-export const createTroveRewardVault = async (
+export const createVaultRewardVault = async (
   userWallet: Wallet,
   userConnection: Connection,
-  trove: Trove,
+  vault: Vault,
   pool: Pool,
   mintPubKey: MintPubKey
 ) => {
   const confirmation = await createRewardVaultCall(
     userConnection,
     userWallet,
-    trove,
+    vault,
     pool, // could be a reward vau lt
     mintPubKey
   );
   console.log("created reward vault: ", confirmation);
 
-  const troveReward = await trove.ataRewards[0].getBalance();
+  const vaultReward = await vault.ataRewards[0].getBalance();
   assert(
-    troveReward.value.amount == "0",
-    "trove ata of reward balance mismatch"
+    vaultReward.value.amount == "0",
+    "vault ata of reward balance mismatch"
   );
 };

@@ -6,44 +6,43 @@ use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use crate::{
     constants::*,
     errors::StablePoolError,
-    states::{GlobalState, Pool, Trove}, // TODO: trove -> vault
+    states::{GlobalState, Pool, Vault},
 };
 
 pub fn handle(ctx: Context<WithdrawCollateral>, withdraw_amount: u64) -> Result<()> {
     let accts = ctx.accounts;
     // validation
     require!(
-        accts.ata_trove.amount > 0, // TODO: trove -> vault
+        accts.ata_vault.amount > 0,
         StablePoolError::InvalidTransferAmount,
     );
     require!(
-        accts.trove.debt == 0, // TODO: trove -> vault
+        accts.vault.debt == 0,
         StablePoolError::WithdrawNotAllowedWithDebt,
     );
 
-    let trove_seeds: &[&[&[u8]]] = &[&[
-        // TODO: trove -> vault
-        TROVE_SEED.as_ref(), // TODO: trove -> vault
+    let vault_seeds: &[&[&[u8]]] = &[&[
+        VAULT_SEED.as_ref(),
         &accts.mint.key().to_bytes(),
         &accts.authority.key().to_bytes(),
-        &[accts.trove.bump], // TODO: trove -> vault
+        &[accts.vault.bump],
     ]];
 
     let transfer_ctx = CpiContext::new_with_signer(
         accts.token_program.to_account_info(),
         Transfer {
-            from: accts.ata_trove.clone().to_account_info(), // TODO: trove -> vault
+            from: accts.ata_vault.clone().to_account_info(), 
             to: accts.ata_user.clone().to_account_info(),
-            authority: accts.trove.clone().to_account_info(), // TODO: trove -> vault
+            authority: accts.vault.clone().to_account_info(), 
         },
-        trove_seeds, // TODO: trove -> vault
+        vault_seeds,
     );
 
     // send the transfer
     token::transfer(transfer_ctx, withdraw_amount)?;
 
     accts.pool.total_coll -= withdraw_amount;
-    accts.trove.locked_coll_balance -= withdraw_amount; // TODO: trove -> vault
+    accts.vault.locked_coll_balance -= withdraw_amount; 
 
     Ok(())
 }
@@ -57,7 +56,7 @@ pub struct WithdrawCollateral<'info> {
 
     #[account(
         mut,
-        seeds=[POOL_SEED.as_ref(), mint.key().as_ref()],// TODO: vault -> pool
+        seeds=[POOL_SEED.as_ref(), mint.key().as_ref()],
         bump=pool.bump
     )]
     pub pool: Box<Account<'info, Pool>>,
@@ -65,20 +64,20 @@ pub struct WithdrawCollateral<'info> {
     #[account(
         mut,
         seeds=[
-            TROVE_SEED.as_ref(),// TODO: trove -> vault
+            VAULT_SEED.as_ref(),
             mint.key().as_ref(),
             authority.key().as_ref(),
         ],
-        bump=trove.bump// TODO: trove -> vault
+        bump=vault.bump
     )]
-    pub trove: Box<Account<'info, Trove>>, // TODO: trove -> vault
+    pub vault: Box<Account<'info, Vault>>,
 
     #[account(
         mut,
         associated_token::mint = mint.as_ref(),
-        associated_token::authority = trove.as_ref(), // TODO: trove -> vault
+        associated_token::authority = vault.as_ref(),
     )]
-    pub ata_trove: Account<'info, TokenAccount>, // TODO: trove -> vault
+    pub ata_vault: Account<'info, TokenAccount>,
 
     #[account(
         mut,

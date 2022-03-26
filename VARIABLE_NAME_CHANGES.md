@@ -89,11 +89,11 @@ super(owner) -> authority
 | troveAuth        | trove & users.base.troveLpSaber |
 | troveAcct        | trove |
 | tokenColl        | ataTrove |
-| token_coll       | ata_trove |
+| token_coll       | ata_vault |
 | token_coll_nonce | ata_trove_nonce |
 | poolTokenColl    | ataTrove & users.base.ataTroveLpSaber.pubKey |
-| pool_token_coll  | ata_trove |
-| ata_trove_coll   | ata_trove |
+| pool_token_coll  | ata_vault |
+| ata_trove_coll   | ata_vault |
 | ataTroveColl     | ataTrove |
 | userTroveKey       | trovePubKey |
 | userTroveNonce     | troveNonce |

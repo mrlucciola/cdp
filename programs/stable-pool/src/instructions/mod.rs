@@ -23,8 +23,8 @@ pub use create_pool::*;
 pub mod create_oracle;
 pub use create_oracle::*;
 
-pub mod create_trove;
-pub use create_trove::*;
+pub mod create_vault;
+pub use create_vault::*;
 
 pub mod report_price_to_oracle;
 pub use report_price_to_oracle::*;

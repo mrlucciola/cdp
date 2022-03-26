@@ -11,7 +11,7 @@ use crate::{
     // enums::PlatformType,
     // errors::StablePoolError,
     saber_utils::create_miner_pda,
-    states::{Pool, Trove},
+    states::{Pool, Vault},
 };
 
 pub fn handle(ctx: Context<CreateSaberQuarryMiner>, miner_bump: u8) -> Result<()> {
@@ -25,14 +25,14 @@ pub fn handle(ctx: Context<CreateSaberQuarryMiner>, miner_bump: u8) -> Result<()
     let owner_key = ctx.accounts.authority.as_ref().key();
 
     let authority_seeds: &[&[u8]] = &[
-        &TROVE_SEED,
-        &ctx.accounts.trove.mint.to_bytes(), // TODO: rename trove -> vault
+        &VAULT_SEED,
+        &ctx.accounts.vault.mint.to_bytes(),
         &owner_key.to_bytes(),
-        &[ctx.accounts.trove.bump], // TODO: rename trove -> vault
+        &[ctx.accounts.vault.bump],
     ];
     create_miner_pda(
         ctx.accounts.quarry_program.to_account_info(),
-        ctx.accounts.trove.to_account_info(), // TODO: rename trove -> vault
+        ctx.accounts.vault.to_account_info(),
         ctx.accounts.miner.to_account_info(),
         ctx.accounts.quarry.to_account_info(),
         ctx.accounts.miner_vault.to_account_info(),
@@ -64,14 +64,14 @@ pub struct CreateSaberQuarryMiner<'info> {
     #[account(
         mut,
         seeds = [
-            TROVE_SEED,
-            trove.mint.as_ref(),// TODO: rename trove -> vault
+            VAULT_SEED,
+            vault.mint.as_ref(),// TODO: rename vault -> vault
             authority.key().as_ref(),
         ],
         bump,
         has_one = mint
     )]
-    pub trove: Box<Account<'info, Trove>>, // TODO: rename trove -> vault
+    pub vault: Box<Account<'info, Vault>>,
 
     ///CHECK: intialized in quarry contract
     #[account(mut)]

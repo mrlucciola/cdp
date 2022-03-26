@@ -8,8 +8,7 @@ use anchor_spl::{
 use crate::{
     constants::*,
     errors::StablePoolError,
-    // TODO: rename trove -> vault
-    states::{global_state::GlobalState, Oracle, Pool, Trove},
+    states::{global_state::GlobalState, Oracle, Pool, Vault},
     utils::calc_lp_price,
 };
 
@@ -63,7 +62,7 @@ pub fn handle(ctx: Context<BorrowUsdx>, usdx_borrow_amt_requested: u64) -> Resul
     );
 
     // user can only borrow up to the max LTV for this collateral
-    // TODO: you can only borrow up to the max of a single trove in a single transaction
+    // TODO: you can only borrow up to the max of a single vault in a single transaction
     // this measn that in order to borrow from collateral across multiple collateral types,
     // you have to submit one txn per collateral type
     let ltv = *DEFAULT_RATIOS.get(0).unwrap_or(&0) as u128; // risk_level
@@ -102,7 +101,7 @@ pub fn handle(ctx: Context<BorrowUsdx>, usdx_borrow_amt_requested: u64) -> Resul
 /// This is still in progress. In this iteration, we are just setting the
 /// LP price to 1 LP = 0.5USDC + 0.5USDT = 1USD ~= 1USDx
 ///
-/// This will change to: query balance in Trove (to be named to Vault)
+/// This will change to: query balance in Vault (to be named to Vault)
 /// THIS IS NOT COMPLETE
 #[derive(Accounts)]
 pub struct BorrowUsdx<'info> {
@@ -123,20 +122,20 @@ pub struct BorrowUsdx<'info> {
         mut,
         seeds=[POOL_SEED.as_ref(), pool.mint_collat.as_ref()],
         bump=pool.bump,
-        constraint = pool.mint_collat.as_ref() == trove.mint.as_ref(),// TODO: rename trove -> vault
+        constraint = pool.mint_collat.as_ref() == vault.mint.as_ref(),// TODO: rename vault -> vault
     )]
     pub pool: Box<Account<'info, Pool>>,
     #[account(
         mut,
         seeds=[
-            TROVE_SEED.as_ref(),// TODO: rename trove -> vault
-            trove.mint.as_ref(),// TODO: rename trove -> vault
+            VAULT_SEED.as_ref(),// TODO: rename vault -> vault
+            vault.mint.as_ref(),// TODO: rename vault -> vault
             authority.key().as_ref(),
         ],
-        bump=trove.bump,// TODO: rename trove -> vault
-        constraint = pool.mint_collat.as_ref() == trove.mint.as_ref(),
+        bump=vault.bump,// TODO: rename vault -> vault
+        constraint = pool.mint_collat.as_ref() == vault.mint.as_ref(),
     )]
-    pub trove: Box<Account<'info, Trove>>, // TODO: rename trove -> vault
+    pub vault: Box<Account<'info, Vault>>,
     #[account(
         mut,
         seeds=[MINT_USDX_SEED.as_ref()],

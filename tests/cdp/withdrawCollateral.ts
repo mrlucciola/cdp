@@ -12,7 +12,7 @@ import { handleTxn } from "../utils/fxns";
 import {
   GlobalStateAcct,
   MintPubKey,
-  Trove,
+  Vault,
   User,
   UserToken,
   Pool,
@@ -29,7 +29,7 @@ const withdrawCollateralCall = async (
   userConnection: Connection,
   userWallet: Wallet,
   userToken: UserToken,
-  trove: Trove,
+  vault: Vault,
   mintPubKey: MintPubKey,
   pool: Pool,
   globalState: GlobalStateAcct
@@ -40,8 +40,8 @@ const withdrawCollateralCall = async (
         authority: userWallet.publicKey,
         globalState: globalState.pubKey,
         pool: pool.pubKey,
-        trove: trove.pubKey,
-        ataTrove: trove.ata.pubKey,
+        vault: vault.pubKey,
+        ataVault: vault.ata.pubKey,
         ataUser: userToken.ata.pubKey,
         mint: mintPubKey,
         tokenProgram: TOKEN_PROGRAM_ID,
@@ -53,7 +53,7 @@ const withdrawCollateralCall = async (
   await handleTxn(txn, userConnection, userWallet);
 };
 
-export const withdrawCollateralFAIL_NotEnoughTokensInTrove = async (
+export const withdrawCollateralFAIL_NotEnoughTokensInVault = async (
   user: User,
   accounts: Accounts
 ) => {
@@ -61,15 +61,15 @@ export const withdrawCollateralFAIL_NotEnoughTokensInTrove = async (
   const withdrawAmountPrecise = withdrawAmountUi * 10 ** DECIMALS_USDCUSDT;
   const userlpSaber = user.tokens.lpSaber;
   // check balances before
-  const troveBalPre = Number(
-    (await userlpSaber.trove.ata.getBalance()).value.amount
+  const vaultBalPre = Number(
+    (await userlpSaber.vault.ata.getBalance()).value.amount
   );
   // const userBalPre = Number((await userlpSaber.ata.getBalance()).value.amount);
 
   assert(
-    withdrawAmountPrecise > troveBalPre,
-    "Test requires attempting to withdraw more tokens than in the trove. Please increase deposit amount\n" +
-      `Withdraw Amount: ${withdrawAmountPrecise}   Trove Balance: ${troveBalPre}`
+    withdrawAmountPrecise > vaultBalPre,
+    "Test requires attempting to withdraw more tokens than in the vault. Please increase deposit amount\n" +
+      `Withdraw Amount: ${withdrawAmountPrecise}   Vault Balance: ${vaultBalPre}`
   );
 
   await expect(
@@ -82,8 +82,8 @@ export const withdrawCollateralFAIL_NotEnoughTokensInTrove = async (
       user.wallet,
       // user token
       userlpSaber,
-      // trove
-      userlpSaber.trove,
+      // vault
+      userlpSaber.vault,
       // mint pubKey
       accounts.lpSaberUsdcUsdt.mint,
       // pool
@@ -93,14 +93,14 @@ export const withdrawCollateralFAIL_NotEnoughTokensInTrove = async (
     )
   ).is.rejected;
 
-  const troveBalPost = Number(
-    (await userlpSaber.trove.ata.getBalance()).value.amount
+  const vaultBalPost = Number(
+    (await userlpSaber.vault.ata.getBalance()).value.amount
   );
-  const diff = troveBalPost - troveBalPre;
+  const diff = vaultBalPost - vaultBalPre;
 
   assert(
     diff == 0,
-    "Withdraw did not fail when attempting to withdraw more tokens than are in the trove"
+    "Withdraw did not fail when attempting to withdraw more tokens than are in the vault"
   );
 };
 
@@ -114,21 +114,21 @@ export const withdrawCollateralFAIL_AttemptWithdrawFromOtherUser = async (
   const userlpSaber = user.tokens.lpSaber;
   const otherUserlpSaber = otherUser.tokens.lpSaber;
   // check balances before
-  const userTroveBalPre = Number(
-    (await userlpSaber.trove.ata.getBalance()).value.amount
+  const userVaultBalPre = Number(
+    (await userlpSaber.vault.ata.getBalance()).value.amount
   );
   const userBalPre = Number((await userlpSaber.ata.getBalance()).value.amount);
-  const otherUserTroveBalPre = Number(
-    (await otherUserlpSaber.trove.ata.getBalance()).value.amount
+  const otherUserVaultBalPre = Number(
+    (await otherUserlpSaber.vault.ata.getBalance()).value.amount
   );
   const otherUserBalPre = Number(
     (await otherUserlpSaber.ata.getBalance()).value.amount
   );
 
   assert(
-    withdrawAmountPrecise <= userTroveBalPre,
-    "Test requires attempting to withdraw tokens <= that in the trove. Please decrease withdraw amount\n" +
-      `\nWithdraw Amount:: ${withdrawAmountPrecise}  Trove Balance: ${userTroveBalPre}`
+    withdrawAmountPrecise <= userVaultBalPre,
+    "Test requires attempting to withdraw tokens <= that in the vault. Please decrease withdraw amount\n" +
+      `\nWithdraw Amount:: ${withdrawAmountPrecise}  Vault Balance: ${userVaultBalPre}`
   );
 
   await expect(
@@ -141,9 +141,9 @@ export const withdrawCollateralFAIL_AttemptWithdrawFromOtherUser = async (
       otherUser.wallet,
       // other user token
       otherUserlpSaber,
-      // user trove
-      // note: not other user trove since other user is trying to withdraw from user's trove
-      userlpSaber.trove,
+      // user vault
+      // note: not other user vault since other user is trying to withdraw from user's vault
+      userlpSaber.vault,
       // mint pubKey
       accounts.lpSaberUsdcUsdt.mint,
       // pool
@@ -153,41 +153,41 @@ export const withdrawCollateralFAIL_AttemptWithdrawFromOtherUser = async (
     )
   ).to.be.rejectedWith(
     "2006", // ConstraintSeeds: a seeds constraint was violated
-    "No error thrown when trying to withdraw from another user's trove"
+    "No error thrown when trying to withdraw from another user's vault"
   );
 
-  const userTroveBalPost = Number(
-    (await userlpSaber.trove.ata.getBalance()).value.amount
+  const userVaultBalPost = Number(
+    (await userlpSaber.vault.ata.getBalance()).value.amount
   );
   const userBalPost = Number((await userlpSaber.ata.getBalance()).value.amount);
-  const otherUserTroveBalPost = Number(
-    (await otherUserlpSaber.trove.ata.getBalance()).value.amount
+  const otherUserVaultBalPost = Number(
+    (await otherUserlpSaber.vault.ata.getBalance()).value.amount
   );
   const otherUserBalPost = Number(
     (await otherUserlpSaber.ata.getBalance()).value.amount
   );
 
-  console.log("heliere\n\n\n\n", userTroveBalPre - userTroveBalPost);
-  const userTroveDiff = userTroveBalPre - userTroveBalPost;
+  console.log("heliere\n\n\n\n", userVaultBalPre - userVaultBalPost);
+  const userVaultDiff = userVaultBalPre - userVaultBalPost;
   const userBalDiff = userBalPost - userBalPre;
-  const otherUserTroveDiff = otherUserTroveBalPre - otherUserTroveBalPost;
+  const otherUserVaultDiff = otherUserVaultBalPre - otherUserVaultBalPost;
   const otherUserBalDiff = otherUserBalPost - otherUserBalPre;
 
   assert(
-    userTroveDiff === 0,
-    "Tokens were withdrawn from base-user's trove by test-user. Major security bug."
+    userVaultDiff === 0,
+    "Tokens were withdrawn from base-user's vault by test-user. Major security bug."
   );
   assert(
     userBalDiff === 0,
     "User ATA balance has changed after an attempted withdrawal from another user"
   );
   assert(
-    otherUserTroveDiff === 0,
-    "Other user trove balance changed when attempting to withdraw from user's trove"
+    otherUserVaultDiff === 0,
+    "Other user vault balance changed when attempting to withdraw from user's vault"
   );
   assert(
     otherUserBalDiff === 0,
-    "Other user was successful in withdrawing from user's trove. Major security bug."
+    "Other user was successful in withdrawing from user's vault. Major security bug."
   );
 };
 
@@ -199,8 +199,8 @@ export const withdrawCollateralPASS = async (
   const withdrawAmountPrecise = withdrawAmountUi * 10 ** DECIMALS_USDCUSDT;
   const userlpSaber = user.tokens.lpSaber;
   // check balances before
-  const troveBalPre = Number(
-    (await userlpSaber.trove.ata.getBalance()).value.amount
+  const vaultBalPre = Number(
+    (await userlpSaber.vault.ata.getBalance()).value.amount
   );
   const userBalPre = Number((await userlpSaber.ata.getBalance()).value.amount);
 
@@ -208,9 +208,9 @@ export const withdrawCollateralPASS = async (
   // const tvlPre = globalStateAcct.tvlUsd.toNumber();
 
   assert(
-    withdrawAmountPrecise <= troveBalPre,
-    "Test requires withdrawing an amount less than the trove balance so it will succeed.\n" +
-      `Withdraw Amount: ${withdrawAmountPrecise}   Trove Balance: ${troveBalPre}`
+    withdrawAmountPrecise <= vaultBalPre,
+    "Test requires withdrawing an amount less than the vault balance so it will succeed.\n" +
+      `Withdraw Amount: ${withdrawAmountPrecise}   Vault Balance: ${vaultBalPre}`
   );
 
   await withdrawCollateralCall(
@@ -222,8 +222,8 @@ export const withdrawCollateralPASS = async (
     user.wallet,
     // user token
     userlpSaber,
-    // trove
-    userlpSaber.trove,
+    // vault
+    userlpSaber.vault,
     // mint pubKey
     accounts.lpSaberUsdcUsdt.mint,
     // pool
@@ -233,15 +233,15 @@ export const withdrawCollateralPASS = async (
   );
 
   // check balances after
-  const troveBalPost = Number(
-    (await userlpSaber.trove.ata.getBalance()).value.amount
+  const vaultBalPost = Number(
+    (await userlpSaber.vault.ata.getBalance()).value.amount
   );
   const userBalPost = Number((await userlpSaber.ata.getBalance()).value.amount);
   const userDiff = userBalPost - userBalPre;
-  const troveDiff = troveBalPost - troveBalPre;
+  const vaultDiff = vaultBalPost - vaultBalPre;
   console.log(`user balance: ${userBalPre} -> ${userBalPost} ∆=${userDiff}`);
   console.log(
-    `trove balance: ${troveBalPre} -> ${troveBalPost} ∆=${troveDiff}`
+    `vault balance: ${vaultBalPre} -> ${vaultBalPost} ∆=${vaultDiff}`
   );
 
   const differenceThreshold = 0.0001; // set arbitrarily
@@ -251,9 +251,9 @@ export const withdrawCollateralPASS = async (
       `Actual User ATA Diff: ${userDiff}`
   );
   assert(
-    Math.abs(troveDiff + withdrawAmountPrecise) < differenceThreshold,
-    `Expected User Trove Diff: ${userDiff}` +
-      `Actual User Trove Diff: ${troveDiff}`
+    Math.abs(vaultDiff + withdrawAmountPrecise) < differenceThreshold,
+    `Expected User Vault Diff: ${userDiff}` +
+      `Actual User Vault Diff: ${vaultDiff}`
   );
 
   // globalStateAcct = await accounts.global.getAccount();

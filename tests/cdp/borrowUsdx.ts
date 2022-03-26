@@ -52,7 +52,7 @@ const borrowUsdxCall = async (
 
         mintColl, // the collat token mint that the pool represents
         pool: pool.pubKey,
-        trove: userToken.trove.pubKey, // TODO: rename trove -> vault
+        vault: userToken.vault.pubKey,
 
         mintUsdx: mintUsdx.pubKey,
         ataUsdx: userUSDx.ata.pubKey,

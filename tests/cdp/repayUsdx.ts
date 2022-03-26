@@ -30,7 +30,7 @@ import {
   GlobalStateAcct,
   MintAcct,
   Pool,
-  Trove, // TODO: trove -> vault
+  Vault,
   User,
   UserToken,
 } from "../utils/interfaces";
@@ -44,7 +44,7 @@ const repayUsdxCall = async (
   userToken: UserToken,
   mintUsdx: MintAcct,
   pool: Pool,
-  trove: Trove, // TODO: trove -> vault
+  vault: Vault,
   globalState: GlobalStateAcct
 ) => {
   const txn = new Transaction().add(
@@ -53,7 +53,7 @@ const repayUsdxCall = async (
         authority: userWallet.publicKey,
         globalState: globalState.pubKey,
         pool: pool.pubKey,
-        trove: trove.pubKey, // TODO: trove -> vault
+        vault: vault.pubKey, // TODO: vault -> vault
         mintUsdx: mintUsdx.pubKey,
         ataUsdx: userToken.ata.pubKey,
 
@@ -71,7 +71,7 @@ const repayUsdxCall = async (
 
 export const repayUsdxFAIL_RepayMoreThanBorrowed = async (
   user: User,
-  trove: Trove, // TODO: trove -> vault
+  vault: Vault, // TODO: vault -> vault
   accounts: Accounts
 ) => {
   const repayAmountUi = 1;
@@ -85,22 +85,22 @@ export const repayUsdxFAIL_RepayMoreThanBorrowed = async (
     "Test requires global state to already be created"
   );
 
-  // get user trove info
-  const troveInfo: web3.AccountInfo<Buffer> = await trove.getAccountInfo();
-  assert(troveInfo, "Test requires trove to already be created");
+  // get user vault info
+  const vaultInfo: web3.AccountInfo<Buffer> = await vault.getAccountInfo();
+  assert(vaultInfo, "Test requires vault to already be created");
 
   const userUsdx = user.tokens.usdx;
-  let troveAcct: IdlAccounts<StablePool>["trove"] = await trove.getAccount();
+  let vaultAcct: IdlAccounts<StablePool>["vault"] = await vault.getAccount();
   const ataUsdxBalPre = (await userUsdx.ata.getBalance()).value.uiAmount;
-  const troveDebtPre = troveAcct.debt.toNumber();
+  const vaultDebtPre = vaultAcct.debt.toNumber();
 
   assert(
-    repayAmountPrecise >= troveDebtPre,
-    "Test requires repay amount >= trove balance. Please increase repay amount." +
+    repayAmountPrecise >= vaultDebtPre,
+    "Test requires repay amount >= vault balance. Please increase repay amount." +
       "Repay Amount: " +
       repayAmountPrecise +
-      " Trove Balance :" +
-      troveDebtPre
+      " Vault Balance :" +
+      vaultDebtPre
   );
   assert(
     repayAmountPrecise <= ataUsdxBalPre,
@@ -125,32 +125,32 @@ export const repayUsdxFAIL_RepayMoreThanBorrowed = async (
       accounts.usdx,
       // pool
       accounts.lpSaberUsdcUsdt.pool,
-      // trove
-      user.tokens.lpSaber.trove,
+      // vault
+      user.tokens.lpSaber.vault,
       // globalState
       accounts.global
     )
   ).to.be.rejectedWith("6019"); // RepayingMoreThanBorrowed
 
-  troveAcct = await trove.getAccount();
+  vaultAcct = await vault.getAccount();
   const ataUsdxBalPost = (await userUsdx.ata.getBalance()).value.uiAmount;
-  const troveDebtPost = troveAcct.debt.toNumber();
+  const vaultDebtPost = vaultAcct.debt.toNumber();
   const ataDiff = ataUsdxBalPost - ataUsdxBalPre;
-  const troveDiff = troveDebtPost - troveDebtPre;
+  const vaultDiff = vaultDebtPost - vaultDebtPre;
 
   assert(
     ataDiff == 0,
     "Repay rejected but ata balance changed. ATA Diff: " + ataDiff
   );
   assert(
-    troveDiff == 0,
-    "Repay rejected but trove debt changed. Trove Diff: " + troveDiff
+    vaultDiff == 0,
+    "Repay rejected but vault debt changed. Vault Diff: " + vaultDiff
   );
 };
 
 export const repayUsdxPASS_RepayFullAmountBorrowed = async (
   user: User,
-  trove: Trove,
+  vault: Vault,
   accounts: Accounts
 ) => {
   // get global state info
@@ -161,23 +161,23 @@ export const repayUsdxPASS_RepayFullAmountBorrowed = async (
     "Test requires global state to already be created"
   );
 
-  // get user trove info
-  const troveInfo: web3.AccountInfo<Buffer> = await trove.getAccountInfo();
-  assert(troveInfo, "Test requires trove to already be created");
+  // get user vault info
+  const vaultInfo: web3.AccountInfo<Buffer> = await vault.getAccountInfo();
+  assert(vaultInfo, "Test requires vault to already be created");
 
   const userUsdx = user.tokens.usdx;
-  let troveAcct: IdlAccounts<StablePool>["trove"] = await trove.getAccount();
+  let vaultAcct: IdlAccounts<StablePool>["vault"] = await vault.getAccount();
   const ataUsdxBalPre = (await userUsdx.ata.getBalance()).value.uiAmount;
-  const troveDebtPre = troveAcct.debt.toNumber();
+  const vaultDebtPre = vaultAcct.debt.toNumber();
   const repayAmountPrecise = ataUsdxBalPre;
 
   assert(
-    ataUsdxBalPre == troveDebtPre,
-    "Test requires ataUsdxBal == troveDebt. Please make these values equal." +
+    ataUsdxBalPre == vaultDebtPre,
+    "Test requires ataUsdxBal == vaultDebt. Please make these values equal." +
       "ATA Usdx Bal: " +
       ataUsdxBalPre +
-      " Trove Balance :" +
-      troveDebtPre
+      " Vault Balance :" +
+      vaultDebtPre
   );
 
   await repayUsdxCall(
@@ -193,15 +193,15 @@ export const repayUsdxPASS_RepayFullAmountBorrowed = async (
     accounts.usdx,
     // pool
     accounts.lpSaberUsdcUsdt.pool,
-    // trove
-    user.tokens.lpSaber.trove,
+    // vault
+    user.tokens.lpSaber.vault,
     // globalState
     accounts.global
   );
 
-  troveAcct = await trove.getAccount();
+  vaultAcct = await vault.getAccount();
   const ataUsdxBalPost = (await userUsdx.ata.getBalance()).value.uiAmount;
-  const troveDebtPost = troveAcct.debt.toNumber();
+  const vaultDebtPost = vaultAcct.debt.toNumber();
 
   assert(
     ataUsdxBalPost == 0,
@@ -211,17 +211,17 @@ export const repayUsdxPASS_RepayFullAmountBorrowed = async (
       " Expected Bal: 0"
   );
   assert(
-    troveDebtPost == 0,
-    "Trove Debt not what expected" +
-      "Trove Debt: " +
-      troveDebtPost +
+    vaultDebtPost == 0,
+    "Vault Debt not what expected" +
+      "Vault Debt: " +
+      vaultDebtPost +
       " Expected Debt: 0"
   );
 };
 
 export const repayUsdxPASS_RepayLessThanBorrowed = async (
   user: User,
-  trove: Trove,
+  vault: Vault,
   accounts: Accounts
 ) => {
   // get global state info
@@ -232,24 +232,24 @@ export const repayUsdxPASS_RepayLessThanBorrowed = async (
     "Test requires global state to already be created"
   );
 
-  // get user trove info
-  const troveInfo: web3.AccountInfo<Buffer> = await trove.getAccountInfo();
-  assert(troveInfo, "Test requires trove to already be created");
+  // get user vault info
+  const vaultInfo: web3.AccountInfo<Buffer> = await vault.getAccountInfo();
+  assert(vaultInfo, "Test requires vault to already be created");
 
   const userUsdx = user.tokens.usdx;
-  let troveAcct: IdlAccounts<StablePool>["trove"] = await trove.getAccount();
+  let vaultAcct: IdlAccounts<StablePool>["vault"] = await vault.getAccount();
   const ataUsdxBalPre = (await userUsdx.ata.getBalance()).value.uiAmount;
-  const troveDebtPre = troveAcct.debt.toNumber();
+  const vaultDebtPre = vaultAcct.debt.toNumber();
 
   const repayAmount = 1;
 
   assert(
-    repayAmount <= troveDebtPre,
-    "Test requires repay amount <= trove balance. Please decrease repay amount." +
+    repayAmount <= vaultDebtPre,
+    "Test requires repay amount <= vault balance. Please decrease repay amount." +
       "Repay Amount: " +
       repayAmount +
-      " Trove Balance :" +
-      troveDebtPre
+      " Vault Balance :" +
+      vaultDebtPre
   );
   assert(
     repayAmount <= ataUsdxBalPre,
@@ -273,17 +273,17 @@ export const repayUsdxPASS_RepayLessThanBorrowed = async (
     accounts.usdx,
     // pool
     accounts.lpSaberUsdcUsdt.pool,
-    // trove
-    user.tokens.lpSaber.trove,
+    // vault
+    user.tokens.lpSaber.vault,
     // globalState
     accounts.global
   );
 
-  troveAcct = await trove.getAccount();
+  vaultAcct = await vault.getAccount();
   const ataUsdxBalPost = (await userUsdx.ata.getBalance()).value.uiAmount;
-  const troveDebtPost = troveAcct.debt.toNumber();
+  const vaultDebtPost = vaultAcct.debt.toNumber();
   const ataDiff = ataUsdxBalPost - ataUsdxBalPre;
-  const troveDiff = troveDebtPost - troveDebtPre;
+  const vaultDiff = vaultDebtPost - vaultDebtPre;
 
   assert(
     ataDiff == -repayAmount,
@@ -294,10 +294,10 @@ export const repayUsdxPASS_RepayLessThanBorrowed = async (
       -repayAmount
   );
   assert(
-    troveDiff == -repayAmount,
-    "Trove diff not what expected" +
-      "Trove Diff: " +
-      troveDiff +
+    vaultDiff == -repayAmount,
+    "Vault diff not what expected" +
+      "Vault Diff: " +
+      vaultDiff +
       "Expected Diff: " +
       -repayAmount
   );
@@ -305,7 +305,7 @@ export const repayUsdxPASS_RepayLessThanBorrowed = async (
 
 export const repayUsdxFAIL_ZeroUsdx = async (
   user: User,
-  trove: Trove,
+  vault: Vault,
   accounts: Accounts
 ) => {
   const repayAmount = 0;
@@ -318,14 +318,14 @@ export const repayUsdxFAIL_ZeroUsdx = async (
     "Test requires global state to already be created"
   );
 
-  // get user trove info
-  const troveInfo: web3.AccountInfo<Buffer> = await trove.getAccountInfo();
-  assert(troveInfo, "Test requires trove to already be created");
+  // get user vault info
+  const vaultInfo: web3.AccountInfo<Buffer> = await vault.getAccountInfo();
+  assert(vaultInfo, "Test requires vault to already be created");
 
   const userUsdx = user.tokens.usdx;
-  let troveAcct: IdlAccounts<StablePool>["trove"] = await trove.getAccount();
+  let vaultAcct: IdlAccounts<StablePool>["vault"] = await vault.getAccount();
   const ataUsdxBalPre = (await userUsdx.ata.getBalance()).value.uiAmount;
-  const troveDebtPre = troveAcct.debt.toNumber();
+  const vaultDebtPre = vaultAcct.debt.toNumber();
 
   assert(
     repayAmount == 0,
@@ -346,33 +346,33 @@ export const repayUsdxFAIL_ZeroUsdx = async (
       accounts.usdx,
       // pool
       accounts.lpSaberUsdcUsdt.pool,
-      // trove
-      user.tokens.lpSaber.trove,
+      // vault
+      user.tokens.lpSaber.vault,
       // globalState
       accounts.global
     )
   ).to.be.rejectedWith("6015"); // InvalidTransferAmount
 
-  troveAcct = await trove.getAccount();
+  vaultAcct = await vault.getAccount();
   const ataUsdxBalPost = (await userUsdx.ata.getBalance()).value.uiAmount;
-  const troveDebtPost = troveAcct.debt.toNumber();
+  const vaultDebtPost = vaultAcct.debt.toNumber();
   const ataDiff = ataUsdxBalPost - ataUsdxBalPre;
-  const troveDiff = troveDebtPost - troveDebtPre;
+  const vaultDiff = vaultDebtPost - vaultDebtPre;
 
   assert(
     ataDiff == 0,
     "Repay rejected but ata balance changed. ATA Diff: " + ataDiff
   );
   assert(
-    troveDiff == 0,
-    "Repay rejected but trove debt changed. Trove Diff: " + troveDiff
+    vaultDiff == 0,
+    "Repay rejected but vault debt changed. Vault Diff: " + vaultDiff
   );
 };
 
 export const repayUsdxFAIL_RepayAnotherUsersDebt = async (
   user: User,
   otherUser: User,
-  otherUserTrove: Trove, // TODO: trove -> vault
+  otherUserVault: Vault, // TODO: vault -> vault
   accounts: Accounts
 ) => {
   const repayAmountUi = 1;
@@ -385,16 +385,16 @@ export const repayUsdxFAIL_RepayAnotherUsersDebt = async (
     "Test requires global state to already be created"
   );
 
-  // get user trove info
-  const troveInfo: web3.AccountInfo<Buffer> =
-    await otherUserTrove.getAccountInfo();
-  assert(troveInfo, "Test requires trove to already be created");
+  // get user vault info
+  const vaultInfo: web3.AccountInfo<Buffer> =
+    await otherUserVault.getAccountInfo();
+  assert(vaultInfo, "Test requires vault to already be created");
 
   const userUsdx = user.tokens.usdx;
-  let troveAcct: IdlAccounts<StablePool>["trove"] =
-    await otherUserTrove.getAccount();
+  let vaultAcct: IdlAccounts<StablePool>["vault"] =
+    await otherUserVault.getAccount();
   const userAtaUsdxBalPre = (await userUsdx.ata.getBalance()).value.uiAmount;
-  const otherUserTroveDebtPre = troveAcct.debt.toNumber();
+  const otherUserVaultDebtPre = vaultAcct.debt.toNumber();
 
   assert(
     repayAmountPrecise <= userAtaUsdxBalPre,
@@ -405,12 +405,12 @@ export const repayUsdxFAIL_RepayAnotherUsersDebt = async (
       repayAmountPrecise
   );
   assert(
-    repayAmountPrecise <= otherUserTroveDebtPre,
-    "Test requires repayAmount <= Other User Trove Debt." +
+    repayAmountPrecise <= otherUserVaultDebtPre,
+    "Test requires repayAmount <= Other User Vault Debt." +
       "Repay Amount: " +
       repayAmountPrecise +
-      " Other User Trove Debt: " +
-      otherUserTroveDebtPre
+      " Other User Vault Debt: " +
+      otherUserVaultDebtPre
   );
 
   await expect(
@@ -427,25 +427,25 @@ export const repayUsdxFAIL_RepayAnotherUsersDebt = async (
       accounts.usdx,
       // pool
       accounts.lpSaberUsdcUsdt.pool,
-      // trove
-      otherUser.tokens.lpSaber.trove,
+      // vault
+      otherUser.tokens.lpSaber.vault,
       // globalState
       accounts.global
     )
   ).to.be.rejectedWith("2003"); // Raw Constraint Violated
 
-  troveAcct = await otherUserTrove.getAccount();
+  vaultAcct = await otherUserVault.getAccount();
   const userAtaUsdxBalPost = (await userUsdx.ata.getBalance()).value.uiAmount;
-  const otherUserTroveDebtPost = troveAcct.debt.toNumber();
+  const otherUserVaultDebtPost = vaultAcct.debt.toNumber();
   const ataDiff = userAtaUsdxBalPost - userAtaUsdxBalPre;
-  const troveDiff = otherUserTroveDebtPost - otherUserTroveDebtPre;
+  const vaultDiff = otherUserVaultDebtPost - otherUserVaultDebtPre;
 
   assert(
     ataDiff == 0,
     "Repay rejected but ata balance changed. ATA Diff: " + ataDiff
   );
   assert(
-    troveDiff == 0,
-    "Repay rejected but trove debt changed. Trove Diff: " + troveDiff
+    vaultDiff == 0,
+    "Repay rejected but vault debt changed. Vault Diff: " + vaultDiff
   );
 };

@@ -8,12 +8,12 @@ use anchor_spl::{
 use crate::{
     constants::*,
     errors::*,
-    states::{global_state::GlobalState, Pool, Trove},
+    states::{global_state::GlobalState, Pool, Vault},
 };
 
 pub fn handle(ctx: Context<RepayUsdx>, repay_amount: u64) -> Result<()> {
     require!(
-        repay_amount <= ctx.accounts.trove.debt,
+        repay_amount <= ctx.accounts.vault.debt,
         StablePoolError::RepayingMoreThanBorrowed,
     );
     require!(repay_amount > 0, StablePoolError::InvalidTransferAmount,);
@@ -35,7 +35,7 @@ pub fn handle(ctx: Context<RepayUsdx>, repay_amount: u64) -> Result<()> {
 
     ctx.accounts.pool.total_debt -= repay_amount;
     ctx.accounts.global_state.total_debt -= repay_amount;
-    ctx.accounts.trove.debt -= repay_amount; // TODO: trove -> vault
+    ctx.accounts.vault.debt -= repay_amount;
 
     Ok(())
 }
@@ -54,20 +54,20 @@ pub struct RepayUsdx<'info> {
         mut,
         seeds=[POOL_SEED.as_ref(), pool.mint_collat.as_ref()],
         bump=pool.bump,
-        constraint = pool.mint_collat.as_ref() == trove.mint.as_ref(),// TODO: trove -> vault
+        constraint = pool.mint_collat.as_ref() == vault.mint.as_ref(),
     )]
     pub pool: Box<Account<'info, Pool>>,
     #[account(
         mut,
         seeds=[
-            TROVE_SEED.as_ref(),// TODO: trove -> vault
-            trove.mint.as_ref(),// TODO: trove -> vault
+            VAULT_SEED.as_ref(),
+            vault.mint.as_ref(),
             authority.key().as_ref(),
         ],
-        bump=trove.bump,// TODO: trove -> vault
-        constraint = pool.mint_collat.as_ref() == trove.mint.as_ref(),// TODO: trove -> vault
+        bump=vault.bump,
+        constraint = pool.mint_collat.as_ref() == vault.mint.as_ref(),
     )]
-    pub trove: Box<Account<'info, Trove>>, // TODO: trove -> vault
+    pub vault: Box<Account<'info, Vault>>,
     #[account(
         seeds=[MINT_USDX_SEED],
         bump,

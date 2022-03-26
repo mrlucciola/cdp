@@ -16,7 +16,7 @@ import { handleTxn } from "../utils/fxns";
 import {
   GlobalStateAcct,
   MintPubKey,
-  Trove,
+  Vault,
   User,
   UserToken,
   Pool,
@@ -35,7 +35,7 @@ const depositCollateralCall = async (
   userConnection: Connection,
   userWallet: Wallet,
   userToken: UserToken,
-  trove: Trove,
+  vault: Vault,
   mintPubKey: MintPubKey,
   pool: Pool,
   globalState: GlobalStateAcct
@@ -46,8 +46,8 @@ const depositCollateralCall = async (
         authority: userWallet.publicKey,
         globalState: globalState.pubKey,
         pool: pool.pubKey,
-        trove: trove.pubKey,
-        ataTrove: trove.ata.pubKey,
+        vault: vault.pubKey,
+        ataVault: vault.ata.pubKey,
         ataUser: userToken.ata.pubKey,
         mintCollat: mintPubKey,
         oracleA: pool.oracles.usdc.pubKey,
@@ -86,8 +86,8 @@ export const depositCollateralFAIL_NotEnoughTokens = async (
       user.wallet,
       // user token
       user.tokens.lpSaber,
-      // trove
-      user.tokens.lpSaber.trove,
+      // vault
+      user.tokens.lpSaber.vault,
       // mint pubKey
       accounts.lpSaberUsdcUsdt.mint,
       // pool
@@ -119,8 +119,8 @@ export const depositCollateralPASS = async (user: User, accounts: Accounts) => {
 
   // const tvlPre = globalStateAcct.tvlUsd.toNumber();
   const userBalPre = Number((await userlpSaber.ata.getBalance()).value.amount);
-  const troveBalPre = Number(
-    (await userlpSaber.trove.ata.getBalance()).value.amount
+  const vaultBalPre = Number(
+    (await userlpSaber.vault.ata.getBalance()).value.amount
   );
 
   assert(
@@ -143,8 +143,8 @@ export const depositCollateralPASS = async (user: User, accounts: Accounts) => {
     user.wallet,
     // user token
     user.tokens.lpSaber,
-    // trove
-    user.tokens.lpSaber.trove,
+    // vault
+    user.tokens.lpSaber.vault,
     // mint pubKey
     accounts.lpSaberUsdcUsdt.mint,
     // pool
@@ -154,14 +154,14 @@ export const depositCollateralPASS = async (user: User, accounts: Accounts) => {
   );
 
   const userBalPost = Number((await userlpSaber.ata.getBalance()).value.amount);
-  const troveBalPost = Number(
-    (await userlpSaber.trove.ata.getBalance()).value.amount
+  const vaultBalPost = Number(
+    (await userlpSaber.vault.ata.getBalance()).value.amount
   );
   const userDiff = userBalPost - userBalPre;
-  const troveDiff = troveBalPost - troveBalPre;
+  const vaultDiff = vaultBalPost - vaultBalPre;
   console.log(`user balance: ${userBalPre} -> ${userBalPost} ∆=${userDiff}`);
   console.log(
-    `trove balance: ${troveBalPre} -> ${troveBalPost} ∆=${troveDiff}`
+    `vault balance: ${vaultBalPre} -> ${vaultBalPost} ∆=${vaultDiff}`
   );
 
   const differenceThreshold = 0.0001; // set arbitrarily
@@ -173,8 +173,8 @@ export const depositCollateralPASS = async (user: User, accounts: Accounts) => {
       userDiff
   );
   assert(
-    Math.abs(troveDiff - depositAmount) < differenceThreshold,
-    "Expected Trove Diff: " + depositAmount + " Actual Trove Diff: " + troveDiff
+    Math.abs(vaultDiff - depositAmount) < differenceThreshold,
+    "Expected Vault Diff: " + depositAmount + " Actual Vault Diff: " + vaultDiff
   );
   // globalStateAcct = await accounts.global.getAccount();
   // const tvlPost = globalStateAcct.tvlUsd.toNumber();
@@ -232,8 +232,8 @@ export const depositCollateralFAIL_DepositExceedingTVL = async (
       user.wallet,
       // user token
       user.tokens.lpSaber,
-      // trove
-      user.tokens.lpSaber.trove,
+      // vault
+      user.tokens.lpSaber.vault,
       // mint pubKey
       accounts.lpSaberUsdcUsdt.mint,
       // pool

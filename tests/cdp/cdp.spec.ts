@@ -18,15 +18,15 @@ import {
   createPoolFAIL_auth,
   createPoolPASS,
 } from "./createPool";
-import { createTroveFAIL_Duplicate, createTrovePASS } from "./createTrove";
-import { Miner, Trove } from "../utils/interfaces";
+import { createVaultFAIL_Duplicate, createVaultPASS } from "./createVault";
+import { Miner, Vault } from "../utils/interfaces";
 import {
   depositCollateralFAIL_NotEnoughTokens,
   depositCollateralPASS,
   depositCollateralFAIL_DepositExceedingTVL,
 } from "./depositCollateral";
 import {
-  withdrawCollateralFAIL_NotEnoughTokensInTrove,
+  withdrawCollateralFAIL_NotEnoughTokensInVault,
   withdrawCollateralFAIL_AttemptWithdrawFromOtherUser,
   withdrawCollateralPASS,
 } from "./withdrawCollateral";
@@ -37,7 +37,7 @@ import {
   reportPriceToOraclePASS,
 } from "./reportPriceToOracle";
 import { createOracleFAIL_Duplicate, createOraclePASS } from "./createOracle";
-import { createTroveRewardVault } from "./createRewardVault";
+import { createVaultRewardVault } from "./createRewardVault";
 import { createSaberQuarryMinerPASS } from "../saber/createSaberQuarryMiner";
 // import { depositToSaber } from "../saber/deposit";
 // import { withdrawFromSaber } from "../saber/withdraw";
@@ -72,7 +72,7 @@ describe("cdp core test suite", async () => {
     await users.init(accounts.usdx.pubKey, accounts.lpSaberUsdcUsdt.mint);
     // create miner
     users.base.miner = new Miner(
-      users.base.tokens.lpSaber.trove,
+      users.base.tokens.lpSaber.vault,
       accounts.quarryKey,
       accounts.lpSaberUsdcUsdt.mint
     );
@@ -173,55 +173,55 @@ describe("cdp core test suite", async () => {
     );
   });
 
-  // trove tests
+  // vault tests
   before(async () => {
-    // derive trove account
-    users.base.tokens.lpSaber.trove = new Trove( // TODO: trove -> pool
+    // derive vault account
+    users.base.tokens.lpSaber.vault = new Vault(
       users.base.wallet,
       accounts.lpSaberUsdcUsdt.mint,
       [accounts.sbr.publicKey]
     );
   });
 
-  it("PASS: Create Trove", async () => {
+  it("PASS: Create Vault", async () => {
     // TODO: refactor to include just the high level classes
-    await createTrovePASS(
+    await createVaultPASS(
       users.base.wallet,
       users.base.provider.connection,
-      users.base.tokens.lpSaber.trove, // TODO: trove -> pool
+      users.base.tokens.lpSaber.vault, // TODO: vault -> pool
       accounts.lpSaberUsdcUsdt.pool,
       accounts.lpSaberUsdcUsdt.mint
     );
   });
 
-  it("FAIL: Create Trove - Duplicate", async () => {
+  it("FAIL: Create Vault - Duplicate", async () => {
     // TODO: refactor to include just the high level classes
-    await createTroveFAIL_Duplicate(
+    await createVaultFAIL_Duplicate(
       users.base.wallet,
       users.base.provider.connection,
-      users.base.tokens.lpSaber.trove, // TODO: trove -> pool
+      users.base.tokens.lpSaber.vault, // TODO: vault -> pool
       accounts.lpSaberUsdcUsdt.pool,
       accounts.lpSaberUsdcUsdt.mint
     );
   });
 
-  it("PASS: Create Trove from another account", async () => {
+  it("PASS: Create Vault from another account", async () => {
     // TODO: refactor to include just the high level classes
-    await createTrovePASS(
+    await createVaultPASS(
       users.test.wallet,
       users.test.provider.connection,
-      users.test.tokens.lpSaber.trove, // TODO: trove -> pool
+      users.test.tokens.lpSaber.vault, // TODO: vault -> pool
       accounts.lpSaberUsdcUsdt.pool,
       accounts.lpSaberUsdcUsdt.mint
     );
   });
 
-  it("FAIL: Create Trove - Duplicate from another account", async () => {
+  it("FAIL: Create Vault - Duplicate from another account", async () => {
     // TODO: refactor to include just the high level classes
-    await createTroveFAIL_Duplicate(
+    await createVaultFAIL_Duplicate(
       users.test.wallet,
       users.test.provider.connection,
-      users.test.tokens.lpSaber.trove, // TODO: trove -> pool
+      users.test.tokens.lpSaber.vault, // TODO: vault -> pool
       accounts.lpSaberUsdcUsdt.pool,
       accounts.lpSaberUsdcUsdt.mint
     );
@@ -258,8 +258,8 @@ describe("cdp core test suite", async () => {
   });
 
   // withrawing collateral
-  // it("FAIL: Withdraw Collateral - Not Enough Tokens in Trove", async () => {
-  //   await withdrawCollateralFAIL_NotEnoughTokensInTrove(users.base, accounts);
+  // it("FAIL: Withdraw Collateral - Not Enough Tokens in Vault", async () => {
+  //   await withdrawCollateralFAIL_NotEnoughTokensInVault(users.base, accounts);
   // });
 
   // it("FAIL: Withdraw Collateral - Attempt Withdraw From Other User", async () => {
@@ -283,43 +283,43 @@ describe("cdp core test suite", async () => {
   // it("FAIL: Repay USDx - Repaying More Than Originally Borrowed", async () => {
   //   await repayUsdxFAIL_RepayMoreThanBorrowed(
   //     users.base,
-  //     users.base.tokens.lpSaber.trove,
+  //     users.base.tokens.lpSaber.vault,
   //     accounts);
   // });
   // it("PASS: Repay USDx - Repaying Exact Amount Originally Borrowed", async () => {
   //   await repayUsdxPASS_RepayFullAmountBorrowed(
   //     users.base,
-  //     users.base.tokens.lpSaber.trove,
+  //     users.base.tokens.lpSaber.vault,
   //     accounts);
   // });
   // it("PASS: Repay USDx - Repaying Less Than Amount Originally Borrowed", async () => {
   //   await repayUsdxPASS_RepayLessThanBorrowed(
   //     users.base,
-  //     users.base.tokens.lpSaber.trove,
+  //     users.base.tokens.lpSaber.vault,
   //     accounts);
   // });
   // it("FAIL: Repay USDx - Cannot Repay 0 USDx", async () => {
   //   await repayUsdxFAIL_ZeroUsdx(
   //     users.base,
-  //     users.base.tokens.lpSaber.trove,
+  //     users.base.tokens.lpSaber.vault,
   //     accounts);
   // });
   // it("FAIL: Repay USDx - Cannot Repay Another User's Debt", async () => {
   //   await repayUsdxFAIL_RepayAnotherUsersDebt(
   //     users.base,
   //     users.test,
-  //     users.test.tokens.lpSaber.trove,
+  //     users.test.tokens.lpSaber.vault,
   //     accounts);
   // });
 
-  // TODO: rename trove -> vault
-  it("PASS: Create trove ataReward", async () => {
+  // TODO: rename vault -> vault
+  it("PASS: Create vault ataReward", async () => {
     // TODO: refactor to include just the high level classes
-    await createTroveRewardVault(
+    await createVaultRewardVault(
       users.base.wallet,
       users.base.provider.connection,
-      users.base.tokens.lpSaber.trove, // TODO: trove -> vault
-      accounts.lpSaberUsdcUsdt.pool, // TODO: pool -> trove
+      users.base.tokens.lpSaber.vault,
+      accounts.lpSaberUsdcUsdt.pool,
       accounts.sbr.publicKey
     );
   });

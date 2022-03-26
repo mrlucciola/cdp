@@ -16,7 +16,7 @@ import { assert } from "chai";
 // local
 import { StablePool } from "../../target/types/stable_pool";
 import { handleTxn } from "../utils/fxns";
-import { Miner, MintPubKey, Trove, User, Pool } from "../utils/interfaces";
+import { Miner, MintPubKey, Vault, User, Pool } from "../utils/interfaces";
 import { QuarrySDK, QUARRY_ADDRESSES } from "@quarryprotocol/quarry-sdk";
 import { SignerWallet } from "@saberhq/solana-contrib";
 import { Token as SToken } from "@saberhq/token-utils";
@@ -40,7 +40,7 @@ const programStablePool = workspace.StablePool as Program<StablePool>;
 const createSaberQuarryMinerCall = async (
   userConnection: Connection,
   userWallet: Wallet,
-  trove: Trove,
+  vault: Vault,
   pool: Pool,
   rewarder: PublicKey,
   quarry: PublicKey,
@@ -52,7 +52,7 @@ const createSaberQuarryMinerCall = async (
       accounts: {
         authority: userWallet.publicKey,
         pool: pool.pubKey,
-        trove: trove.pubKey,
+        vault: vault.pubKey,
         miner: miner.pubkey,
         quarry,
         rewarder,
@@ -82,7 +82,7 @@ export const createSaberQuarryMinerPASS = async (
   const confirmation = await createSaberQuarryMinerCall(
     user.provider.connection, // userConnection,
     user.wallet, // userWallet,
-    user.tokens.lpSaber.trove, // trove,
+    user.tokens.lpSaber.vault, // vault,
     accounts.lpSaberUsdcUsdt.pool, // pool,
     accounts.rewarderKey, // rewarderKey,
     accounts.quarryKey, // quarryKey,
@@ -103,9 +103,9 @@ export const createSaberQuarryMinerPASS = async (
   );
   const quarry = await rewarder.getQuarry(poolMintToken);
 
-  const miner = await quarry.getMiner(user.tokens.lpSaber.trove.pubKey);
+  const miner = await quarry.getMiner(user.tokens.lpSaber.vault.pubKey);
   assert(
-    miner.authority.equals(user.tokens.lpSaber.trove.pubKey),
+    miner.authority.equals(user.tokens.lpSaber.vault.pubKey),
     "Miner'authority mismatch"
   );
 };
