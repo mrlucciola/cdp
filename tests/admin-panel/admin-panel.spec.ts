@@ -27,6 +27,10 @@ import {
   toggleEmerStateFAIL_SetSameValueTwice,
   toggleEmerStatePASS,
 } from "./toggleEmerState";
+import {
+  changeTreasuryWalletFAIL_auth,
+  changeTreasuryWalletPASS,
+} from "./changeTreasuryWallet";
 
 // init env
 chaiUse(chaiAsPromised);
@@ -90,5 +94,17 @@ describe("Admin Panel Test Suite", async () => {
   });
   it("FAIL: Toggle Emergency State - assigning same value twice", async () => {
     await toggleEmerStateFAIL_SetSameValueTwice(users.super, accounts);
+  });
+
+  // set treasury wallet
+  it("FAIL: Change Treasury Wallet - User is not super", async () => {
+    await changeTreasuryWalletFAIL_auth(users.base, accounts);
+  });
+  it("PASS: Change Treasury Wallet", async () => {
+    await changeTreasuryWalletPASS(
+      users.super,
+      users.test.wallet.publicKey,
+      accounts
+    );
   });
 });

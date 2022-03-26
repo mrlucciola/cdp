@@ -230,4 +230,14 @@ pub mod stable_pool {
     pub fn toggle_emer_state(ctx: Context<ToggleEmerState>, new_state: u8) -> Result<()> {
         toggle_emer_state::handle(ctx, new_state)
     }
+    /**
+     * Update the global state variable "treasury"
+     * Should only be called by the program deployer
+     */
+    pub fn change_treasury_wallet(
+        ctx: Context<ChangeTreasuryWallet>,
+        new_treasury: Pubkey,
+    ) -> Result<()> {
+        change_treasury_wallet::handle(ctx, new_treasury)
+    }
 }

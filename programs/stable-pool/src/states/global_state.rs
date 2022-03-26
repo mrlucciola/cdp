@@ -7,6 +7,7 @@ pub struct GlobalState {
     /// Bump/nonce for the global state pda
     pub bump: u8,
     pub authority: Pubkey,
+    pub treasury: Pubkey,
     /// Mint address for USDx
     pub mint_usdx: Pubkey,
     /// Bump/nonce for the USDx mint address

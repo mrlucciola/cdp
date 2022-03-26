@@ -43,3 +43,6 @@ pub use create_reward_vault::*;
 
 pub mod create_saber_quarry_miner;
 pub use create_saber_quarry_miner::*;
+
+pub mod change_treasury_wallet;
+pub use change_treasury_wallet::*;

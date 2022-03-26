@@ -15,6 +15,7 @@ pub fn handle(
 ) -> Result<()> {
     ctx.accounts.global_state.bump = global_state_bump;
     ctx.accounts.global_state.authority = ctx.accounts.authority.key();
+    ctx.accounts.global_state.treasury = ctx.accounts.authority.key();
     ctx.accounts.global_state.mint_usdx = ctx.accounts.mint_usdx.key();
     ctx.accounts.global_state.mint_usdx_bump = mint_usdx_bump;
     ctx.accounts.global_state.tvl_limit = tvl_limit;
