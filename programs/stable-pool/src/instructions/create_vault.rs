@@ -47,9 +47,9 @@ pub fn handle(
         StablePoolError::InvalidRewardMintCount
     );
 
-    ctx.accounts.vault.reward_mint_a = reward_mints[0];
+    ctx.accounts.vault.mint_reward_a = reward_mints[0];
     if reward_mints.len() > 1 {
-        ctx.accounts.vault.reward_mint_b = reward_mints[1];
+        ctx.accounts.vault.mint_reward_b = reward_mints[1];
     }
 
     Ok(())

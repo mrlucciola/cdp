@@ -42,6 +42,13 @@ import { createSaberQuarryMinerPASS } from "../saber/createSaberQuarryMiner";
 // import { depositToSaber } from "../saber/deposit";
 // import { withdrawFromSaber } from "../saber/withdraw";
 // import { harvestFromSaber } from "../saber/harvest";
+import {
+  repayUsdxFAIL_RepayMoreThanBorrowed,
+  repayUsdxPASS_RepayFullAmountBorrowed,
+  repayUsdxPASS_RepayLessThanBorrowed,
+  repayUsdxFAIL_ZeroUsdx,
+  repayUsdxFAIL_RepayAnotherUsersDebt,
+} from "../cdp/repayUsdx";
 import { sleep } from "@saberhq/token-utils";
 
 // init env
@@ -169,7 +176,7 @@ describe("cdp core test suite", async () => {
   // trove tests
   before(async () => {
     // derive trove account
-    users.base.tokens.lpSaber.trove = new Trove(
+    users.base.tokens.lpSaber.trove = new Trove( // TODO: trove -> vault
       users.base.wallet,
       accounts.lpSaberUsdcUsdt.mint,
       [accounts.sbr.publicKey]
@@ -181,7 +188,7 @@ describe("cdp core test suite", async () => {
     await createTrovePASS(
       users.base.wallet,
       users.base.provider.connection,
-      users.base.tokens.lpSaber.trove,
+      users.base.tokens.lpSaber.trove, // TODO: trove -> vault
       accounts.lpSaberUsdcUsdt.vault,
       accounts.lpSaberUsdcUsdt.mint
     );
@@ -192,7 +199,7 @@ describe("cdp core test suite", async () => {
     await createTroveFAIL_Duplicate(
       users.base.wallet,
       users.base.provider.connection,
-      users.base.tokens.lpSaber.trove,
+      users.base.tokens.lpSaber.trove, // TODO: trove -> vault
       accounts.lpSaberUsdcUsdt.vault,
       accounts.lpSaberUsdcUsdt.mint
     );
@@ -203,7 +210,7 @@ describe("cdp core test suite", async () => {
     await createTrovePASS(
       users.test.wallet,
       users.test.provider.connection,
-      users.test.tokens.lpSaber.trove,
+      users.test.tokens.lpSaber.trove, // TODO: trove -> vault
       accounts.lpSaberUsdcUsdt.vault,
       accounts.lpSaberUsdcUsdt.mint
     );
@@ -214,7 +221,7 @@ describe("cdp core test suite", async () => {
     await createTroveFAIL_Duplicate(
       users.test.wallet,
       users.test.provider.connection,
-      users.test.tokens.lpSaber.trove,
+      users.test.tokens.lpSaber.trove, // TODO: trove -> vault
       accounts.lpSaberUsdcUsdt.vault,
       accounts.lpSaberUsdcUsdt.mint
     );
@@ -267,17 +274,52 @@ describe("cdp core test suite", async () => {
     await withdrawCollateralPASS(users.base, accounts);
   });
 
-  // it("PASS: Withdraw Collateral from another user", async () => {
-  //   await withdrawCollateralPASS(users.test, accounts);
+  // THIS IS NOT COMPLETE, please see note on the contract fxn (search `BorrowUsdx<'info>`)
+  it("PASS: Borrow/mint USDx", async () => {
+    // await borrowUsdxPASS(users.base, accounts);
+  });
+
+  // repay
+  // it("FAIL: Repay USDx - Repaying More Than Originally Borrowed", async () => {
+  //   await repayUsdxFAIL_RepayMoreThanBorrowed(
+  //     users.base,
+  //     users.base.tokens.lpSaber.trove,
+  //     accounts);
+  // });
+  // it("PASS: Repay USDx - Repaying Exact Amount Originally Borrowed", async () => {
+  //   await repayUsdxPASS_RepayFullAmountBorrowed(
+  //     users.base,
+  //     users.base.tokens.lpSaber.trove,
+  //     accounts);
+  // });
+  // it("PASS: Repay USDx - Repaying Less Than Amount Originally Borrowed", async () => {
+  //   await repayUsdxPASS_RepayLessThanBorrowed(
+  //     users.base,
+  //     users.base.tokens.lpSaber.trove,
+  //     accounts);
+  // });
+  // it("FAIL: Repay USDx - Cannot Repay 0 USDx", async () => {
+  //   await repayUsdxFAIL_ZeroUsdx(
+  //     users.base,
+  //     users.base.tokens.lpSaber.trove,
+  //     accounts);
+  // });
+  // it("FAIL: Repay USDx - Cannot Repay Another User's Debt", async () => {
+  //   await repayUsdxFAIL_RepayAnotherUsersDebt(
+  //     users.base,
+  //     users.test,
+  //     users.test.tokens.lpSaber.trove,
+  //     accounts);
   // });
 
+  // TODO: rename trove -> vault
   it("PASS: Create trove ataReward", async () => {
     // TODO: refactor to include just the high level classes
     await createTroveRewardVault(
       users.base.wallet,
       users.base.provider.connection,
-      users.base.tokens.lpSaber.trove,
-      accounts.lpSaberUsdcUsdt.vault,
+      users.base.tokens.lpSaber.trove, // TODO: trove -> vault
+      accounts.lpSaberUsdcUsdt.vault, // TODO: vault -> trove
       accounts.sbr.publicKey
     );
   });

@@ -28,6 +28,7 @@ pub use create_trove::*;
 
 pub mod report_price_to_oracle;
 pub use report_price_to_oracle::*;
+
 // user interactions
 pub mod deposit_collateral;
 pub use deposit_collateral::*;
@@ -37,6 +38,9 @@ pub use withdraw_collateral::*;
 
 pub mod borrow_usdx;
 pub use borrow_usdx::*;
+
+pub mod repay_usdx;
+pub use repay_usdx::*;
 
 pub mod create_reward_vault;
 pub use create_reward_vault::*;

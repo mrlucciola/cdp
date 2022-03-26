@@ -62,4 +62,7 @@ pub enum StablePoolError {
 
     #[msg("Reward Mint should be more than one")]
     InvalidRewardMintCount,
+
+    #[msg("Attempting to repay more than the amount originally borrowed")]
+    RepayingMoreThanBorrowed,
 }

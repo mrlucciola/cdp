@@ -5,15 +5,21 @@ use anchor_spl::token::{self, Mint, Token, TokenAccount};
 // local
 use crate::{
     constants::*,
+    // TODO: rename vault -> pool
+    // TODO: rename trove -> vault
     states::{Trove, Vault},
 };
 
 impl<'info> CreateUserRewardVault<'info> {
     /// create ata for reward of user trove
     pub fn handle(&mut self) -> Result<()> {
-        if self.reward_mint.key() == self.vault.reward_mint_a {// TODO: rename vault -> pool
+        if self.reward_mint.key() == self.vault.mint_reward_a {
+            // TODO: rename vault -> pool
+            // TODO: rename trove -> vault
             self.trove.reward_token_a = self.reward_vault.key();
         } else {
+            // TODO: rename vault -> pool
+            // TODO: rename trove -> vault
             self.trove.reward_token_b = self.reward_vault.key();
         }
         Ok(())
@@ -33,10 +39,11 @@ pub struct CreateUserRewardVault<'info> {
 
     #[account(
         mut,
-        seeds = [TROVE_SEED, trove.mint.as_ref(), authority.key().as_ref()],
+        seeds = [TROVE_SEED, trove.mint.as_ref(), authority.key().as_ref()],// TODO: rename trove -> vault
         bump,
     )]
-    pub trove: Box<Account<'info, Trove>>,
+    pub trove: Box<Account<'info, Trove>>, // TODO: rename trove -> vault
+    
 
     #[account(
         init,
@@ -47,7 +54,7 @@ pub struct CreateUserRewardVault<'info> {
     pub reward_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(
-        constraint = reward_mint.key() == vault.reward_mint_a || reward_mint.key() == vault.reward_mint_b// TODO: rename vault -> pool
+        constraint = reward_mint.key() == vault.mint_reward_a || reward_mint.key() == vault.mint_reward_b// TODO: rename vault -> pool
     )]
     pub reward_mint: Box<Account<'info, Mint>>,
 

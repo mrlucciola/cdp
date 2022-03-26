@@ -10,8 +10,9 @@ pub struct Vault {
     pub bump: u8,
     /// the mint account for the collateral token that represents this vault
     pub mint_collat: Pubkey,
-    pub reward_mint_a: Pubkey, // is this supposed to be the reward mint?
-    pub reward_mint_b: Pubkey, // is this supposed to be the reward mint?
+    /// TODO: turn this into an array
+    pub mint_reward_a: Pubkey,
+    pub mint_reward_b: Pubkey,
     // tokens that comprise the collateral token
     /// token a decimal precision
     pub token_a_decimals: u8,
@@ -30,7 +31,7 @@ pub struct Vault {
     /// represents an enum
     pub platform_type: u8,
     /// this is not implemented correctly.
-    /// TODO: allow for multiple farms
+    /// TODO: allow for multiple farms - turn to array
     pub farm_info: Pubkey,
 
     // for price feeds. token a and b make up collateral lp in this vault.

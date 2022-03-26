@@ -148,6 +148,14 @@ pub mod stable_pool {
         borrow_usdx::handle(ctx, borrow_amount)
     }
 
+    #[access_control(is_global_state_paused(&ctx.accounts.global_state))]
+    pub fn repay_usdx(
+        ctx: Context<RepayUsdx>,
+        repay_amount: u64,
+    ) -> Result<()> {
+        repay_usdx::handle(ctx, repay_amount)
+    }
+
     /**
      * TODO: refactor this to match the other style of writing functions
      *
