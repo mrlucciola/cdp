@@ -36,7 +36,7 @@ super(owner) -> authority
 
 | Before      | After |
 | ----------- | ----------- |
-| TOKEN_VAULT_TAG | VAULT_SEED |
+| TOKEN_VAULT_TAG | POOL_SEED |
 
 <br>
 

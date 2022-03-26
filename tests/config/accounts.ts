@@ -29,7 +29,7 @@ import {
   MintAcct,
   MintPubKey,
   GlobalStateAcct,
-  Vault,
+  Pool,
   ATA,
 } from "../utils/interfaces";
 // local
@@ -77,7 +77,7 @@ export class Accounts {
     this.usdt = new MarketTokenAccount();
     // init lp token
     this.lpSaberUsdcUsdt = {
-      vault: null as Vault,
+      pool: null as Pool,
       mint: null as PublicKey,
     };
   }
@@ -128,7 +128,7 @@ export class Accounts {
       programStablePool.provider.wallet.publicKey, // authority — Minting authority
       40262269.031312 * 10 ** DECIMALS_USDCUSDT // mintAmount — Amount to mint in human form
     );
-    this.lpSaberUsdcUsdt.vault = new Vault(
+    this.lpSaberUsdcUsdt.pool = new Pool(
       this.lpSaberUsdcUsdt.mint,
       this.usdc,
       this.usdt

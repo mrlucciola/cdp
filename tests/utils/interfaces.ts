@@ -31,7 +31,7 @@ import {
   MINT_USDX_SEED,
   ORACLE_SEED,
   TROVE_SEED,
-  VAULT_SEED,
+  POOL_SEED,
 } from "./constants";
 import { StablePool } from "../../target/types/stable_pool";
 import { airdropSol, getAssocTokenAcct, getPda } from "./fxns";
@@ -265,7 +265,7 @@ export class TokenAccPubKey extends PublicKey {}
 
 export interface CollateralAccount {
   mint: MintPubKey;
-  vault: Vault;
+  pool: Pool;
 }
 
 /**
@@ -366,7 +366,7 @@ export class MintAcct extends BaseAcct {
  * @property bump? - u8: Bump/nonce for ATA
  */
 export class AtaMarketToken extends ATA {}
-export class Vault extends BaseAcct {
+export class Pool extends BaseAcct {
   oracles: {
     usdc: Oracle;
     usdt: Oracle;
@@ -380,8 +380,8 @@ export class Vault extends BaseAcct {
     mktTokenUsdc: MarketTokenAccount,
     mktTokenUsdt: MarketTokenAccount
   ) {
-    super(VAULT_SEED, [mintPubKey.toBuffer()]);
-    this.type = "vault";
+    super(POOL_SEED, [mintPubKey.toBuffer()]);
+    this.type = "pool";
 
     // add seed oracles
     this.oracles = {
@@ -393,7 +393,7 @@ export class Vault extends BaseAcct {
       usdt: mktTokenUsdt.markets.saber.usdcUsdtStable.ata,
     };
   }
-  // public async getAccount(): Promise<IdlAccounts<StablePool>["vault"]> {
+  // public async getAccount(): Promise<IdlAccounts<StablePool>["pool"]> {
   //   return await this.getAccount();
   // }
 }

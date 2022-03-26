@@ -11,15 +11,14 @@ use crate::{
     // enums::PlatformType,
     // errors::StablePoolError,
     saber_utils::create_miner_pda,
-    states::{Trove, Vault},
+    states::{Pool, Trove},
 };
 
 pub fn handle(ctx: Context<CreateSaberQuarryMiner>, miner_bump: u8) -> Result<()> {
-    // this is not a user vault - bad prior naming convention, to be changed after MVP // TODO: rename vault -> pool
-    // let vault = ctx.accounts.vault.as_ref();// TODO: rename vault -> pool
+    // let pool = ctx.accounts.pool.as_ref();
 
     // require!(
-    //     vault.platform_type == PlatformType::Saber as u8,// TODO: rename vault -> pool
+    //     pool.platform_type == PlatformType::Saber as u8,
     //     StablePoolError::InvalidSaberPlatform
     // );
 
@@ -57,10 +56,10 @@ pub struct CreateSaberQuarryMiner<'info> {
 
     #[account(
         mut,
-        seeds = [VAULT_SEED, vault.mint_collat.as_ref()],// TODO: rename vault -> pool
+        seeds = [POOL_SEED, pool.mint_collat.as_ref()],
         bump,
     )]
-    pub vault: Box<Account<'info, Vault>>,// TODO: rename vault -> pool
+    pub pool: Box<Account<'info, Pool>>,
 
     #[account(
         mut,

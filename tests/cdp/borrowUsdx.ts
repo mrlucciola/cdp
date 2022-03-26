@@ -22,7 +22,7 @@ import {
   USDx,
   User,
   UserToken,
-  Vault,
+  Pool,
 } from "../utils/interfaces";
 
 const programStablePool = workspace.StablePool as Program<StablePool>;
@@ -35,7 +35,7 @@ const borrowUsdxCall = async (
   userToken: UserToken,
   userUSDx: USDx,
   mintUsdx: MintAcct,
-  vault: Vault,
+  pool: Pool,
   globalState: GlobalStateAcct,
   mintColl: MintPubKey
 ) => {
@@ -45,13 +45,13 @@ const borrowUsdxCall = async (
         authority: userWallet.publicKey,
         globalState: globalState.pubKey,
 
-        oracleA: vault.oracles.usdc.pubKey,
-        oracleB: vault.oracles.usdt.pubKey,
-        ataMarketA: vault.ataMarketTokens.usdc.pubKey,
-        ataMarketB: vault.ataMarketTokens.usdt.pubKey,
+        oracleA: pool.oracles.usdc.pubKey,
+        oracleB: pool.oracles.usdt.pubKey,
+        ataMarketA: pool.ataMarketTokens.usdc.pubKey,
+        ataMarketB: pool.ataMarketTokens.usdt.pubKey,
 
-        mintColl, // the collat token mint that the vault represents
-        vault: vault.pubKey, // TODO: rename vault -> pool
+        mintColl, // the collat token mint that the pool represents
+        pool: pool.pubKey,
         trove: userToken.trove.pubKey, // TODO: rename trove -> vault
 
         mintUsdx: mintUsdx.pubKey,
@@ -90,8 +90,8 @@ export const borrowUsdxPASS = async (user: User, accounts: Accounts) => {
     user.tokens.usdx,
     // mintUsdx
     accounts.usdx,
-    // vault
-    accounts.lpSaberUsdcUsdt.vault,
+    // pool
+    accounts.lpSaberUsdcUsdt.pool,
     // globalState
     accounts.global,
     // mintColl

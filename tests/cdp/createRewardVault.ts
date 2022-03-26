@@ -3,7 +3,6 @@ import { Program, web3, workspace, Wallet } from "@project-serum/anchor";
 import {
   Connection,
   SystemProgram,
-  SYSVAR_CLOCK_PUBKEY,
   SYSVAR_RENT_PUBKEY,
 } from "@solana/web3.js";
 // solana imports
@@ -16,7 +15,7 @@ import { assert } from "chai";
 // local
 import { StablePool } from "../../target/types/stable_pool";
 import { handleTxn } from "../utils/fxns";
-import { MintPubKey, Trove, Vault } from "../utils/interfaces";
+import { MintPubKey, Trove, Pool } from "../utils/interfaces";
 // program
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
@@ -29,7 +28,7 @@ const createRewardVaultCall = async (
   userConnection: Connection,
   userWallet: Wallet,
   trove: Trove,
-  vault: Vault,
+  pool: Pool,
   rewardMint: MintPubKey
 ) => {
   console.log([rewardMint] + "");
@@ -37,7 +36,7 @@ const createRewardVaultCall = async (
     programStablePool.instruction.createRewardVault({
       accounts: {
         authority: userWallet.publicKey,
-        vault: vault.pubKey,
+        pool: pool.pubKey,
         trove: trove.pubKey,
 
         rewardVault: trove.ataRewards[0].pubKey,
@@ -65,14 +64,14 @@ export const createTroveRewardVault = async (
   userWallet: Wallet,
   userConnection: Connection,
   trove: Trove,
-  vault: Vault,
+  pool: Pool,
   mintPubKey: MintPubKey
 ) => {
   const confirmation = await createRewardVaultCall(
     userConnection,
     userWallet,
     trove,
-    vault,
+    pool, // could be a reward vau lt
     mintPubKey
   );
   console.log("created reward vault: ", confirmation);

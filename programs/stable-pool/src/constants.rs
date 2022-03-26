@@ -2,7 +2,7 @@
 pub const GLOBAL_STATE_SEED: &[u8] = b"GLOBAL_STATE_SEED";
 pub const MINT_USDX_SEED: &[u8] = b"MINT_USDX_SEED";
 pub const USER_USDX_SEED: &[u8] = b"USER_USDX_SEED";
-pub const VAULT_SEED: &[u8] = b"VAULT_SEED";
+pub const POOL_SEED: &[u8] = b"POOL_SEED";
 pub const TROVE_SEED: &[u8] = b"TROVE_SEED";
 pub const ORACLE_SEED: &[u8] = b"ORACLE_SEED";
 

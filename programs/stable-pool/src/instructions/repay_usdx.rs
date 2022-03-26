@@ -8,12 +8,12 @@ use anchor_spl::{
 use crate::{
     constants::*,
     errors::*,
-    states::{global_state::GlobalState, Trove, Vault},// TODO: vault -> pool
+    states::{global_state::GlobalState, Pool, Trove},
 };
 
 pub fn handle(ctx: Context<RepayUsdx>, repay_amount: u64) -> Result<()> {
     require!(
-        repay_amount <= ctx.accounts.trove.debt,// TODO: trove -> vault
+        repay_amount <= ctx.accounts.trove.debt,
         StablePoolError::RepayingMoreThanBorrowed,
     );
     require!(repay_amount > 0, StablePoolError::InvalidTransferAmount,);
@@ -33,7 +33,7 @@ pub fn handle(ctx: Context<RepayUsdx>, repay_amount: u64) -> Result<()> {
 
     token::burn(cpi_ctx, repay_amount)?;
 
-    ctx.accounts.vault.total_debt -= repay_amount; // TODO: vault -> pool
+    ctx.accounts.pool.total_debt -= repay_amount;
     ctx.accounts.global_state.total_debt -= repay_amount;
     ctx.accounts.trove.debt -= repay_amount; // TODO: trove -> vault
 
@@ -52,11 +52,11 @@ pub struct RepayUsdx<'info> {
     pub global_state: Account<'info, GlobalState>,
     #[account(
         mut,
-        seeds=[VAULT_SEED.as_ref(), vault.mint_collat.as_ref()],// TODO: vault -> pool
-        bump=vault.bump,// TODO: vault -> pool
-        constraint = vault.mint_collat.as_ref() == trove.mint.as_ref(),// TODO: vault -> pool // TODO: trove -> vault
+        seeds=[POOL_SEED.as_ref(), pool.mint_collat.as_ref()],
+        bump=pool.bump,
+        constraint = pool.mint_collat.as_ref() == trove.mint.as_ref(),// TODO: trove -> vault
     )]
-    pub vault: Box<Account<'info, Vault>>, // TODO: vault -> pool
+    pub pool: Box<Account<'info, Pool>>,
     #[account(
         mut,
         seeds=[
@@ -65,9 +65,9 @@ pub struct RepayUsdx<'info> {
             authority.key().as_ref(),
         ],
         bump=trove.bump,// TODO: trove -> vault
-        constraint = vault.mint_collat.as_ref() == trove.mint.as_ref(),// TODO: vault -> pool // TODO: trove -> vault
+        constraint = pool.mint_collat.as_ref() == trove.mint.as_ref(),// TODO: trove -> vault
     )]
-    pub trove: Box<Account<'info, Trove>>,// TODO: trove -> vault
+    pub trove: Box<Account<'info, Trove>>, // TODO: trove -> vault
     #[account(
         seeds=[MINT_USDX_SEED],
         bump,

@@ -18,24 +18,15 @@ import { assert, expect } from "chai";
 // local
 import { StablePool } from "../../target/types/stable_pool";
 import { handleTxn } from "../utils/fxns";
-import { MintPubKey, Trove, Vault } from "../utils/interfaces";
+import { MintPubKey, Trove, Pool } from "../utils/interfaces";
 // program
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
-/**
- *
- * @param userConnection
- * @param userWallet
- * @param trove
- * @param vault
- * @param mintPubKey
- * @returns
- */
 const createTroveCall = async (
   userConnection: Connection,
   userWallet: Wallet,
   trove: Trove,
-  vault: Vault,
+  pool: Pool,
   mintPubKey: MintPubKey
 ) => {
   const txn = new web3.Transaction().add(
@@ -49,7 +40,7 @@ const createTroveCall = async (
           // account that owns the trove
           authority: userWallet.publicKey,
           // state account where all the platform funds go thru or maybe are stored
-          vault: vault.pubKey,
+          pool: pool.pubKey,
           // the user's trove is the authority for the collateral tokens within it
           trove: trove.pubKey,
           // this is the trove's ATA for the collateral's mint, previously named tokenColl
@@ -73,17 +64,12 @@ const createTroveCall = async (
 
 /**
  * Pass when attempting to make a trove that doesn't exist
- * @param userWallet
- * @param userConnection
- * @param trove
- * @param vault
- * @param mintPubkey
  */
 export const createTrovePASS = async (
   userWallet: Wallet,
   userConnection: Connection,
   trove: Trove,
-  vault: Vault,
+  pool: Pool,
   mintPubKey: MintPubKey
 ) => {
   // derive trove account
@@ -98,7 +84,7 @@ export const createTrovePASS = async (
       userConnection,
       userWallet,
       trove,
-      vault,
+      pool,
       mintPubKey
     );
     console.log("created trove: ", confirmation);
@@ -114,17 +100,12 @@ export const createTrovePASS = async (
 
 /**
  * Fail when attempting to make a trove that already exists
- * @param userWallet
- * @param userConnection
- * @param trove
- * @param vault
- * @param mintPubkey
  */
 export const createTroveFAIL_Duplicate = async (
   userWallet: Wallet,
   userConnection: Connection,
   trove: Trove,
-  vault: Vault,
+  pool: Pool,
   mintPubKey: MintPubKey
 ) => {
   // get user trove info
@@ -134,7 +115,7 @@ export const createTroveFAIL_Duplicate = async (
   // if trove created, try to create another one for the same user (should fail)
   assert(troveInfo, "User trove does not exist, test needs a trove");
   await expect(
-    createTroveCall(userConnection, userWallet, trove, vault, mintPubKey),
+    createTroveCall(userConnection, userWallet, trove, pool, mintPubKey),
     "No error was thrown was trying to create a duplicate user trove"
   ).is.rejected;
 

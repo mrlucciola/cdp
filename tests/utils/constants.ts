@@ -3,7 +3,7 @@ import { PlatformType } from "./types";
 // seeds
 export const USDX_TOKEN_SEED = "USDX_TOKEN_SEED";
 export const GLOBAL_STATE_SEED = "GLOBAL_STATE_SEED";
-export const VAULT_SEED = "VAULT_SEED";
+export const POOL_SEED = "POOL_SEED";
 export const TROVE_SEED = "TROVE_SEED";
 export const MINT_USDX_SEED = "MINT_USDX_SEED";
 export const ORACLE_SEED = "ORACLE_SEED";
@@ -12,7 +12,7 @@ export const ORACLE_SEED = "ORACLE_SEED";
 export const EMER_STATE_DISABLED = 0;
 export const TVL_LIMIT_USD = 1_000_000;
 export const DEBT_CEILING_GLOBAL_USDX = 500_000;
-export const DEBT_CEILING_VAULT_USDX = 500_000;
+export const DEBT_CEILING_POOL_USDX = 500_000;
 export const DEBT_CEILING_USER_USDX = 1_000;
 export const DECIMALS_USDX = 6;
 export const DECIMALS_USD = 6;

@@ -41,9 +41,8 @@ pub enum StablePoolError {
     #[msg("Global Debt Ceiling Exceeded")]
     GlobalDebtCeilingExceeded,
 
-    // TODO: rename vault -> pool
-    #[msg("Vault Debt Ceiling Exceeded")]
-    VaultDebtCeilingExceeded,
+    #[msg("Pool Debt Ceiling Exceeded")]
+    PoolDebtCeilingExceeded,
 
     #[msg("User Debt Ceiling Exceeded")]
     UserDebtCeilingExceeded,

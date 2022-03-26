@@ -15,7 +15,7 @@ import {
   Trove,
   User,
   UserToken,
-  Vault,
+  Pool,
 } from "../utils/interfaces";
 
 const programStablePool = workspace.StablePool as Program<StablePool>;
@@ -23,13 +23,6 @@ const programStablePool = workspace.StablePool as Program<StablePool>;
 /**
  * * we have params and their classes like this so we can guarantee-
  *     we are passing in the right values
- * @param withdrawAmount
- * @param userWallet
- * @param userToken
- * @param mintPubKey
- * @param trove
- * @param vault
- * @param globalState
  */
 const withdrawCollateralCall = async (
   withdrawAmount: number,
@@ -38,7 +31,7 @@ const withdrawCollateralCall = async (
   userToken: UserToken,
   trove: Trove,
   mintPubKey: MintPubKey,
-  vault: Vault,
+  pool: Pool,
   globalState: GlobalStateAcct
 ) => {
   const txn = new Transaction().add(
@@ -46,7 +39,7 @@ const withdrawCollateralCall = async (
       accounts: {
         authority: userWallet.publicKey,
         globalState: globalState.pubKey,
-        vault: vault.pubKey,
+        pool: pool.pubKey,
         trove: trove.pubKey,
         ataTrove: trove.ata.pubKey,
         ataUser: userToken.ata.pubKey,
@@ -93,8 +86,8 @@ export const withdrawCollateralFAIL_NotEnoughTokensInTrove = async (
       userlpSaber.trove,
       // mint pubKey
       accounts.lpSaberUsdcUsdt.mint,
-      // vault
-      accounts.lpSaberUsdcUsdt.vault,
+      // pool
+      accounts.lpSaberUsdcUsdt.pool,
       // globalState
       accounts.global
     )
@@ -153,8 +146,8 @@ export const withdrawCollateralFAIL_AttemptWithdrawFromOtherUser = async (
       userlpSaber.trove,
       // mint pubKey
       accounts.lpSaberUsdcUsdt.mint,
-      // vault
-      accounts.lpSaberUsdcUsdt.vault,
+      // pool
+      accounts.lpSaberUsdcUsdt.pool,
       // globalState
       accounts.global
     )
@@ -233,8 +226,8 @@ export const withdrawCollateralPASS = async (
     userlpSaber.trove,
     // mint pubKey
     accounts.lpSaberUsdcUsdt.mint,
-    // vault
-    accounts.lpSaberUsdcUsdt.vault,
+    // pool
+    accounts.lpSaberUsdcUsdt.pool,
     // globalState
     accounts.global
   );

@@ -19,7 +19,7 @@ import {
   Trove,
   User,
   UserToken,
-  Vault,
+  Pool,
 } from "../utils/interfaces";
 import { assert, expect } from "chai";
 import { DECIMALS_PRICE, DECIMALS_USDCUSDT } from "../utils/constants";
@@ -29,13 +29,6 @@ const programStablePool = workspace.StablePool as Program<StablePool>;
 /**
  * * we have params and their classes like this so we can guarantee-
  *     we are passing in the right values
- * @param depositAmount
- * @param userWallet
- * @param userToken
- * @param mintPubKey
- * @param trove
- * @param vault
- * @param globalState
  */
 const depositCollateralCall = async (
   depositAmount: number,
@@ -44,7 +37,7 @@ const depositCollateralCall = async (
   userToken: UserToken,
   trove: Trove,
   mintPubKey: MintPubKey,
-  vault: Vault,
+  pool: Pool,
   globalState: GlobalStateAcct
 ) => {
   const txn = new Transaction().add(
@@ -52,15 +45,15 @@ const depositCollateralCall = async (
       accounts: {
         authority: userWallet.publicKey,
         globalState: globalState.pubKey,
-        vault: vault.pubKey,
+        pool: pool.pubKey,
         trove: trove.pubKey,
         ataTrove: trove.ata.pubKey,
         ataUser: userToken.ata.pubKey,
         mintCollat: mintPubKey,
-        oracleA: vault.oracles.usdc.pubKey,
-        oracleB: vault.oracles.usdt.pubKey,
-        ataMarketA: vault.ataMarketTokens.usdc.pubKey,
-        ataMarketB: vault.ataMarketTokens.usdt.pubKey,
+        oracleA: pool.oracles.usdc.pubKey,
+        oracleB: pool.oracles.usdt.pubKey,
+        ataMarketA: pool.ataMarketTokens.usdc.pubKey,
+        ataMarketB: pool.ataMarketTokens.usdt.pubKey,
         tokenProgram: TOKEN_PROGRAM_ID,
         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
       },
@@ -97,8 +90,8 @@ export const depositCollateralFAIL_NotEnoughTokens = async (
       user.tokens.lpSaber.trove,
       // mint pubKey
       accounts.lpSaberUsdcUsdt.mint,
-      // vault
-      accounts.lpSaberUsdcUsdt.vault,
+      // pool
+      accounts.lpSaberUsdcUsdt.pool,
       // globalState
       accounts.global
     ),
@@ -154,8 +147,8 @@ export const depositCollateralPASS = async (user: User, accounts: Accounts) => {
     user.tokens.lpSaber.trove,
     // mint pubKey
     accounts.lpSaberUsdcUsdt.mint,
-    // vault
-    accounts.lpSaberUsdcUsdt.vault,
+    // pool
+    accounts.lpSaberUsdcUsdt.pool,
     // globalState
     accounts.global
   );
@@ -243,8 +236,8 @@ export const depositCollateralFAIL_DepositExceedingTVL = async (
       user.tokens.lpSaber.trove,
       // mint pubKey
       accounts.lpSaberUsdcUsdt.mint,
-      // vault
-      accounts.lpSaberUsdcUsdt.vault,
+      // pool
+      accounts.lpSaberUsdcUsdt.pool,
       // globalState
       accounts.global
     )

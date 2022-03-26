@@ -13,7 +13,7 @@ import { assert, expect } from "chai";
 // local
 import { StablePool } from "../../target/types/stable_pool";
 import {
-  DEBT_CEILING_VAULT_USDX,
+  DEBT_CEILING_POOL_USDX,
   DECIMALS_USDC,
   DECIMALS_USDX,
   DECIMALS_USDT,
@@ -21,26 +21,26 @@ import {
 } from "../utils/constants";
 import { handleTxn } from "../utils/fxns";
 import { Accounts } from "../config/accounts";
-import { User, Vault } from "../utils/interfaces";
+import { User, Pool } from "../utils/interfaces";
 
 // program
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
-const createVaultCall = async (
+const createPoolCall = async (
   user: User,
   accounts: Accounts,
   riskLevel: number,
   isDual: number,
-  vault: Vault,
+  pool: Pool,
   tokenADecimals: number,
   tokenBDecimals: number
 ) => {
-  const txnCreateUserVault = new web3.Transaction().add(
-    programStablePool.instruction.createVault(
-      vault.bump,
+  const txnCreateUserPool = new web3.Transaction().add(
+    programStablePool.instruction.createPool(
+      pool.bump,
       new BN(riskLevel),
       new BN(isDual),
-      new BN(DEBT_CEILING_VAULT_USDX * 10 ** DECIMALS_USDX),
+      new BN(DEBT_CEILING_POOL_USDX * 10 ** DECIMALS_USDX),
       PLATFORM_TYPE_SABER,
       accounts.usdc.mint,
       accounts.usdt.mint,
@@ -50,7 +50,7 @@ const createVaultCall = async (
       {
         accounts: {
           authority: user.wallet.publicKey,
-          vault: vault.pubKey,
+          pool: pool.pubKey,
           globalState: accounts.global.pubKey,
           mintCollat: accounts.lpSaberUsdcUsdt.mint,
 
@@ -65,31 +65,30 @@ const createVaultCall = async (
 
   // send transaction
   const receipt = await handleTxn(
-    txnCreateUserVault,
+    txnCreateUserPool,
     user.provider.connection,
     user.wallet
   );
-  console.log("created vault", receipt);
+  console.log("created pool", receipt);
   return receipt;
 };
 
-export const createVaultFAIL_auth = async (
+export const createPoolFAIL_auth = async (
   notSuperUser: User,
   accounts: Accounts,
-  vault: Vault
+  pool: Pool
 ) => {
   assert(
     notSuperUser.wallet.publicKey.toString() !==
       "7Lw3e19CJUvR5qWRj8J6NKrV2tywiJqS9oDu1m8v4rsi",
     "For this fail test, do not use super user account"
   );
-  // get token vault info
-  const vaultAcctInfo: web3.AccountInfo<Buffer> =
-    await notSuperUser.provider.connection.getAccountInfo(vault.pubKey);
+  // get token pool info
+  const poolAcctInfo: web3.AccountInfo<Buffer> =
+    await notSuperUser.provider.connection.getAccountInfo(pool.pubKey);
 
   // if created, we cannot run this test
-  if (vaultAcctInfo)
-    console.log("\n\n Vault already created, skipping test \n");
+  if (poolAcctInfo) console.log("\n\n Pool already created, skipping test \n");
   else {
     // params
     const riskLevel = 0;
@@ -98,40 +97,40 @@ export const createVaultFAIL_auth = async (
     // asserts
     // this does not identify the correct error code properly
     await expect(
-      createVaultCall(
+      createPoolCall(
         notSuperUser,
         accounts,
         riskLevel,
         isDual,
-        vault,
+        pool,
         DECIMALS_USDC,
         DECIMALS_USDT
       )
     ).to.be.rejectedWith(
       "2003",
-      "No error was thrown when trying to create a vault with a user different than the super owner"
+      "No error was thrown when trying to create a pool with a user different than the super owner"
     );
   }
 };
 
 /**
- * Attempt to create a vault with no global state
+ * Attempt to create a pool with no global state
  *
  * should fail
  * @param superUser
  * @param accounts
- * @param vault
+ * @param pool
  */
-export const createVaultFAIL_noGlobalState = async (
+export const createPoolFAIL_noGlobalState = async (
   superUser: User,
   accounts: Accounts,
-  vault: Vault
+  pool: Pool
 ) => {
   /**
-   * we are not throwing an error or asserting vault-not-created here
+   * we are not throwing an error or asserting pool-not-created here
    *   because we may be running this multiple times on a live localnet
    *   or devnet, or even mainnet.
-   *   So, we will just pass on recreating vault if it exists
+   *   So, we will just pass on recreating pool if it exists
    */
   const globalStateInfo = await accounts.global.getAccountInfo();
 
@@ -140,19 +139,19 @@ export const createVaultFAIL_noGlobalState = async (
     const riskLevel = 0;
     const isDual = 0;
     await expect(
-      createVaultCall(
+      createPoolCall(
         superUser,
         accounts,
         riskLevel,
         isDual,
-        vault,
+        pool,
         DECIMALS_USDC,
         DECIMALS_USDT
       ),
       "The program expected this account to be already initialized"
     ).to.be.rejectedWith(
       "3012",
-      "No error was thrown when trying to create a vault without a global state created. Please check anchor version."
+      "No error was thrown when trying to create a pool without a global state created. Please check anchor version."
     );
   } else {
     console.log("\n\n SKIPPING TEST: GLOBAL STATE EXISTS");
@@ -160,27 +159,27 @@ export const createVaultFAIL_noGlobalState = async (
 };
 
 /**
- * Attempt to create a vault with an identical vault already created
+ * Attempt to create a pool with an identical pool already created
  *
  * should fail
  * @param superUser
  * @param accounts
- * @param vault
+ * @param pool
  */
-export const createVaultFAIL_dup = async (
+export const createPoolFAIL_dup = async (
   superUser: User,
   accounts: Accounts,
-  vault: Vault
+  pool: Pool
 ) => {
   const globalStateInfo = await accounts.global.getAccountInfo();
   assert(
     globalStateInfo,
     "Global state account does not exist. Please place this test after the PASS test."
   );
-  const vaultInfo: web3.AccountInfo<Buffer> = await vault.getAccountInfo();
+  const poolInfo: web3.AccountInfo<Buffer> = await pool.getAccountInfo();
   assert(
-    vaultInfo,
-    "Vault account does not exist. Please place this test after the PASS test."
+    poolInfo,
+    "Pool account does not exist. Please place this test after the PASS test."
   );
   assert(
     superUser.wallet.publicKey.toString() ===
@@ -192,26 +191,26 @@ export const createVaultFAIL_dup = async (
   const riskLevel = 0;
   const isDual = 0;
   await expect(
-    createVaultCall(
+    createPoolCall(
       superUser,
       accounts,
       riskLevel,
       isDual,
-      vault,
+      pool,
       DECIMALS_USDC,
       DECIMALS_USDT
     ),
     "Already in use"
   ).to.be.rejectedWith(
     "0",
-    "No error was thrown when trying to create a duplicate vault."
+    "No error was thrown when trying to create a duplicate pool."
   );
 };
 
-export const createVaultPASS = async (
+export const createPoolPASS = async (
   superUser: User,
   accounts: Accounts,
-  vault: Vault
+  pool: Pool
 ) => {
   assert(
     superUser.wallet.publicKey.toString() ===
@@ -219,32 +218,32 @@ export const createVaultPASS = async (
     "For this PASS test, please use super user account"
   );
   /**
-   * get token vault info to check if it exists. If not, create it.
+   * get token pool info to check if it exists. If not, create it.
    *
-   * we are not throwing an error or asserting vault-not-created here
+   * we are not throwing an error or asserting pool-not-created here
    *   because we may be running this multiple times on a live localnet
    *   or devnet, or even mainnet.
-   *   So, we will just pass on recreating vault if it exists
+   *   So, we will just pass on recreating pool if it exists
    */
-  const vaultAcctInfo: web3.AccountInfo<Buffer> = await vault.getAccountInfo();
+  const poolAcctInfo: web3.AccountInfo<Buffer> = await pool.getAccountInfo();
 
-  // if not created, create token vault
-  if (!vaultAcctInfo) {
+  // if not created, create token pool
+  if (!poolAcctInfo) {
     const riskLevel = 0;
     const isDual = 0;
-    const confirmation = await createVaultCall(
+    const confirmation = await createPoolCall(
       superUser,
       accounts,
       riskLevel,
       isDual,
-      vault,
+      pool,
       DECIMALS_USDC,
       DECIMALS_USDT
     );
-    console.log("token vault created- confirmation: ", confirmation);
-  } else console.log("token vault already created:");
+    console.log("token pool created- confirmation: ", confirmation);
+  } else console.log("token pool already created:");
 
-  const vaultAcct: IdlAccounts<StablePool>["vault"] =
-    await accounts.lpSaberUsdcUsdt.vault.getAccount();
-  console.log("vault account:", vaultAcct);
+  const poolAcct: IdlAccounts<StablePool>["pool"] =
+    await accounts.lpSaberUsdcUsdt.pool.getAccount();
+  console.log("pool account:", poolAcct);
 };

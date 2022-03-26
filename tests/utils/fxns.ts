@@ -53,17 +53,18 @@ export const handleTxn = async (
       skipPreflight: true,
       commitment: "singleGossip",
     };
-    
+
     const receipt: string = await userConnection.sendRawTransaction(
       rawTxn,
       options
     );
     const confirmation: web3.RpcResponseAndContext<web3.SignatureResult> =
       await userConnection.confirmTransaction(receipt);
-    if (confirmation.value.err) throw new Error(JSON.stringify(confirmation.value.err));
+    if (confirmation.value.err)
+      throw new Error(JSON.stringify(confirmation.value.err));
     else return receipt;
   } catch (error) {
-    translateError(error)
+    translateError(error);
   }
 };
 
@@ -82,15 +83,14 @@ export const safeAirdropSol = async (
   target: web3.PublicKey,
   lamps: number
 ): Promise<void> => {
-  while (await getSolBalance(target, provider) < lamps){
-    try{
+  while ((await getSolBalance(target, provider)) < lamps) {
+    try {
       // Request Airdrop for user
-      await airdropSol(provider, target, lamps)
+      await airdropSol(provider, target, lamps);
+    } catch (e) {
+      console.log(e);
     }
-    catch(e) {
-      console.log(e)
-    }
-  };
+  }
 };
 
 export const delay = async (ms: number) => {
@@ -153,19 +153,3 @@ export const getSolBalance = async (
 ) => {
   return await provider.connection.getBalance(pubKey);
 };
-
-// this is a one-off since we repeat this code like 50 times in the repo
-// export const getGlobalStateVaultAndTrove = async (
-//   accounts: Accounts,
-//   user: User,
-//   vaultAcct: Vault
-// ) => {
-//   const vault = await programStablePool.account.vault.fetch(vaultAcct.pubKey);
-//   const trove = await programStablePool.account.trove.fetch(
-//     user.troveLpSaber.pubKey
-//   );
-//   const globalState = await programStablePool.account.globalState.fetch(
-//     accounts.global.pubKey
-//   );
-//   return { vault, trove, globalState };
-// };

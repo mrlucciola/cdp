@@ -1,14 +1,13 @@
 use anchor_lang::prelude::*;
 
 // TODO: add loan to value - LTV
-// TODO: rename vault -> pool
 /// This is a pool for a 2-token LP collateral type
 #[account] // #[account(zero_copy)] //
 #[derive(Default)]
-pub struct Vault {
-    /// the nonce/bump seed for the vault
+pub struct Pool {
+    /// the nonce/bump seed for the pool
     pub bump: u8,
-    /// the mint account for the collateral token that represents this vault
+    /// the mint account for the collateral token that represents this pool
     pub mint_collat: Pubkey,
     /// TODO: turn this into an array
     pub mint_reward_a: Pubkey,
@@ -18,9 +17,9 @@ pub struct Vault {
     pub token_a_decimals: u8,
     /// token b decimal precision
     pub token_b_decimals: u8,
-    /// TODO: remove. vault classes will be by their type and possibly even platform
+    /// TODO: remove. pool classes will be by their type and possibly even platform
     pub is_dual: u8,
-    /// total USD value locked across CDP platform for this vault's collateral class
+    /// total USD value locked across CDP platform for this pool's collateral class
     pub tvl_usd: u64,
     pub total_coll: u64,
     /// total amount of debt
@@ -34,7 +33,7 @@ pub struct Vault {
     /// TODO: allow for multiple farms - turn to array
     pub farm_info: Pubkey,
 
-    // for price feeds. token a and b make up collateral lp in this vault.
+    // for price feeds. token a and b make up collateral lp in this pool.
     pub mint_token_a: Pubkey,
     pub mint_token_b: Pubkey
 }

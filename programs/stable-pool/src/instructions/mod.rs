@@ -17,8 +17,8 @@ pub use toggle_emer_state::*;
 pub mod set_harvest_fee;
 pub use set_harvest_fee::*;
 
-pub mod create_vault;
-pub use create_vault::*;
+pub mod create_pool;
+pub use create_pool::*;
 
 pub mod create_oracle;
 pub use create_oracle::*;

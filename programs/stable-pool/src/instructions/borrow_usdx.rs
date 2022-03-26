@@ -9,8 +9,7 @@ use crate::{
     constants::*,
     errors::StablePoolError,
     // TODO: rename trove -> vault
-    // TODO: rename vault -> pool
-    states::{global_state::GlobalState, Oracle, Trove, Vault},
+    states::{global_state::GlobalState, Oracle, Pool, Trove},
     utils::calc_lp_price,
 };
 
@@ -36,12 +35,12 @@ pub fn handle(ctx: Context<BorrowUsdx>, usdx_borrow_amt_requested: u64) -> Resul
         .unwrap();
 
     // assertions
-    // calculate the future total_debt values for global state, vault, and user
+    // calculate the future total_debt values for global state, pool, and user
     //   immediately after successful borrow
     let future_total_debt_global_state =
         ctx.accounts.global_state.total_debt + usdx_borrow_amt_requested;
-    // TODO: rename vault -> pool
-    let future_total_debt_vault = ctx.accounts.vault.total_debt + usdx_borrow_amt_requested;
+
+    let future_total_debt_pool = ctx.accounts.pool.total_debt + usdx_borrow_amt_requested;
 
     // TODO: implement user state
     msg!("THIS IS INCORRECT - PLACEHOLDER - USE THE USERSTATE ACCOUNT TOTAL_DEBT VALUE");
@@ -55,10 +54,8 @@ pub fn handle(ctx: Context<BorrowUsdx>, usdx_borrow_amt_requested: u64) -> Resul
     );
 
     require!(
-        // TODO: rename vault -> pool
-        future_total_debt_vault < ctx.accounts.vault.debt_ceiling,
-        // TODO: rename vault -> pool
-        StablePoolError::VaultDebtCeilingExceeded,
+        future_total_debt_pool < ctx.accounts.pool.debt_ceiling,
+        StablePoolError::PoolDebtCeilingExceeded,
     );
     require!(
         future_total_debt_user < ctx.accounts.global_state.user_debt_ceiling,
@@ -124,13 +121,11 @@ pub struct BorrowUsdx<'info> {
     pub mint_coll: Box<Account<'info, Mint>>,
     #[account(
         mut,
-        // TODO: rename vault -> pool
-        seeds=[VAULT_SEED.as_ref(), vault.mint_collat.as_ref()],// TODO: rename vault -> pool
-        // TODO: rename vault -> pool
-        bump=vault.bump,
-        constraint = vault.mint_collat.as_ref() == trove.mint.as_ref(),// TODO: rename trove -> vault
+        seeds=[POOL_SEED.as_ref(), pool.mint_collat.as_ref()],
+        bump=pool.bump,
+        constraint = pool.mint_collat.as_ref() == trove.mint.as_ref(),// TODO: rename trove -> vault
     )]
-    pub vault: Box<Account<'info, Vault>>, // TODO: rename vault -> pool
+    pub pool: Box<Account<'info, Pool>>,
     #[account(
         mut,
         seeds=[
@@ -139,7 +134,7 @@ pub struct BorrowUsdx<'info> {
             authority.key().as_ref(),
         ],
         bump=trove.bump,// TODO: rename trove -> vault
-        constraint = vault.mint_collat.as_ref() == trove.mint.as_ref(),// TODO: rename trove -> vault
+        constraint = pool.mint_collat.as_ref() == trove.mint.as_ref(),
     )]
     pub trove: Box<Account<'info, Trove>>, // TODO: rename trove -> vault
     #[account(

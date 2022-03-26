@@ -13,11 +13,11 @@ import {
   createGlobalStatePASS,
 } from "./createGlobalState";
 import {
-  createVaultFAIL_dup,
-  createVaultFAIL_noGlobalState,
-  createVaultFAIL_auth,
-  createVaultPASS,
-} from "./createVault";
+  createPoolFAIL_dup,
+  createPoolFAIL_noGlobalState,
+  createPoolFAIL_auth,
+  createPoolPASS,
+} from "./createPool";
 import { createTroveFAIL_Duplicate, createTrovePASS } from "./createTrove";
 import { Miner, Trove } from "../utils/interfaces";
 import {
@@ -79,11 +79,11 @@ describe("cdp core test suite", async () => {
   });
 
   // pre-global state tests
-  it("FAIL: Create vault without global state", async () => {
-    await createVaultFAIL_noGlobalState(
+  it("FAIL: Create pool without global state", async () => {
+    await createPoolFAIL_noGlobalState(
       users.base,
       accounts,
-      accounts.lpSaberUsdcUsdt.vault
+      accounts.lpSaberUsdcUsdt.pool
     );
   });
 
@@ -108,28 +108,28 @@ describe("cdp core test suite", async () => {
     );
   });
 
-  // vault tests
-  it("FAIL: Create Vault - User is not super", async () => {
-    await createVaultFAIL_auth(
+  // pool tests
+  it("FAIL: Create Pool - User is not super", async () => {
+    await createPoolFAIL_auth(
       users.base,
       accounts,
-      accounts.lpSaberUsdcUsdt.vault
+      accounts.lpSaberUsdcUsdt.pool
     );
   });
 
-  it("PASS: Create Vault - lpSaberUsdcUsdt", async () => {
-    await createVaultPASS(
+  it("PASS: Create Pool - lpSaberUsdcUsdt", async () => {
+    await createPoolPASS(
       users.super,
       accounts,
-      accounts.lpSaberUsdcUsdt.vault
+      accounts.lpSaberUsdcUsdt.pool
     );
   });
 
-  it("FAIL: Create Vault - duplicate", async () => {
-    await createVaultFAIL_dup(
+  it("FAIL: Create Pool - duplicate", async () => {
+    await createPoolFAIL_dup(
       users.super,
       accounts,
-      accounts.lpSaberUsdcUsdt.vault
+      accounts.lpSaberUsdcUsdt.pool
     );
   });
 
@@ -176,7 +176,7 @@ describe("cdp core test suite", async () => {
   // trove tests
   before(async () => {
     // derive trove account
-    users.base.tokens.lpSaber.trove = new Trove( // TODO: trove -> vault
+    users.base.tokens.lpSaber.trove = new Trove( // TODO: trove -> pool
       users.base.wallet,
       accounts.lpSaberUsdcUsdt.mint,
       [accounts.sbr.publicKey]
@@ -188,8 +188,8 @@ describe("cdp core test suite", async () => {
     await createTrovePASS(
       users.base.wallet,
       users.base.provider.connection,
-      users.base.tokens.lpSaber.trove, // TODO: trove -> vault
-      accounts.lpSaberUsdcUsdt.vault,
+      users.base.tokens.lpSaber.trove, // TODO: trove -> pool
+      accounts.lpSaberUsdcUsdt.pool,
       accounts.lpSaberUsdcUsdt.mint
     );
   });
@@ -199,8 +199,8 @@ describe("cdp core test suite", async () => {
     await createTroveFAIL_Duplicate(
       users.base.wallet,
       users.base.provider.connection,
-      users.base.tokens.lpSaber.trove, // TODO: trove -> vault
-      accounts.lpSaberUsdcUsdt.vault,
+      users.base.tokens.lpSaber.trove, // TODO: trove -> pool
+      accounts.lpSaberUsdcUsdt.pool,
       accounts.lpSaberUsdcUsdt.mint
     );
   });
@@ -210,8 +210,8 @@ describe("cdp core test suite", async () => {
     await createTrovePASS(
       users.test.wallet,
       users.test.provider.connection,
-      users.test.tokens.lpSaber.trove, // TODO: trove -> vault
-      accounts.lpSaberUsdcUsdt.vault,
+      users.test.tokens.lpSaber.trove, // TODO: trove -> pool
+      accounts.lpSaberUsdcUsdt.pool,
       accounts.lpSaberUsdcUsdt.mint
     );
   });
@@ -221,8 +221,8 @@ describe("cdp core test suite", async () => {
     await createTroveFAIL_Duplicate(
       users.test.wallet,
       users.test.provider.connection,
-      users.test.tokens.lpSaber.trove, // TODO: trove -> vault
-      accounts.lpSaberUsdcUsdt.vault,
+      users.test.tokens.lpSaber.trove, // TODO: trove -> pool
+      accounts.lpSaberUsdcUsdt.pool,
       accounts.lpSaberUsdcUsdt.mint
     );
   });
@@ -319,7 +319,7 @@ describe("cdp core test suite", async () => {
       users.base.wallet,
       users.base.provider.connection,
       users.base.tokens.lpSaber.trove, // TODO: trove -> vault
-      accounts.lpSaberUsdcUsdt.vault, // TODO: vault -> trove
+      accounts.lpSaberUsdcUsdt.pool, // TODO: pool -> trove
       accounts.sbr.publicKey
     );
   });

@@ -57,11 +57,12 @@ pub mod stable_pool {
      *
      * Should only be called by the program deployer
      *
+     * aliases: create_pool, CreatePool, createVault
      * aliases: create_vault, CreateVault, createVault
      */
-    pub fn create_vault(
-        ctx: Context<CreateVault>,
-        vault_bump: u8,
+    pub fn create_pool(
+        ctx: Context<CreatePool>,
+        pool_bump: u8,
         risk_level: u8,
         is_dual: u8,
         debt_ceiling: u64,
@@ -72,9 +73,9 @@ pub mod stable_pool {
         token_a_decimals: u8,
         token_b_decimals: u8,
     ) -> Result<()> {
-        create_vault::handle(
+        create_pool::handle(
             ctx,
-            vault_bump,
+            pool_bump,
             risk_level,
             is_dual,
             debt_ceiling,
@@ -136,9 +137,9 @@ pub mod stable_pool {
      * Create the Saber liquidity miner account set by the Quarry framework/standard
      *
      * Take out debt in the form of USDx
-     * Must be overcollateralized according to the LTV (collateralization ratio) set by the vault (to be named "pool")
+     * Must be overcollateralized according to the LTV (collateralization ratio) set by the pool
      * Must not exceed the global debt limit
-     * Must not exceed the vault (t.b.n pool) debt limit
+     * Must not exceed the pool debt limit
      * Must not exceed the user debt limit
      *
      * aliases: borrow_usdx, BorrowUsdx, borrowUsdx

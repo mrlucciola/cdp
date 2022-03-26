@@ -29,7 +29,7 @@ import { handleTxn } from "../utils/fxns";
 import {
   GlobalStateAcct,
   MintAcct,
-  Vault, // TODO: vault -> trove
+  Pool,
   Trove, // TODO: trove -> vault
   User,
   UserToken,
@@ -43,7 +43,7 @@ const repayUsdxCall = async (
   userWallet: Wallet,
   userToken: UserToken,
   mintUsdx: MintAcct,
-  vault: Vault, // TODO: vault -> trove
+  pool: Pool,
   trove: Trove, // TODO: trove -> vault
   globalState: GlobalStateAcct
 ) => {
@@ -52,7 +52,7 @@ const repayUsdxCall = async (
       accounts: {
         authority: userWallet.publicKey,
         globalState: globalState.pubKey,
-        vault: vault.pubKey, // TODO: vault -> trove
+        pool: pool.pubKey,
         trove: trove.pubKey, // TODO: trove -> vault
         mintUsdx: mintUsdx.pubKey,
         ataUsdx: userToken.ata.pubKey,
@@ -72,10 +72,10 @@ const repayUsdxCall = async (
 export const repayUsdxFAIL_RepayMoreThanBorrowed = async (
   user: User,
   trove: Trove, // TODO: trove -> vault
-  accounts: Accounts 
+  accounts: Accounts
 ) => {
   const repayAmountUi = 1;
-  const repayAmountPrecise = repayAmountUi * 10 ** DECIMALS_USDX;// TODO: vault -> trove
+  const repayAmountPrecise = repayAmountUi * 10 ** DECIMALS_USDX;
 
   // get global state info
   const globalStateAccttInfo: web3.AccountInfo<Buffer> =
@@ -123,8 +123,8 @@ export const repayUsdxFAIL_RepayMoreThanBorrowed = async (
       user.tokens.lpSaber,
       // mintUsdx MintAcct
       accounts.usdx,
-      // vault
-      accounts.lpSaberUsdcUsdt.vault,
+      // pool
+      accounts.lpSaberUsdcUsdt.pool,
       // trove
       user.tokens.lpSaber.trove,
       // globalState
@@ -191,8 +191,8 @@ export const repayUsdxPASS_RepayFullAmountBorrowed = async (
     user.tokens.lpSaber,
     // mintUsdx MintAcct
     accounts.usdx,
-    // vault
-    accounts.lpSaberUsdcUsdt.vault,
+    // pool
+    accounts.lpSaberUsdcUsdt.pool,
     // trove
     user.tokens.lpSaber.trove,
     // globalState
@@ -271,8 +271,8 @@ export const repayUsdxPASS_RepayLessThanBorrowed = async (
     user.tokens.lpSaber,
     // mintUsdx MintAcct
     accounts.usdx,
-    // vault
-    accounts.lpSaberUsdcUsdt.vault,
+    // pool
+    accounts.lpSaberUsdcUsdt.pool,
     // trove
     user.tokens.lpSaber.trove,
     // globalState
@@ -344,8 +344,8 @@ export const repayUsdxFAIL_ZeroUsdx = async (
       user.tokens.lpSaber,
       // mintUsdx MintAcct
       accounts.usdx,
-      // vault
-      accounts.lpSaberUsdcUsdt.vault,
+      // pool
+      accounts.lpSaberUsdcUsdt.pool,
       // trove
       user.tokens.lpSaber.trove,
       // globalState
@@ -425,8 +425,8 @@ export const repayUsdxFAIL_RepayAnotherUsersDebt = async (
       user.tokens.lpSaber,
       // mintUsdx MintAcct
       accounts.usdx,
-      // vault
-      accounts.lpSaberUsdcUsdt.vault,
+      // pool
+      accounts.lpSaberUsdcUsdt.pool,
       // trove
       otherUser.tokens.lpSaber.trove,
       // globalState

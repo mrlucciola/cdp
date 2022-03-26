@@ -16,7 +16,7 @@ import { assert } from "chai";
 // local
 import { StablePool } from "../../target/types/stable_pool";
 import { handleTxn } from "../utils/fxns";
-import { Miner, MintPubKey, Trove, User, Vault } from "../utils/interfaces";
+import { Miner, MintPubKey, Trove, User, Pool } from "../utils/interfaces";
 import { QuarrySDK, QUARRY_ADDRESSES } from "@quarryprotocol/quarry-sdk";
 import { SignerWallet } from "@saberhq/solana-contrib";
 import { Token as SToken } from "@saberhq/token-utils";
@@ -41,7 +41,7 @@ const createSaberQuarryMinerCall = async (
   userConnection: Connection,
   userWallet: Wallet,
   trove: Trove,
-  vault: Vault,
+  pool: Pool,
   rewarder: PublicKey,
   quarry: PublicKey,
   miner: Miner,
@@ -51,7 +51,7 @@ const createSaberQuarryMinerCall = async (
     programStablePool.instruction.createSaberQuarryMiner(miner.bump, {
       accounts: {
         authority: userWallet.publicKey,
-        vault: vault.pubKey,
+        pool: pool.pubKey,
         trove: trove.pubKey,
         miner: miner.pubkey,
         quarry,
@@ -83,7 +83,7 @@ export const createSaberQuarryMinerPASS = async (
     user.provider.connection, // userConnection,
     user.wallet, // userWallet,
     user.tokens.lpSaber.trove, // trove,
-    accounts.lpSaberUsdcUsdt.vault, // vault,
+    accounts.lpSaberUsdcUsdt.pool, // pool,
     accounts.rewarderKey, // rewarderKey,
     accounts.quarryKey, // quarryKey,
     user.miner, // minerKeys,

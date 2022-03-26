@@ -6,7 +6,7 @@ use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use crate::{
     constants::*,
     errors::StablePoolError,
-    states::{GlobalState, Trove, Vault}, // TODO: vault -> pool // TODO: trove -> vault
+    states::{GlobalState, Pool, Trove}, // TODO: trove -> vault
 };
 
 pub fn handle(ctx: Context<WithdrawCollateral>, withdraw_amount: u64) -> Result<()> {
@@ -42,7 +42,7 @@ pub fn handle(ctx: Context<WithdrawCollateral>, withdraw_amount: u64) -> Result<
     // send the transfer
     token::transfer(transfer_ctx, withdraw_amount)?;
 
-    accts.vault.total_coll -= withdraw_amount; // TODO: vault -> pool
+    accts.pool.total_coll -= withdraw_amount;
     accts.trove.locked_coll_balance -= withdraw_amount; // TODO: trove -> vault
 
     Ok(())
@@ -57,10 +57,10 @@ pub struct WithdrawCollateral<'info> {
 
     #[account(
         mut,
-        seeds=[VAULT_SEED.as_ref(), mint.key().as_ref()],// TODO: vault -> pool
-        bump=vault.bump// TODO: vault -> pool
+        seeds=[POOL_SEED.as_ref(), mint.key().as_ref()],// TODO: vault -> pool
+        bump=pool.bump
     )]
-    pub vault: Box<Account<'info, Vault>>, // TODO: vault -> pool
+    pub pool: Box<Account<'info, Pool>>,
 
     #[account(
         mut,
@@ -87,8 +87,7 @@ pub struct WithdrawCollateral<'info> {
     )]
     pub ata_user: Account<'info, TokenAccount>,
 
-    // TODO: vault -> pool
-    #[account(constraint = mint.key().as_ref() == vault.mint_collat.as_ref())]
+    #[account(constraint = mint.key().as_ref() == pool.mint_collat.as_ref())]
     pub mint: Box<Account<'info, Mint>>,
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,

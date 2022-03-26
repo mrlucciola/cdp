@@ -5,7 +5,7 @@ use anchor_spl::token::{self, Mint, Token, TokenAccount};
 // local
 use crate::{
     constants::*,
-    states::{Trove, Vault},
+    states::{Pool, Trove},
 };
 
 pub fn handle(
@@ -18,7 +18,7 @@ pub fn handle(
     ctx.accounts.trove.debt = 0;
     ctx.accounts.trove.bump = trove_bump;
     ctx.accounts.trove.ata_trove_bump = ata_trove_bump;
-    // ctx.accounts.trove.vault = ctx.accounts.vault;
+    // ctx.accounts.trove.pool = ctx.accounts.pool;
 
     Ok(())
 }
@@ -29,10 +29,10 @@ pub struct CreateTrove<'info> {
     pub authority: Signer<'info>,
     #[account(
         mut,
-        seeds = [VAULT_SEED.as_ref(), vault.mint_collat.as_ref()],
-        bump = vault.bump,
+        seeds = [POOL_SEED.as_ref(), pool.mint_collat.as_ref()],
+        bump = pool.bump,
     )]
-    pub vault: Box<Account<'info, Vault>>,
+    pub pool: Box<Account<'info, Pool>>,
 
     #[account(
         init,
@@ -55,7 +55,7 @@ pub struct CreateTrove<'info> {
     pub ata_trove: Box<Account<'info, TokenAccount>>,
 
     // mint for the collateral that is being deposited into the trove
-    #[account(constraint = mint.key().as_ref() == vault.mint_collat.as_ref())]
+    #[account(constraint = mint.key().as_ref() == pool.mint_collat.as_ref())]
     pub mint: Box<Account<'info, Mint>>,
 
     #[account(address = token::ID)]
