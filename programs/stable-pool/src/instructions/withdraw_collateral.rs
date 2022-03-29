@@ -38,11 +38,20 @@ pub fn handle(ctx: Context<WithdrawCollateral>, withdraw_amount: u64) -> Result<
         vault_seeds,
     );
 
+    // TODO: do final sanity check that the math is correct
+    // require!(future_total_coll_pool - orig_total_coll_pool == amt_to_withdraw);
+    // require!(future_total_coll_global_state - orig_total_coll_global_state == amt_to_withdraw);
+    // require!(future_total_coll_vault - orig_total_coll_vault == amt_to_withdraw);
+
     // send the transfer
     token::transfer(transfer_ctx, withdraw_amount)?;
 
-    accts.pool.total_coll -= withdraw_amount;
-    accts.vault.locked_coll_balance -= withdraw_amount;
+    accts.pool.total_coll = accts.pool.total_coll.checked_sub(withdraw_amount).unwrap();
+    accts.vault.locked_coll_balance = accts
+        .vault
+        .locked_coll_balance
+        .checked_sub(withdraw_amount)
+        .unwrap();
 
     Ok(())
 }

@@ -33,9 +33,24 @@ pub fn handle(ctx: Context<RepayUsdx>, repay_amount: u64) -> Result<()> {
 
     token::burn(cpi_ctx, repay_amount)?;
 
-    ctx.accounts.pool.total_debt -= repay_amount;
-    ctx.accounts.global_state.total_debt -= repay_amount;
-    ctx.accounts.vault.debt -= repay_amount;
+    // TODO: do final sanity check that the math is correct
+    // require!(future_total_debt_pool - orig_total_debt_pool == repay_amount);
+    // require!(future_total_debt_global_state - orig_total_debt_global_state == repay_amount);
+    // require!(future_total_debt_vault - orig_total_debt_vault == repay_amount);
+
+    ctx.accounts.pool.total_debt = ctx
+        .accounts
+        .pool
+        .total_debt
+        .checked_sub(repay_amount)
+        .unwrap();
+    ctx.accounts.global_state.total_debt = ctx
+        .accounts
+        .global_state
+        .total_debt
+        .checked_sub(repay_amount)
+        .unwrap();
+    ctx.accounts.vault.debt = ctx.accounts.vault.debt.checked_sub(repay_amount).unwrap();
 
     Ok(())
 }

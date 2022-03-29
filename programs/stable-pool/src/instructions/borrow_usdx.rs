@@ -14,7 +14,6 @@ use crate::{
 
 // borrow_amount is in 10 ** DECIMALS_USDX
 pub fn handle(ctx: Context<BorrowUsdx>, usdx_borrow_amt_requested: u64) -> Result<()> {
-    
     // validation of market accounts & oracle accounts
     validate_market_accounts(
         &ctx.accounts.pool,
@@ -23,7 +22,7 @@ pub fn handle(ctx: Context<BorrowUsdx>, usdx_borrow_amt_requested: u64) -> Resul
         ctx.accounts.oracle_a.mint,
         ctx.accounts.oracle_b.mint,
     )?;
-    
+
     let amount_ata_a = amount(&ctx.accounts.ata_market_a.to_account_info())?;
     let amount_ata_b = amount(&ctx.accounts.ata_market_b.to_account_info())?;
 
@@ -46,15 +45,29 @@ pub fn handle(ctx: Context<BorrowUsdx>, usdx_borrow_amt_requested: u64) -> Resul
     // assertions
     // calculate the future total_debt values for global state, pool, and user
     //   immediately after successful borrow
-    let future_total_debt_global_state =
-        ctx.accounts.global_state.total_debt + usdx_borrow_amt_requested;
+    let future_total_debt_global_state = ctx
+        .accounts
+        .global_state
+        .total_debt
+        .checked_add(usdx_borrow_amt_requested)
+        .unwrap();
 
-    let future_total_debt_pool = ctx.accounts.pool.total_debt + usdx_borrow_amt_requested;
+    let future_total_debt_pool = ctx
+        .accounts
+        .pool
+        .total_debt
+        .checked_add(usdx_borrow_amt_requested)
+        .unwrap();
 
     // TODO: implement user state
     msg!("THIS IS INCORRECT - PLACEHOLDER - USE THE USERSTATE ACCOUNT TOTAL_DEBT VALUE");
     // let future_total_debt_user = ctx.accounts.user_state.total_debt + usdx_borrow_amt_requested;
-    let future_total_debt_user = ctx.accounts.ata_usdx.amount + usdx_borrow_amt_requested;
+    let future_total_debt_user = ctx
+        .accounts
+        .ata_usdx
+        .amount
+        .checked_add(usdx_borrow_amt_requested)
+        .unwrap();
 
     // the future debt has to be less than the ceilings
     require!(

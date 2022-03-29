@@ -4,9 +4,13 @@ use anchor_lang::prelude::*;
 use crate::{errors::StablePoolError, states::*};
 
 pub fn assert_tvl_allowed(tvl_limit: u64, tvl: u64, amount: u64) -> Result<()> {
-    if tvl_limit < tvl + amount {
+    let new_tvl = tvl.checked_add(amount).unwrap();
+
+    // check if the new tvl is within tvl range
+    if tvl_limit < new_tvl {
         return Err(StablePoolError::GlobalTVLExceeded.into());
     }
+
     Ok(())
 }
 
@@ -54,10 +58,22 @@ pub fn validate_market_accounts(
     ata_market_b_mint: Pubkey,
     oracle_a_mint: Pubkey,
     oracle_b_mint: Pubkey,
-) -> Result<()>{
-    require!(ata_market_a_mint.eq(&oracle_a_mint), StablePoolError::InvalidAccountInput);
-    require!(ata_market_b_mint.eq(&oracle_b_mint), StablePoolError::InvalidAccountInput);
-    require!(pool.mint_token_a.eq(&oracle_a_mint), StablePoolError::InvalidAccountInput);
-    require!(pool.mint_token_b.eq(&oracle_b_mint), StablePoolError::InvalidAccountInput);
+) -> Result<()> {
+    require!(
+        ata_market_a_mint.eq(&oracle_a_mint),
+        StablePoolError::InvalidAccountInput
+    );
+    require!(
+        ata_market_b_mint.eq(&oracle_b_mint),
+        StablePoolError::InvalidAccountInput
+    );
+    require!(
+        pool.mint_token_a.eq(&oracle_a_mint),
+        StablePoolError::InvalidAccountInput
+    );
+    require!(
+        pool.mint_token_b.eq(&oracle_b_mint),
+        StablePoolError::InvalidAccountInput
+    );
     Ok(())
 }
