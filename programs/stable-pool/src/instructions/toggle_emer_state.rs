@@ -23,5 +23,5 @@ pub struct ToggleEmerState<'info> {
         bump = global_state.bump,
         has_one = authority
     )]
-    pub global_state: Account<'info, GlobalState>,
+    pub global_state: Box<Account<'info, GlobalState>>,
 }

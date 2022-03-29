@@ -20,7 +20,7 @@ pub struct ChangeTreasuryWallet<'info> {
         bump,
         has_one = authority,
     )]
-    pub global_state: Account<'info, GlobalState>,
+    pub global_state: Box<Account<'info, GlobalState>>,
     /// CHECK: This is not dangerous because we don't ready or write from this account
     pub treasury: AccountInfo<'info>,
 }
