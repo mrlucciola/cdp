@@ -7,12 +7,22 @@ use anchor_spl::token::{self, accessor::amount, Mint, Token, TokenAccount, Trans
 use crate::{
     constants::*,
     errors::StablePoolError,
-    states::{GlobalState, Pool, Vault},
-    utils::calc_lp_price,
+    states::{GlobalState, Vault, Pool},
+    utils::{calc_lp_price, validate_market_accounts},
 };
 
 pub fn handle(ctx: Context<DepositCollateral>, collat_token_deposit_amt: u64) -> Result<()> {
     let accts = ctx.accounts;
+
+    // validation of market accounts & oracle accounts
+    validate_market_accounts(
+        &accts.pool,
+        accts.ata_market_a.mint,
+        accts.ata_market_b.mint,
+        accts.oracle_a.mint,
+        accts.oracle_b.mint,
+    )?;
+
     let amount_ata_a = amount(&accts.ata_market_a.to_account_info())?;
     let amount_ata_b = amount(&accts.ata_market_b.to_account_info())?;
     // validation

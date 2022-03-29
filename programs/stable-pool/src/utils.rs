@@ -1,7 +1,7 @@
 // modules
 use anchor_lang::prelude::*;
 // local
-use crate::{errors::StablePoolError, states::GlobalState};
+use crate::{errors::StablePoolError, states::*};
 
 pub fn assert_tvl_allowed(tvl_limit: u64, tvl: u64, amount: u64) -> Result<()> {
     if tvl_limit < tvl + amount {
@@ -46,4 +46,18 @@ pub fn calc_lp_price(
     let lp_price = (prod as u128).checked_mul(2).unwrap();
 
     Ok(lp_price as u64)
+}
+
+pub fn validate_market_accounts(
+    pool: &Pool,
+    ata_market_a_mint: Pubkey,
+    ata_market_b_mint: Pubkey,
+    oracle_a_mint: Pubkey,
+    oracle_b_mint: Pubkey,
+) -> Result<()>{
+    require!(ata_market_a_mint.eq(&oracle_a_mint), StablePoolError::InvalidAccountInput);
+    require!(ata_market_b_mint.eq(&oracle_b_mint), StablePoolError::InvalidAccountInput);
+    require!(pool.mint_token_a.eq(&oracle_a_mint), StablePoolError::InvalidAccountInput);
+    require!(pool.mint_token_b.eq(&oracle_b_mint), StablePoolError::InvalidAccountInput);
+    Ok(())
 }

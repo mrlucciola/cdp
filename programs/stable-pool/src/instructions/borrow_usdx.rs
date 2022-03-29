@@ -9,11 +9,21 @@ use crate::{
     constants::*,
     errors::StablePoolError,
     states::{global_state::GlobalState, Oracle, Pool, Vault},
-    utils::calc_lp_price,
+    utils::{calc_lp_price, validate_market_accounts},
 };
 
 // borrow_amount is in 10 ** DECIMALS_USDX
 pub fn handle(ctx: Context<BorrowUsdx>, usdx_borrow_amt_requested: u64) -> Result<()> {
+    
+    // validation of market accounts & oracle accounts
+    validate_market_accounts(
+        &ctx.accounts.pool,
+        ctx.accounts.ata_market_a.mint,
+        ctx.accounts.ata_market_b.mint,
+        ctx.accounts.oracle_a.mint,
+        ctx.accounts.oracle_b.mint,
+    )?;
+    
     let amount_ata_a = amount(&ctx.accounts.ata_market_a.to_account_info())?;
     let amount_ata_b = amount(&ctx.accounts.ata_market_b.to_account_info())?;
 
