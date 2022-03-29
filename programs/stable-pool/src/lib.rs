@@ -174,6 +174,16 @@ pub mod stable_pool {
     }
 
     /**
+     * stake_collateral_to_saber, StakeCollateralToSaber, stakeCollateralToSaber
+     */
+    pub fn stake_collateral_to_saber(
+        ctx: Context<StakeCollateralToSaber>,
+        amount: u64,
+    ) -> Result<()> {
+        stake_collateral_to_saber::handle(ctx, amount)
+    }
+
+    /**
      * Create the account that holds the active USD price for a given single asset (i.e. USDC)
      *
      * aliases: create_oracle, CreateOracle, createOracle

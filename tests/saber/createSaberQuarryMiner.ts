@@ -80,10 +80,15 @@ const createSaberQuarryMinerCall = async (
  * Pass when attempting to make a quarry miner that doesn't exist
  */
 export const createSaberQuarryMinerPASS = async (
-  accounts: Accounts,
-  user: User
+  user: User,
+  accounts: Accounts
 ) => {
-  console.log('miner account', user.miner, '\n pub key', user.miner.pubkey.toString())
+  console.log(
+    "miner account",
+    user.miner,
+    "\n pub key",
+    user.miner.pubkey.toString()
+  );
   const confirmation = await createSaberQuarryMinerCall(
     user.provider.connection, // userConnection,
     user.wallet, // userWallet,

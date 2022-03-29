@@ -122,7 +122,7 @@ pub struct BorrowUsdx<'info> {
         mut,
         seeds=[POOL_SEED.as_ref(), pool.mint_collat.as_ref()],
         bump=pool.bump,
-        constraint = pool.mint_collat.as_ref() == vault.mint.as_ref(),// TODO: rename vault -> vault
+        constraint = pool.mint_collat.as_ref() == vault.mint.as_ref(),
     )]
     pub pool: Box<Account<'info, Pool>>,
     #[account(

@@ -39,7 +39,7 @@ import {
 import { createOracleFAIL_Duplicate, createOraclePASS } from "./createOracle";
 import { createVaultRewardVault } from "./createRewardVault";
 import { createSaberQuarryMinerPASS } from "../saber/createSaberQuarryMiner";
-// import { depositToSaber } from "../saber/deposit";
+import { stakeCollateralToSaberPASS } from "../saber/stakeCollateralToSaber";
 // import { withdrawFromSaber } from "../saber/withdraw";
 // import { harvestFromSaber } from "../saber/harvest";
 import {
@@ -312,7 +312,6 @@ describe("cdp core test suite", async () => {
   //     accounts);
   // });
 
-  // TODO: rename vault -> vault
   it("PASS: Create vault ataReward", async () => {
     // TODO: refactor to include just the high level classes
     await createVaultRewardVault(
@@ -323,13 +322,19 @@ describe("cdp core test suite", async () => {
       accounts.sbr.publicKey
     );
   });
+
   // THIS IS NOT COMPLETE, please see note on the contract fxn (search `BorrowUsdx<'info>`)
+  // this works but we need fail tests
   it("PASS: Borrow/mint USDx", async () => {
     await borrowUsdxPASS(users.base, accounts);
   });
 
-  // QUARRY MINER TESTS not working for me
+  // This works
   it("PASS: Create Quarry Miner", async () => {
-    await createSaberQuarryMinerPASS(accounts, users.base);
+    await createSaberQuarryMinerPASS(users.base, accounts);
+  });
+
+  it("PASS: Stake to saber", async () => {
+    await stakeCollateralToSaberPASS(users.base, accounts);
   });
 });

@@ -35,8 +35,8 @@ const createRewardVaultCall = async (
         pool: pool.pubKey,
         vault: vault.pubKey,
 
-        rewardVault: vault.ataRewards[0].pubKey,
-        rewardMint,
+        ataRewardVault: vault.ataRewards[0].pubKey,
+        mintReward: rewardMint,
 
         // system accts
         tokenProgram: TOKEN_PROGRAM_ID,
