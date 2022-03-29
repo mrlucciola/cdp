@@ -85,8 +85,16 @@ pub fn handle(ctx: Context<DepositCollateral>, collat_token_deposit_amt: u64) ->
     token::transfer(transfer_ctx, collat_token_deposit_amt)?;
 
     // add the tokens to the pool and vault
-    accts.pool.total_coll += collat_token_deposit_amt;
-    accts.vault.locked_coll_balance += collat_token_deposit_amt;
+    accts.pool.total_coll = accts
+        .pool
+        .total_coll
+        .checked_add(collat_token_deposit_amt)
+        .unwrap();
+    accts.vault.locked_coll_balance = accts
+        .vault
+        .locked_coll_balance
+        .checked_add(collat_token_deposit_amt)
+        .unwrap();
 
     // the usd value of all user deposited collateral for this collateral type
     let new_pool_tvl_usd = (orig_pool_token_value_usd as u128) + deposit_token_value_usd;

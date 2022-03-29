@@ -46,16 +46,28 @@ pub fn handle(ctx: Context<BorrowUsdx>, usdx_borrow_amt_requested: u64) -> Resul
     // assertions
     // calculate the future total_debt values for global state, pool, and user
     //   immediately after successful borrow
-    let future_total_debt_global_state =
-        ctx.accounts.global_state.total_debt + usdx_borrow_amt_requested;
-
-    let future_total_debt_pool = ctx.accounts.pool.total_debt + usdx_borrow_amt_requested;
+    let future_total_debt_global_state = ctx
+        .accounts
+        .global_state
+        .total_debt
+        .checked_add(usdx_borrow_amt_requested)
+        .unwrap();
+    let future_total_debt_pool = ctx
+        .accounts
+        .pool
+        .total_debt
+        .checked_add(usdx_borrow_amt_requested)
+        .unwrap();
 
     // TODO: implement user state
     msg!("THIS IS INCORRECT - PLACEHOLDER - USE THE USERSTATE ACCOUNT TOTAL_DEBT VALUE");
     // let future_total_debt_user = ctx.accounts.user_state.total_debt + usdx_borrow_amt_requested;
-    let future_total_debt_user = ctx.accounts.ata_usdx.amount + usdx_borrow_amt_requested;
-
+    let future_total_debt_user = ctx
+        .accounts
+        .ata_usdx
+        .amount
+        .checked_add(usdx_borrow_amt_requested)
+        .unwrap();
     // the future debt has to be less than the ceilings
     require!(
         future_total_debt_global_state < ctx.accounts.global_state.global_debt_ceiling,
