@@ -4,7 +4,8 @@ use anchor_lang::prelude::*;
 use crate::{errors::StablePoolError, states::GlobalState};
 
 pub fn assert_tvl_allowed(tvl_limit: u64, tvl: u64, amount: u64) -> Result<()> {
-    if tvl_limit < tvl + amount {
+    let new_tvl = tvl.checked_add(amount).unwrap();
+    if tvl_limit < new_tvl {
         return Err(StablePoolError::GlobalTVLExceeded.into());
     }
     Ok(())
