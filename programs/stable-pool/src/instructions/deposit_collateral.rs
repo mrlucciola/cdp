@@ -7,7 +7,7 @@ use anchor_spl::token::{self, accessor::amount, Mint, Token, TokenAccount, Trans
 use crate::{
     constants::*,
     errors::StablePoolError,
-    states::{GlobalState, Vault, Pool},
+    states::{GlobalState, Pool, Vault},
     utils::calc_lp_price,
 };
 
@@ -95,8 +95,9 @@ pub struct DepositCollateral<'info> {
 
     #[account(
         mut,
-        seeds=[POOL_SEED.as_ref(), mint_collat.key().as_ref()],
-        bump=pool.bump
+        seeds=[POOL_SEED.as_ref(), pool.mint_collat.as_ref()],
+        bump=pool.bump,
+        constraint = pool.mint_collat.as_ref() == vault.mint.as_ref(),
     )]
     pub pool: Box<Account<'info, Pool>>,
 

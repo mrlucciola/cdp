@@ -329,7 +329,7 @@ describe("cdp core test suite", async () => {
   });
 
   // QUARRY MINER TESTS not working for me
-  // it("PASS: Create Quarry Miner", async () => {
-  //   await createSaberQuarryMinerPASS(accounts, users.base);
-  // });
+  it("PASS: Create Quarry Miner", async () => {
+    await createSaberQuarryMinerPASS(accounts, users.base);
+  });
 });

@@ -45,8 +45,8 @@ pub use repay_usdx::*;
 pub mod create_reward_vault;
 pub use create_reward_vault::*;
 
-pub mod create_saber_quarry_miner;
-pub use create_saber_quarry_miner::*;
+pub mod saber;
+pub use saber::*;
 
 pub mod change_treasury_wallet;
 pub use change_treasury_wallet::*;

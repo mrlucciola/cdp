@@ -1,6 +1,6 @@
 [package]
 description = "Created with Anchor"
-edition = "2018"
+edition = "2021"
 name = "stable-pool"
 version = "0.1.0"
 
@@ -16,8 +16,8 @@ no-idl = []
 no-log-ix-name = []
 
 [dependencies]
-anchor-lang = {version = "0.22.1", features = ["init-if-needed"]}
-anchor-spl = "0.22.1"
-quarry-mine = {version = "3.0.0", features = ["cpi"]}
+anchor-lang = {version = "^0.22.1", features = ["init-if-needed"]}
+anchor-spl = "^0.22.1"
+quarry-mine = {version = "4.0.0", features = ["cpi"]}
 solana-program = "1.9.8"
 spl-token = {version = "3.3.0", features = ["no-entrypoint"]}

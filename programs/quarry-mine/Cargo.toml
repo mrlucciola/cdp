@@ -1,34 +1,34 @@
 [package]
-name = "quarry-mine"
-version = "3.0.0"
+authors = ["Quarry Protocol <team@quarry.so>"]
 description = "Distributes liquidity mining rewards to token stakers"
 edition = "2021"
 homepage = "https://quarry.so"
-repository = "https://github.com/QuarryProtocol/quarry"
-authors = ["Quarry Protocol <team@quarry.so>"]
-license = "AGPL-3.0"
 keywords = ["solana", "quarry"]
+license = "AGPL-3.0"
+name = "quarry-mine"
+repository = "https://github.com/QuarryProtocol/quarry"
+version = "4.0.1"
 
 [lib]
 crate-type = ["cdylib", "lib"]
 name = "quarry_mine"
 
 [features]
-no-entrypoint = []
-no-idl = []
 cpi = ["no-entrypoint"]
 default = []
+no-entrypoint = []
+no-idl = []
 
 [dependencies]
-anchor-lang = "^0.22"
-anchor-spl = "^0.22"
+anchor-lang = ">=0.22, <0.24"
+anchor-spl = ">=0.22, <0.24"
 num-traits = "0.2.14"
-quarry-mint-wrapper = { path = "../quarry-mint-wrapper", features = [
-  "cpi"
-], version = "3.0.0" }
-spl-math = { version = "0.1.0", features = ["no-entrypoint"] }
+quarry-mint-wrapper = {path = "../quarry-mint-wrapper", features = [
+  "cpi",
+], version = "4.0.0"}
+spl-math = {version = "0.1.0", features = ["no-entrypoint"]}
 vipers = "^2.0"
 
 [dev-dependencies]
-proptest = { version = "1.0" }
-rand = { version = "0.8.4" }
+proptest = {version = "1.0"}
+rand = {version = "0.8.4"}

@@ -2,10 +2,9 @@
 seeds = false
 
 [programs.localnet]
-stable_pool = "FvTjLbwbHY4v8Gfv18JKuPCJG2Hj87CG8kPNHqGeHAR4"
-
 quarry_mine = "QMNeHCGYnLVDn1icRAfQZpjPLBNkfGbSKRB83G5d8KB"
 quarry_mint_wrapper = "QMWoBmAyJLAsA1Lh9ugMTw2gciTihncciphzdNzdZYV"
+stable_pool = "FvTjLbwbHY4v8Gfv18JKuPCJG2Hj87CG8kPNHqGeHAR4"
 
 [programs.devnet]
 stable_pool = "FvTjLbwbHY4v8Gfv18JKuPCJG2Hj87CG8kPNHqGeHAR4"

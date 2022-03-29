@@ -15,6 +15,7 @@ import {
 import { assert } from "chai";
 // local
 import { StablePool } from "../../target/types/stable_pool";
+// import { Periphery } from "../../target/types/periphery";
 import { handleTxn } from "../utils/fxns";
 import { Miner, MintPubKey, Vault, User, Pool } from "../utils/interfaces";
 import { QuarrySDK, QUARRY_ADDRESSES } from "@quarryprotocol/quarry-sdk";
@@ -25,6 +26,8 @@ import { Accounts } from "../config/accounts";
 
 // init
 const programStablePool = workspace.StablePool as Program<StablePool>;
+// const programPeriphery = workspace.Periphery as Program<Periphery>;
+
 // constants
 // export const defaultAccounts = {
 //   tokenProgram: TOKEN_PROGRAM_ID,
@@ -48,6 +51,7 @@ const createSaberQuarryMinerCall = async (
   tokenMint: MintPubKey
 ) => {
   const txn = new web3.Transaction().add(
+    // programPeriphery.instruction.createSaberQuarryMiner(miner.bump, {
     programStablePool.instruction.createSaberQuarryMiner(miner.bump, {
       accounts: {
         authority: userWallet.publicKey,
@@ -79,6 +83,7 @@ export const createSaberQuarryMinerPASS = async (
   accounts: Accounts,
   user: User
 ) => {
+  console.log('miner account', user.miner, '\n pub key', user.miner.pubkey.toString())
   const confirmation = await createSaberQuarryMinerCall(
     user.provider.connection, // userConnection,
     user.wallet, // userWallet,
@@ -91,10 +96,10 @@ export const createSaberQuarryMinerPASS = async (
   );
   console.log("created miner: ", confirmation);
 
-  const quarryProvider = new SignerWallet(
-    (programStablePool.provider.wallet as any).payer
-  ).createProvider(programStablePool.provider.connection);
-  const sdk: QuarrySDK = QuarrySDK.load({ provider: quarryProvider });
+  const userQuarryProvider = new SignerWallet(
+    (user.wallet as any).payer
+  ).createProvider(user.provider.connection);
+  const sdk: QuarrySDK = QuarrySDK.load({ provider: userQuarryProvider });
   const rewarder = await sdk.mine.loadRewarderWrapper(accounts.rewarderKey);
 
   const poolMintToken = SToken.fromMint(

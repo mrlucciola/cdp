@@ -18,6 +18,7 @@ pub fn handle(
     ctx.accounts.vault.debt = 0;
     ctx.accounts.vault.bump = vault_bump;
     ctx.accounts.vault.ata_vault_bump = ata_vault_bump;
+    ctx.accounts.vault.owner = ctx.accounts.authority.clone().key();
     // ctx.accounts.vault.pool = ctx.accounts.pool;
 
     Ok(())

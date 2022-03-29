@@ -322,9 +322,13 @@ export class Miner {
   bump: number;
   ata: ATA;
   constructor(vault: Vault, quarryKey: PublicKey, mintKey: MintPubKey) {
+    // b"Miner".as_ref(),
+    // quarry.key().to_bytes().as_ref(),
+    // authority.key().to_bytes().as_ref()
     const [pubkey, bump] = getPda(
       [
-        Buffer.from(utils.bytes.utf8.encode("Miner")),
+        Buffer.from("Miner"),
+        // Buffer.from(utils.bytes.utf8.encode("Miner")),
         quarryKey.toBuffer(),
         vault.pubKey.toBuffer(),
       ],

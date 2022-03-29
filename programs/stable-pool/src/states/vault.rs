@@ -5,10 +5,11 @@ use anchor_lang::prelude::*;
 pub struct Vault {
     /// vault bump
     pub bump: u8,
-    /// the mint acct that corresponds to this vault
+    /// authority/owner of this vault
+    pub owner: Pubkey,
+    /// the collateral mint acct that corresponds to this vault
     pub mint: Pubkey,
-    pub ata_usdx_bump: u8, // do we still need this?
-    pub ata_vault_bump: u8,
+    pub ata_vault_bump: u8, // might not need this
     pub ata_vault: Pubkey,
     /// The amount of USDx borrowed off of the collateral in this vault
     pub debt: u64,

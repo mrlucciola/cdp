@@ -446,6 +446,10 @@ pub struct Rewarder {
     pub is_paused: bool,
 }
 
+impl Rewarder {
+    pub const LEN: usize = 32 + 1 + 32 + 32 + 2 + 8 + 8 + 32 + 32 + 32 + 8 + 32 + 1;
+}
+
 /// A pool which distributes tokens to its [Miner]s.
 #[account]
 #[derive(Copy, Default)]
@@ -476,6 +480,10 @@ pub struct Quarry {
     pub total_tokens_deposited: u64,
     /// Number of [Miner]s.
     pub num_miners: u64,
+}
+
+impl Quarry {
+    pub const LEN: usize = 32 + 32 + 1 + 2 + 1 + 8 + 8 + 16 + 8 + 8 + 8 + 8;
 }
 
 /// An account that has staked tokens into a [Quarry].
@@ -515,6 +523,10 @@ pub struct Miner {
     pub index: u64,
 }
 
+impl Miner {
+    pub const LEN: usize = 32 + 32 + 1 + 32 + 8 + 16 + 8 + 8;
+}
+
 /// --------------------------------
 /// Context Structs
 /// --------------------------------
@@ -535,7 +547,8 @@ pub struct NewRewarder<'info> {
             base.key().to_bytes().as_ref()
         ],
         bump,
-        payer = payer
+        payer = payer,
+        space = 8 + Rewarder::LEN
     )]
     pub rewarder: Account<'info, Rewarder>,
 
@@ -639,7 +652,8 @@ pub struct CreateQuarry<'info> {
             token_mint.key().to_bytes().as_ref()
         ],
         bump,
-        payer = payer
+        payer = payer,
+        space = 8 + Quarry::LEN
     )]
     pub quarry: Account<'info, Quarry>,
 
@@ -711,16 +725,17 @@ pub struct CreateMiner<'info> {
             authority.key().to_bytes().as_ref()
         ],
         bump,
-        payer = payer
+        payer = payer,
+        space = 8 + Miner::LEN
     )]
-    pub miner: Account<'info, Miner>,
+    pub miner: Box<Account<'info, Miner>>,
 
     /// [Quarry] to create a [Miner] for.
     #[account(mut)]
-    pub quarry: Account<'info, Quarry>,
+    pub quarry: Box<Account<'info, Quarry>>,
 
     /// [Rewarder].
-    pub rewarder: Account<'info, Rewarder>,
+    pub rewarder: Box<Account<'info, Rewarder>>,
 
     /// System program.
     pub system_program: Program<'info, System>,
@@ -847,6 +862,7 @@ pub struct ExtractFees<'info> {
     #[account(mut)]
     pub claim_fee_token_account: Account<'info, TokenAccount>,
 
+    /// TODO: jkap- look into this
     /// [TokenAccount] owned by the [addresses::FEE_TO].
     /// Holds DAO claim fees.
     #[account(mut)]

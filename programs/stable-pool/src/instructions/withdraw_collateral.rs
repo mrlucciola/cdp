@@ -31,9 +31,9 @@ pub fn handle(ctx: Context<WithdrawCollateral>, withdraw_amount: u64) -> Result<
     let transfer_ctx = CpiContext::new_with_signer(
         accts.token_program.to_account_info(),
         Transfer {
-            from: accts.ata_vault.clone().to_account_info(), 
+            from: accts.ata_vault.clone().to_account_info(),
             to: accts.ata_user.clone().to_account_info(),
-            authority: accts.vault.clone().to_account_info(), 
+            authority: accts.vault.clone().to_account_info(),
         },
         vault_seeds,
     );
@@ -42,7 +42,7 @@ pub fn handle(ctx: Context<WithdrawCollateral>, withdraw_amount: u64) -> Result<
     token::transfer(transfer_ctx, withdraw_amount)?;
 
     accts.pool.total_coll -= withdraw_amount;
-    accts.vault.locked_coll_balance -= withdraw_amount; 
+    accts.vault.locked_coll_balance -= withdraw_amount;
 
     Ok(())
 }
@@ -56,8 +56,9 @@ pub struct WithdrawCollateral<'info> {
 
     #[account(
         mut,
-        seeds=[POOL_SEED.as_ref(), mint.key().as_ref()],
-        bump=pool.bump
+        seeds=[POOL_SEED.as_ref(), pool.mint_collat.as_ref()],
+        bump=pool.bump,
+        constraint = pool.mint_collat.as_ref() == vault.mint.as_ref(),
     )]
     pub pool: Box<Account<'info, Pool>>,
 

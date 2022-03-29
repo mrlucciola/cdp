@@ -3,10 +3,7 @@ use anchor_lang::prelude::*;
 // local
 use crate::{constants::*, states::global_state::GlobalState};
 
-pub fn handle(
-    ctx: Context<ChangeTreasuryWallet>,
-    new_treasury: Pubkey, 
-) -> Result<()> {
+pub fn handle(ctx: Context<ChangeTreasuryWallet>, new_treasury: Pubkey) -> Result<()> {
     ctx.accounts.global_state.treasury = new_treasury;
 
     Ok(())
@@ -25,5 +22,5 @@ pub struct ChangeTreasuryWallet<'info> {
     )]
     pub global_state: Account<'info, GlobalState>,
     /// CHECK: This is not dangerous because we don't ready or write from this account
-    pub treasury: AccountInfo<'info>
+    pub treasury: AccountInfo<'info>,
 }

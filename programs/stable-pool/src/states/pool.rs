@@ -35,5 +35,5 @@ pub struct Pool {
 
     // for price feeds. token a and b make up collateral lp in this pool.
     pub mint_token_a: Pubkey,
-    pub mint_token_b: Pubkey
+    pub mint_token_b: Pubkey,
 }

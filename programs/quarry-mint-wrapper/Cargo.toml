@@ -1,25 +1,25 @@
 [package]
-name = "quarry-mint-wrapper"
-version = "3.0.0"
+authors = ["Quarry Protocol <team@quarry.so>"]
 description = "Mints tokens to authorized accounts"
 edition = "2021"
 homepage = "https://quarry.so"
-repository = "https://github.com/QuarryProtocol/quarry"
-authors = ["Quarry Protocol <team@quarry.so>"]
-license = "AGPL-3.0"
 keywords = ["solana", "quarry"]
+license = "AGPL-3.0"
+name = "quarry-mint-wrapper"
+repository = "https://github.com/QuarryProtocol/quarry"
+version = "4.0.0"
 
 [lib]
 crate-type = ["cdylib", "lib"]
 name = "quarry_mint_wrapper"
 
 [features]
-no-entrypoint = []
-no-idl = []
 cpi = ["no-entrypoint"]
 default = []
+no-entrypoint = []
+no-idl = []
 
 [dependencies]
-anchor-lang = "^0.22"
-anchor-spl = "^0.22"
+anchor-lang = ">=0.22, <0.24"
+anchor-spl = ">=0.22, <0.24"
 vipers = "^2.0"

@@ -78,10 +78,10 @@
     bn.js "^5.1.2"
     buffer-layout "^1.2.0"
 
-"@quarryprotocol/quarry-sdk@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@quarryprotocol/quarry-sdk/-/quarry-sdk-3.0.0.tgz#264f480ea2b3e49a25b0ed3ae91bf15f7f0ee442"
-  integrity sha512-U4bHADUKTCmKwvpSUH3guHfCLXCDDxkhr2W3cGnmwghaN1mWNw1HH9cCpKgFMSpJjoh69spwALxVhDC5lZ42/w==
+"@quarryprotocol/quarry-sdk@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@quarryprotocol/quarry-sdk/-/quarry-sdk-4.0.0.tgz#ca83d6384845ed421ff50821021d93f9825d6222"
+  integrity sha512-cnz3tuArCdyxQ7t9kn7jG8xLz2lJgFE5ByKHT8PM2UD6UBAdSpVGnQ7Tw20165shpTiixzGd1LYU7WNMLU8cgw==
   dependencies:
     tiny-invariant "^1.2.0"
     tslib "^2.3.1"
@@ -201,27 +201,7 @@
     "@solana/web3.js" "^1.32.0"
     start-server-and-test "^1.14.0"
 
-"@solana/web3.js@^1.17.0", "@solana/web3.js@^1.32.0", "@solana/web3.js@^1.35.1":
-  version "1.36.0"
-  resolved "https://registry.yarnpkg.com/@solana/web3.js/-/web3.js-1.36.0.tgz#79d7d5217b49b80139f4de68953adc5b9a9a264f"
-  integrity sha512-RNT1451iRR7TyW7EJKMCrH/0OXawIe4zVm0DWQASwXlR/u1jmW6FrmH0lujIh7cGTlfOVbH+2ZU9AVUPLBFzwA==
-  dependencies:
-    "@babel/runtime" "^7.12.5"
-    "@ethersproject/sha2" "^5.5.0"
-    "@solana/buffer-layout" "^3.0.0"
-    bn.js "^5.0.0"
-    borsh "^0.4.0"
-    bs58 "^4.0.1"
-    buffer "6.0.1"
-    cross-fetch "^3.1.4"
-    jayson "^3.4.4"
-    js-sha3 "^0.8.0"
-    rpc-websockets "^7.4.2"
-    secp256k1 "^4.0.2"
-    superstruct "^0.14.2"
-    tweetnacl "^1.0.0"
-
-"@solana/web3.js@^1.21.0":
+"@solana/web3.js@^1.17.0", "@solana/web3.js@^1.21.0", "@solana/web3.js@^1.32.0", "@solana/web3.js@^1.35.1":
   version "1.36.0"
   resolved "https://registry.yarnpkg.com/@solana/web3.js/-/web3.js-1.36.0.tgz#79d7d5217b49b80139f4de68953adc5b9a9a264f"
   integrity sha512-RNT1451iRR7TyW7EJKMCrH/0OXawIe4zVm0DWQASwXlR/u1jmW6FrmH0lujIh7cGTlfOVbH+2ZU9AVUPLBFzwA==

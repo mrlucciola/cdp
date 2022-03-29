@@ -147,10 +147,7 @@ pub mod stable_pool {
     }
 
     #[access_control(is_global_state_paused(&ctx.accounts.global_state))]
-    pub fn repay_usdx(
-        ctx: Context<RepayUsdx>,
-        repay_amount: u64,
-    ) -> Result<()> {
+    pub fn repay_usdx(ctx: Context<RepayUsdx>, repay_amount: u64) -> Result<()> {
         repay_usdx::handle(ctx, repay_amount)
     }
 
@@ -160,7 +157,7 @@ pub mod stable_pool {
      * Create the user-derived account where reward tokens are deposited to upon harvest
      */
     pub fn create_reward_vault(ctx: Context<CreateUserRewardVault>) -> Result<()> {
-        ctx.accounts.handle()
+        create_reward_vault::handle(ctx)
     }
 
     /**

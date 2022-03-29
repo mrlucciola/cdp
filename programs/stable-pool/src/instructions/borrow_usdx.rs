@@ -101,7 +101,7 @@ pub fn handle(ctx: Context<BorrowUsdx>, usdx_borrow_amt_requested: u64) -> Resul
 /// This is still in progress. In this iteration, we are just setting the
 /// LP price to 1 LP = 0.5USDC + 0.5USDT = 1USD ~= 1USDx
 ///
-/// This will change to: query balance in Vault (to be named to Vault)
+/// This will change to: query balance in Vault
 /// THIS IS NOT COMPLETE
 #[derive(Accounts)]
 pub struct BorrowUsdx<'info> {
@@ -128,11 +128,11 @@ pub struct BorrowUsdx<'info> {
     #[account(
         mut,
         seeds=[
-            VAULT_SEED.as_ref(),// TODO: rename vault -> vault
-            vault.mint.as_ref(),// TODO: rename vault -> vault
+            VAULT_SEED.as_ref(),
+            vault.mint.as_ref(),
             authority.key().as_ref(),
         ],
-        bump=vault.bump,// TODO: rename vault -> vault
+        bump=vault.bump,
         constraint = pool.mint_collat.as_ref() == vault.mint.as_ref(),
     )]
     pub vault: Box<Account<'info, Vault>>,

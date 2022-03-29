@@ -72,6 +72,7 @@ pub struct CreatePool<'info> {
         bump,
     )]
     pub pool: Box<Account<'info, Pool>>,
+
     #[account(
         mut,
         seeds = [GLOBAL_STATE_SEED.as_ref()],
