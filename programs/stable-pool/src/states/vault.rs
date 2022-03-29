@@ -22,4 +22,10 @@ pub struct Vault {
     pub locked_coll_balance: u64,
     pub last_mint_time: u64,
     pub wallet_nonce: u8, // because of raydium
+
+    /// reserved spaces for further update
+    pub pubkeys: [Pubkey; 16],
+    pub data_128: [u128; 8],
+    pub data_64: [u64; 8],
+    pub data_32: [u32; 8],
 }

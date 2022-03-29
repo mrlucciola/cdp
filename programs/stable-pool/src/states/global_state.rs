@@ -37,4 +37,10 @@ pub struct GlobalState {
 
     /// only this wallet can report new prices to the oracle accounts
     pub oracle_reporter: Pubkey,
+
+    /// reserved spaces for further update
+    pub pubkeys: [Pubkey; 16],
+    pub data_128: [u128; 8],
+    pub data_64: [u64; 8],
+    pub data_32: [u32; 8],
 }
