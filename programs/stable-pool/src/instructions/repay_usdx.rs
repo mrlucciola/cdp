@@ -33,19 +33,10 @@ pub fn handle(ctx: Context<RepayUsdx>, repay_amount: u64) -> Result<()> {
 
     token::burn(cpi_ctx, repay_amount)?;
 
-    ctx.accounts.pool.total_debt = ctx
-        .accounts
-        .pool
-        .total_debt
-        .checked_sub(repay_amount)
-        .unwrap();
-    ctx.accounts.global_state.total_debt = ctx
-        .accounts
-        .global_state
-        .total_debt
-        .checked_sub(repay_amount)
-        .unwrap();
-    ctx.accounts.vault.debt = ctx.accounts.vault.debt.checked_sub(repay_amount).unwrap();
+    ctx.accounts.pool.total_debt -= repay_amount;
+    ctx.accounts.global_state.total_debt -= repay_amount;
+    ctx.accounts.vault.debt -= repay_amount;
+
     Ok(())
 }
 
