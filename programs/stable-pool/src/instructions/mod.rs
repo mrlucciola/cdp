@@ -11,6 +11,9 @@ pub use set_global_debt_ceiling::*;
 pub mod set_user_debt_ceiling;
 pub use set_user_debt_ceiling::*;
 
+pub mod set_pool_debt_ceiling;
+pub use set_pool_debt_ceiling::*;
+
 pub mod toggle_emer_state;
 pub use toggle_emer_state::*;
 
