@@ -47,7 +47,7 @@ pub struct CreateGlobalState<'info> {
         seeds = [GLOBAL_STATE_SEED.as_ref()],
         bump,
     )]
-    pub global_state: Account<'info, GlobalState>,
+    pub global_state: Box<Account<'info, GlobalState>>,
 
     #[account(
         init,
@@ -57,7 +57,7 @@ pub struct CreateGlobalState<'info> {
         seeds = [MINT_USDX_SEED.as_ref()],
         bump,
     )]
-    pub mint_usdx: Account<'info, Mint>,
+    pub mint_usdx: Box<Account<'info, Mint>>,
 
     #[account(address = token::ID)]
     pub token_program: Program<'info, Token>,

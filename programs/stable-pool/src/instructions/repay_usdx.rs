@@ -49,7 +49,7 @@ pub struct RepayUsdx<'info> {
         seeds = [GLOBAL_STATE_SEED.as_ref()],
         bump = global_state.bump
     )]
-    pub global_state: Account<'info, GlobalState>,
+    pub global_state: Box<Account<'info, GlobalState>>,
     #[account(
         mut,
         seeds=[POOL_SEED.as_ref(), pool.mint_collat.as_ref()],

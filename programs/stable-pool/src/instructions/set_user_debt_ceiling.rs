@@ -23,5 +23,5 @@ pub struct SetUserDebtCeiling<'info> {
         bump,
         has_one = authority,
     )]
-    pub global_state: Account<'info, GlobalState>,
+    pub global_state: Box<Account<'info, GlobalState>>,
 }

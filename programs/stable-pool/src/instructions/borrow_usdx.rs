@@ -122,9 +122,9 @@ pub struct BorrowUsdx<'info> {
         seeds = [GLOBAL_STATE_SEED.as_ref()],
         bump = global_state.bump
     )]
-    pub global_state: Account<'info, GlobalState>,
-    pub oracle_a: Account<'info, Oracle>,
-    pub oracle_b: Account<'info, Oracle>,
+    pub global_state: Box<Account<'info, GlobalState>>,
+    pub oracle_a: Box<Account<'info, Oracle>>,
+    pub oracle_b: Box<Account<'info, Oracle>>,
     pub ata_market_a: Box<Account<'info, TokenAccount>>,
     pub ata_market_b: Box<Account<'info, TokenAccount>>,
     pub mint_coll: Box<Account<'info, Mint>>,

@@ -101,7 +101,7 @@ pub struct DepositCollateral<'info> {
     #[account[mut]]
     pub authority: Signer<'info>,
     #[account[mut]]
-    pub global_state: Account<'info, GlobalState>,
+    pub global_state: Box<Account<'info, GlobalState>>,
 
     #[account(
         mut,
@@ -127,20 +127,20 @@ pub struct DepositCollateral<'info> {
         associated_token::mint = mint_collat.as_ref(),
         associated_token::authority = vault.as_ref(),
     )]
-    pub ata_vault: Account<'info, TokenAccount>,
+    pub ata_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(
         mut,
         associated_token::mint = mint_collat.as_ref(),
         associated_token::authority = authority.as_ref(),
     )]
-    pub ata_user: Account<'info, TokenAccount>,
+    pub ata_user: Box<Account<'info, TokenAccount>>,
 
     #[account(constraint = mint_collat.key().as_ref() == pool.mint_collat.as_ref())]
     pub mint_collat: Box<Account<'info, Mint>>,
 
-    pub oracle_a: Account<'info, Oracle>,
-    pub oracle_b: Account<'info, Oracle>,
+    pub oracle_a: Box<Account<'info, Oracle>>,
+    pub oracle_b: Box<Account<'info, Oracle>>,
     pub ata_market_a: Box<Account<'info, TokenAccount>>,
     pub ata_market_b: Box<Account<'info, TokenAccount>>,
 
