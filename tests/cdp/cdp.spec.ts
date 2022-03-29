@@ -18,6 +18,10 @@ import {
   createPoolFAIL_auth,
   createPoolPASS,
 } from "./createPool";
+import {
+  setPoolDebtCeilingFAIL_auth,
+  setPoolDebtCeilingPASS,
+} from "../admin-panel/setPoolDebtCeiling";
 import { createVaultFAIL_Duplicate, createVaultPASS } from "./createVault";
 import { Miner, Vault } from "../utils/interfaces";
 import {
@@ -130,6 +134,22 @@ describe("cdp core test suite", async () => {
       users.super,
       accounts,
       accounts.lpSaberUsdcUsdt.pool
+    );
+  });
+
+  // set pool debt ceiling
+  it("FAIL: Set Pool Debt Ceiling - User is not super", async () => {
+    await setPoolDebtCeilingFAIL_auth(
+      users.base,
+      accounts.lpSaberUsdcUsdt.pool,
+      accounts,
+    );
+  });
+  it("PASS: Set Pool Debt Ceiling", async () => {
+    await setPoolDebtCeilingPASS(
+      users.super,
+      accounts.lpSaberUsdcUsdt.pool,
+      accounts,
     );
   });
 

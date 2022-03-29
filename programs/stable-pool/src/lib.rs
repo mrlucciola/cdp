@@ -233,6 +233,14 @@ pub mod stable_pool {
     }
 
     /**
+     * Update the pool variable "debt_ceiling"
+     * Should only be called by the program deployer
+     */
+     pub fn set_pool_debt_ceiling(ctx: Context<SetPoolDebtCeiling>, ceiling: u64) -> Result<()> {
+        set_pool_debt_ceiling::handle(ctx, ceiling)
+    }
+
+    /**
      * TODO: Need to create treasury
      * This function updates the harvest fee on the global state
      */
