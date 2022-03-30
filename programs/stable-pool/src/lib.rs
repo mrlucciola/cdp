@@ -265,4 +265,12 @@ pub mod stable_pool {
     ) -> Result<()> {
         change_treasury_wallet::handle(ctx, new_treasury)
     }
+
+    /**
+     * Update the global state variable "authority"
+     * Should only be called by the current authority in global state
+     */
+    pub fn change_authority(ctx: Context<ChangeAuthority>, new_authority: Pubkey) -> Result<()> {
+        change_authority::handle(ctx, new_authority)
+    }
 }

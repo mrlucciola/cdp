@@ -31,6 +31,10 @@ import {
   changeTreasuryWalletFAIL_auth,
   changeTreasuryWalletPASS,
 } from "./changeTreasuryWallet";
+import {
+  changeAuthorityFAIL_auth,
+  changeAuthorityPASS,
+} from "./changeAuthority";
 
 // init env
 chaiUse(chaiAsPromised);
@@ -104,6 +108,18 @@ describe("Admin Panel Test Suite", async () => {
     await changeTreasuryWalletPASS(
       users.super,
       users.test.wallet.publicKey,
+      accounts
+    );
+  });
+
+  // change authority
+  it("FAIL: Change Authority - User is not super", async () => {
+    await changeAuthorityFAIL_auth(users.base, accounts);
+  });
+  it("PASS: Change Authority", async () => {
+    await changeAuthorityPASS(
+      users.super,
+      users.test,
       accounts
     );
   });

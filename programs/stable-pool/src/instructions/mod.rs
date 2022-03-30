@@ -53,3 +53,6 @@ pub use saber::*;
 
 pub mod change_treasury_wallet;
 pub use change_treasury_wallet::*;
+
+pub mod change_authority;
+pub use change_authority::*;
