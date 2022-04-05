@@ -13,16 +13,16 @@ import {
 // local
 import { StablePool } from "../../target/types/stable_pool";
 import { Accounts } from "../config/accounts";
+import { User } from "../interfaces/user";
 import { DECIMALS_USDX } from "../utils/constants";
 import { handleTxn } from "../utils/fxns";
 import {
   GlobalStateAcct,
   MintAcct,
   MintPubKey,
-  USDx,
-  User,
   UserToken,
   Pool,
+  GeneralToken,
 } from "../utils/interfaces";
 
 const programStablePool = workspace.StablePool as Program<StablePool>;
@@ -33,7 +33,7 @@ const borrowUsdxCall = async (
   userConnection: Connection,
   userWallet: Wallet,
   userToken: UserToken,
-  userUSDx: USDx,
+  userUSDx: GeneralToken,
   mintUsdx: MintAcct,
   pool: Pool,
   globalState: GlobalStateAcct,

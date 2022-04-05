@@ -31,6 +31,8 @@ import {
   GlobalStateAcct,
   Pool,
   ATA,
+  QuarryClass,
+  RewardTokenAccount,
 } from "../utils/interfaces";
 // local
 import {
@@ -40,33 +42,20 @@ import {
   DECIMALS_USDT,
   DECIMALS_PRICE,
 } from "../utils/constants";
-import { createAtaOnChain } from "./users";
+import { createAtaOnChain } from "../utils/fxns";
+
 // init
 const programStablePool = workspace.StablePool as Program<StablePool>;
-
-const DEFAULT_HARD_CAP = 1_000_000_000_000;
 
 export class Accounts {
   public global: GlobalStateAcct;
   public usdx: MintAcct;
+  public sbr: RewardTokenAccount;
   public lpSaberUsdcUsdt: CollateralAccount;
   public usdc: MarketTokenAccount;
   public usdt: MarketTokenAccount;
 
-  public quarryPayer: Keypair;
-  public quarryProvider: SaberProvider;
-  public quarrySdk: QuarrySDK;
-  public sbr: SPLToken;
-
-  public mintWrapperKey: PublicKey;
-  public rewarderKey: PublicKey;
-  public rewardClaimFeeAccount: PublicKey;
-
-  public minterKey: PublicKey;
-
-  public quarryKey: PublicKey;
-
-  public sbrFeeCollector: PublicKey;
+  public quarry: QuarryClass;
 
   constructor() {
     // init global state acct
@@ -75,6 +64,7 @@ export class Accounts {
     this.usdx = new MintAcct();
     this.usdc = new MarketTokenAccount();
     this.usdt = new MarketTokenAccount();
+    this.sbr = new RewardTokenAccount(); // rewardsMintKP.publicKey,
     // init lp token
     this.lpSaberUsdcUsdt = {
       pool: null as Pool,
@@ -83,7 +73,7 @@ export class Accounts {
   }
   public async init() {
     // init the token mint, oracle and markettoken
-    // TODO: update to read 'num * 10 ** DECIMALS_PRICE'
+    await this.sbr.init(DECIMALS_SBR);
     await this.usdc.init(
       1.03 * 10 ** DECIMALS_PRICE,
       25331785.961795 * 10 ** DECIMALS_USDC,
@@ -133,95 +123,8 @@ export class Accounts {
       this.usdc,
       this.usdt
     );
+    this.quarry = new QuarryClass();
+    await this.quarry.init(this.sbr.mint, this.lpSaberUsdcUsdt);
   }
-  public async initQuarry() {
-    console.log("Initializing Quarry........");
-    this.quarryPayer = (programStablePool.provider.wallet as any).payer;
-    this.quarryProvider = new SignerWallet(this.quarryPayer).createProvider(
-      programStablePool.provider.connection
-    );
-    this.quarrySdk = QuarrySDK.load({
-      provider: this.quarryProvider,
-    });
-
-    const rewardsMintKP = Keypair.generate();
-
-    let baseToken = SToken.fromMint(rewardsMintKP.publicKey, DECIMALS_SBR);
-    let baseHardCap = TokenAmount.parse(baseToken, DEFAULT_HARD_CAP.toString());
-    const { tx, mintWrapper: mintWrapperKey } =
-      await this.quarrySdk.mintWrapper.newWrapper({
-        hardcap: baseHardCap.toU64(),
-        tokenMint: rewardsMintKP.publicKey,
-      });
-    // try to use the one above pls
-    let txInitMint = await createInitMintInstructions({
-      provider: this.quarryProvider,
-      mintKP: rewardsMintKP, // Account with signing authority on the original token (baseToken)
-      decimals: DECIMALS_SBR,
-      mintAuthority: mintWrapperKey,
-      freezeAuthority: mintWrapperKey,
-    });
-    await txInitMint.confirm();
-    await tx.confirm();
-    console.log("Passed creating mintWrapper->" + [mintWrapperKey]);
-
-    this.sbr = new SPLToken(
-      this.quarryProvider.connection,
-      rewardsMintKP.publicKey,
-      TOKEN_PROGRAM_ID,
-      this.quarryPayer
-    );
-
-    const { tx: txRewarder, key: rewarderKey } =
-      await this.quarrySdk.mine.createRewarder({
-        mintWrapper: mintWrapperKey,
-        authority: this.quarryPayer.publicKey,
-      });
-
-    // await expectTX(txRewarder, "Create new rewarder").to.be.fulfilled;
-    await txRewarder.confirm();
-    console.log("Passed creating rewarder" + [rewarderKey]);
-
-    let rewarder = await this.quarrySdk.mine.loadRewarderWrapper(rewarderKey);
-    const rate_tx = rewarder.setAnnualRewards({
-      newAnnualRate: new u64(1000_000_000_000),
-    });
-    await rate_tx.confirm();
-    console.log("Passed setting Annual Rewards");
-
-    const allowance = new u64(1_000_000_000);
-
-    let txMinter = await this.quarrySdk.mintWrapper.newMinterWithAllowance(
-      mintWrapperKey,
-      rewarderKey,
-      allowance
-    );
-    await txMinter.confirm();
-    [this.minterKey] = await findMinterAddress(
-      mintWrapperKey,
-      rewarderKey,
-      QUARRY_ADDRESSES.MintWrapper
-    );
-    console.log("Passed creating minter->" + [this.minterKey]);
-
-    const usdcUsdtLPToken = SToken.fromMint(this.lpSaberUsdcUsdt.mint, 9);
-    const { quarry: quarryKey, tx: txQuarry } = await rewarder.createQuarry({
-      // token: baseToken,
-      token: usdcUsdtLPToken,
-    });
-    await txQuarry.confirm();
-    console.log("Passed creating quarry ->" + [quarryKey]);
-
-    let quarry = await rewarder.getQuarry(usdcUsdtLPToken);
-    const share_tx = await quarry.setRewardsShare(new u64(100_000_000));
-    share_tx.confirm();
-
-    console.log("Passed setting rewardsShare for the Quarry");
-    this.mintWrapperKey = mintWrapperKey;
-    this.rewarderKey = rewarderKey;
-
-    this.rewardClaimFeeAccount = rewarder.rewarderData.claimFeeTokenAccount;
-
-    this.quarryKey = quarryKey;
-  }
+  
 }

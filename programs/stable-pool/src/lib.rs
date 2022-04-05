@@ -152,38 +152,6 @@ pub mod stable_pool {
     }
 
     /**
-     * TODO: refactor this to match the other style of writing functions
-     *
-     * Create the user-derived account where reward tokens are deposited to upon harvest
-     */
-    pub fn create_reward_vault(ctx: Context<CreateUserRewardVault>) -> Result<()> {
-        create_reward_vault::handle(ctx)
-    }
-
-    /**
-     * Create the Saber liquidity miner account set by the Quarry framework/standard
-     *
-     * aliases: create_saber_quarry_miner, CreateSaberQuarryMiner, createSaberQuarryMiner
-     * prev aliases: create_quarry_miner, CreateQuarryMiner, createQuarryMiner
-     */
-    pub fn create_saber_quarry_miner(
-        ctx: Context<CreateSaberQuarryMiner>,
-        miner_bump: u8,
-    ) -> Result<()> {
-        create_saber_quarry_miner::handle(ctx, miner_bump)
-    }
-
-    /**
-     * stake_collateral_to_saber, StakeCollateralToSaber, stakeCollateralToSaber
-     */
-    pub fn stake_collateral_to_saber(
-        ctx: Context<StakeCollateralToSaber>,
-        amount: u64,
-    ) -> Result<()> {
-        stake_collateral_to_saber::handle(ctx, amount)
-    }
-
-    /**
      * Create the account that holds the active USD price for a given single asset (i.e. USDC)
      *
      * aliases: create_oracle, CreateOracle, createOracle
@@ -236,7 +204,7 @@ pub mod stable_pool {
      * Update the pool variable "debt_ceiling"
      * Should only be called by the program deployer
      */
-     pub fn set_pool_debt_ceiling(ctx: Context<SetPoolDebtCeiling>, ceiling: u64) -> Result<()> {
+    pub fn set_pool_debt_ceiling(ctx: Context<SetPoolDebtCeiling>, ceiling: u64) -> Result<()> {
         set_pool_debt_ceiling::handle(ctx, ceiling)
     }
 
@@ -272,5 +240,45 @@ pub mod stable_pool {
      */
     pub fn change_authority(ctx: Context<ChangeAuthority>, new_authority: Pubkey) -> Result<()> {
         change_authority::handle(ctx, new_authority)
+    }
+
+    // SABER FUNCTIONS
+    /**
+     * TODO: refactor this to match the other style of writing functions
+     *
+     * Create the user-derived account where reward tokens are deposited to upon harvest
+     */
+    pub fn create_reward_vault(ctx: Context<CreateUserRewardVault>) -> Result<()> {
+        create_reward_vault::handle(ctx)
+    }
+
+    /**
+     * Create the Saber liquidity miner account set by the Quarry framework/standard
+     *
+     * aliases: create_saber_quarry_miner, CreateSaberQuarryMiner, createSaberQuarryMiner
+     * prev aliases: create_quarry_miner, CreateQuarryMiner, createQuarryMiner
+     */
+    pub fn create_saber_quarry_miner(
+        ctx: Context<CreateSaberQuarryMiner>,
+        miner_bump: u8,
+    ) -> Result<()> {
+        create_saber_quarry_miner::handle(ctx, miner_bump)
+    }
+
+    /**
+     * aliases: stake_collateral_to_saber, StakeCollateralToSaber, stakeCollateralToSaber
+     */
+    pub fn stake_collateral_to_saber(
+        ctx: Context<StakeCollateralToSaber>,
+        amount: u64,
+    ) -> Result<()> {
+        stake_collateral_to_saber::handle(ctx, amount)
+    }
+
+    /**
+     * aliases: harvest_rewards_from_saber, HarvestRewardsFromSaber, harvestRewardsFromSaber
+     */
+    pub fn harvest_rewards_from_saber(ctx: Context<HarvestRewardsFromSaber>) -> Result<()> {
+        harvest_rewards_from_saber::handle(ctx)
     }
 }

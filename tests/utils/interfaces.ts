@@ -1,19 +1,6 @@
 // anchor/solana
-import {
-  Provider,
-  utils,
-  Wallet,
-  web3,
-  workspace,
-  Program,
-} from "@project-serum/anchor";
-import {
-  Connection,
-  Keypair,
-  LAMPORTS_PER_SOL,
-  PublicKey,
-  Signer,
-} from "@solana/web3.js";
+import { Wallet, web3, workspace, Program } from "@project-serum/anchor";
+import { Connection, Keypair, PublicKey, Signer } from "@solana/web3.js";
 // TODO: figure out why linter throws error. It is because of quarry's package
 import {
   // @ts-ignore
@@ -22,9 +9,29 @@ import {
   burn,
   // @ts-ignore
   getAccount,
+  // @ts-ignore
+  setAuthority,
+  // @ts-ignore
+  AuthorityType,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { QUARRY_ADDRESSES } from "@quarryprotocol/quarry-sdk";
+import {
+  findMinterAddress,
+  QuarrySDK,
+  QuarryWrapper,
+  RewarderWrapper,
+  QUARRY_ADDRESSES
+} from "@quarryprotocol/quarry-sdk";
+import {
+  TokenAmount,
+  Token as SToken,
+  u64,
+  SPLToken,
+} from "@saberhq/token-utils";
+import {
+  SignerWallet,
+  Provider as SaberProvider,
+} from "@saberhq/solana-contrib";
 // local
 import {
   GLOBAL_STATE_SEED,
@@ -32,12 +39,11 @@ import {
   ORACLE_SEED,
   VAULT_SEED,
   POOL_SEED,
+  DECIMALS_SBR,
 } from "./constants";
 import { StablePool } from "../../target/types/stable_pool";
-import { airdropSol, getAssocTokenAcct, getPda } from "./fxns";
-import { TestTokens } from "./types";
-import { createAtaOnChain, mintToAta } from "../config/users";
-import { SPLToken } from "@saberhq/token-utils";
+import { getAssocTokenAcct, getPda, createAtaOnChain } from "./fxns";
+import { User } from "../interfaces/user";
 
 // init
 const programStablePool = workspace.StablePool as Program<StablePool>;
@@ -58,6 +64,12 @@ export class Acct {
       this.pubKey
     );
   }
+}
+
+export class Market {
+  saber?: {
+    usdcUsdtStable?: GeneralToken;
+  };
 }
 
 export class MarketTokenAccount {
@@ -117,6 +129,23 @@ export class MarketTokenAccount {
         startingToken // mintAmount — Amount to mint in human form
       );
     }
+  }
+}
+
+export class RewardTokenAccount {
+  splToken: SPLToken;
+  mint: MintPubKey;
+
+  async init(decimals: number) {
+    this.splToken = await SPLToken.createMint(
+      programStablePool.provider.connection,
+      (programStablePool.provider.wallet as Wallet).payer as Signer,
+      programStablePool.provider.wallet.publicKey,
+      programStablePool.provider.wallet.publicKey,
+      decimals,
+      TOKEN_PROGRAM_ID
+    );
+    this.mint = this.splToken.publicKey;
   }
 }
 
@@ -222,26 +251,21 @@ export class USDx {
 }
 
 /**
- * User Token object
+ * General token
  * Contains an ATA and a Vault
  * @class ATA
  * @property pubKey - PublicKey: Public Key for ATA
  * @property bump? - u8: Bump/nonce for ATA
- * @class Vault
- * @property pubKey - PublicKey: Public Key for ATA
- * @property bump - u8: Bump/nonce for ATA
- * @property ATA
  * @method getAccountInfo
  */
-export class UserToken {
+export class GeneralToken {
+  mint: MintPubKey;
   ata: ATA;
-  vault: Vault;
   constructor(userWallet: Wallet, mintPubKey: MintPubKey) {
     this.ata = new ATA(userWallet.publicKey, mintPubKey);
-    this.vault = new Vault(userWallet, mintPubKey);
+    this.mint = mintPubKey;
   }
 
-  // TODO: this method throws an error, havent debugged yet
   public async initAta(
     userWallet: Wallet,
     mintPubKey: MintPubKey,
@@ -254,6 +278,28 @@ export class UserToken {
       userWallet.publicKey, // auth, can be different than payer
       userConnection // connection
     );
+  }
+}
+
+/**
+ * User Token object
+ * Contains an ATA and a Vault
+ * @class ATA
+ * @property pubKey - PublicKey: Public Key for ATA
+ * @property bump? - u8: Bump/nonce for ATA
+ * @class Vault
+ * @property pubKey - PublicKey: Public Key for ATA
+ * @property bump - u8: Bump/nonce for ATA
+ * @property ATA
+ * @method getAccountInfo
+ */
+export class UserToken extends GeneralToken {
+  vault: Vault;
+  constructor(userWallet: Wallet, mintPubKey: MintPubKey) {
+    super(userWallet, mintPubKey);
+
+    this.ata = new ATA(userWallet.publicKey, mintPubKey);
+    this.vault = new Vault(userWallet, mintPubKey);
   }
 }
 
@@ -317,36 +363,6 @@ export class Vault extends BaseAcct {
 }
 
 // TODO: is this MVP?
-export class Miner {
-  pubkey: PublicKey;
-  bump: number;
-  ata: ATA;
-  constructor(vault: Vault, quarryKey: PublicKey, mintKey: MintPubKey) {
-    // b"Miner".as_ref(),
-    // quarry.key().to_bytes().as_ref(),
-    // authority.key().to_bytes().as_ref()
-    const [pubkey, bump] = getPda(
-      [
-        Buffer.from("Miner"),
-        // Buffer.from(utils.bytes.utf8.encode("Miner")),
-        quarryKey.toBuffer(),
-        vault.pubKey.toBuffer(),
-      ],
-      QUARRY_ADDRESSES.Mine
-    );
-    this.pubkey = pubkey;
-    this.bump = bump;
-    // [this.pubkey, this.bump] = findProgramAddressSync(
-    //   [
-    //     Buffer.from(utils.bytes.utf8.encode("Miner")),
-    //     quarryKey.toBytes(),
-    //     vault.pubKey.toBytes(),
-    //   ],
-    //   QUARRY_ADDRESSES.Mine
-    // );
-    this.ata = new ATA(this.pubkey, mintKey);
-  }
-}
 
 export class GlobalStateAcct extends BaseAcct {
   constructor() {
@@ -421,64 +437,110 @@ export class Oracle extends BaseAcct {
   }
 }
 
-export class User {
-  wallet: Wallet;
-  provider: Provider;
-  tokens?: {
-    usdx?: USDx;
-    lpSaber?: UserToken; // this doesnt get created until the pass case for vault
-    ataSBRKey?: PublicKey;
-  };
-  miner?: any;
-  constructor(keypair: Keypair) {
-    this.wallet = new Wallet(keypair);
-    this.provider = new Provider(
-      programStablePool.provider.connection,
-      this.wallet,
-      {
-        skipPreflight: true,
-        commitment: "confirmed",
-        preflightCommitment: "confirmed",
-      }
-    );
-    // TODO: was this commented out?
-    this.tokens = {};
-  }
-  public async init() {
-    await airdropSol(
-      this.provider,
-      this.wallet.publicKey,
-      99999 * LAMPORTS_PER_SOL
-    );
-    // await this.addToken("base", mintPubKey, "lpSaber", 200_000_000);
-  }
-  public async addToken(
-    mintPubKey: MintPubKey,
-    tokenStr: TestTokens,
-    amount: number,
-    mintAuth?: User
-  ) {
-    if (amount === 0) throw new Error("Please enter more than 0");
-    this.tokens[tokenStr] = new UserToken(this.wallet, mintPubKey);
+export class QuarryClass {
+  public payer: Keypair;
+  public provider: SaberProvider;
+  public sdk: QuarrySDK;
+  public pubkey: PublicKey; // quarryKey
+  public mintWrapper: PublicKey; // mintWrapperKey
+  public rewarder: PublicKey; // rewarderKey
+  public minter: PublicKey;
+  public rewarderWrapper: RewarderWrapper; // rewarderWrapper
+  public rewardClaimFeeAccount: PublicKey;
+  public quarryWrapper: QuarryWrapper; // quarryWrapper
 
-    // create ata
-    await createAtaOnChain(
-      this.wallet,
-      this.tokens[tokenStr].ata,
-      mintPubKey,
-      this.wallet.publicKey,
-      this.provider.connection
+  constructor() {
+    this.payer = (programStablePool.provider.wallet as any).payer;
+    this.provider = new SignerWallet(this.payer).createProvider(
+      programStablePool.provider.connection
+    );
+    this.sdk = QuarrySDK.load({
+      provider: this.provider,
+    });
+    // this.sbr.splToken.payer
+    // const rewardsMintKP = Keypair.generate();
+  }
+  async init(sbrMint: MintPubKey, collateralToken: CollateralAccount) {
+    let sbrSToken = SToken.fromMint(sbrMint, DECIMALS_SBR);
+    let baseHardCap = TokenAmount.parse(sbrSToken, "1000000000000");
+
+    // create the mint wrapper
+    const { tx: txWrapper, mintWrapper: mintWrapperKey } =
+      await this.sdk.mintWrapper.newWrapper({
+        hardcap: baseHardCap.toU64(),
+        tokenMint: sbrMint,
+      });
+    await setAuthority(
+      this.provider.connection,
+      this.payer,
+      sbrMint,
+      this.payer,
+      AuthorityType.MintTokens,
+      mintWrapperKey,
+    );
+    await setAuthority(
+      this.provider.connection,
+      this.payer,
+      sbrMint,
+      this.payer,
+      AuthorityType.FreezeAccount,
+      mintWrapperKey,
+    );
+    await txWrapper.confirm();
+    this.mintWrapper = mintWrapperKey;
+
+    // create the rewarder
+    const { tx: txRewarder, key: rewarderPubKey } =
+      await this.sdk.mine.createRewarder({
+        mintWrapper: this.mintWrapper,
+        authority: this.payer.publicKey,
+      });
+    await txRewarder.confirm();
+    this.rewarder = rewarderPubKey;
+
+    // set annual rewards
+    this.rewarderWrapper = await this.sdk.mine.loadRewarderWrapper(
+      this.rewarder
     );
 
-    // mint
-    if (mintAuth) {
-      await mintToAta(
-        tokenStr,
-        mintPubKey,
-        mintAuth,
-        this.tokens[tokenStr],
-        amount
-      );
-    }
+    const rate_tx = this.rewarderWrapper.setAnnualRewards({
+      newAnnualRate: new u64(1000000000000),
+    });
+    await rate_tx.confirm();
+
+    const allowance = new u64(1_000_000_000);
+
+    let txMinter = await this.sdk.mintWrapper.newMinterWithAllowance(
+      this.mintWrapper,
+      this.rewarder,
+      allowance
+    );
+    await txMinter.confirm();
+    [this.minter] = await findMinterAddress(
+      this.mintWrapper, // mintWrapperKey
+      this.rewarder, // rewarderKey,
+      QUARRY_ADDRESSES.MintWrapper
+    );
+    console.log("Passed creating minter->" + [this.minter]);
+
+    this.rewardClaimFeeAccount =
+      this.rewarderWrapper.rewarderData.claimFeeTokenAccount;
+
+    // only a rewarder can create a quarry
+    const collateralSToken = SToken.fromMint(collateralToken.mint, 9); // prev: usdcUsdtLPToken
+    const { quarry: quarryPubKey, tx: txQuarry } =
+      await this.rewarderWrapper.createQuarry({
+        token: collateralSToken, // token: baseToken, == sbrSToken
+      });
+    await txQuarry.confirm();
+    this.pubkey = quarryPubKey;
+
+    // set rewards share for quarry
+    this.quarryWrapper = await this.rewarderWrapper.getQuarry(collateralSToken);
+    const share_tx = await this.quarryWrapper.setRewardsShare(
+      new u64(100_000_000)
+    );
+    share_tx.confirm();
+
   }
 }

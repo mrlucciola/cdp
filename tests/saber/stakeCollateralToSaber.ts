@@ -10,12 +10,7 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import {
-  Connection,
-  LAMPORTS_PER_SOL,
-  PublicKey,
-  Transaction,
-} from "@solana/web3.js";
+import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 // quarry
 import { QUARRY_ADDRESSES } from "@quarryprotocol/quarry-sdk";
 // local
@@ -23,16 +18,16 @@ import { StablePool } from "../../target/types/stable_pool";
 import { Accounts } from "../config/accounts";
 import {
   GlobalStateAcct,
-  Miner,
   MintPubKey,
   Pool,
-  User,
   UserToken,
   Vault,
 } from "../utils/interfaces";
 import { assert } from "chai";
 import { handleTxn } from "../utils/fxns";
 import { DECIMALS_USD, DECIMALS_USDCUSDT } from "../utils/constants";
+import { User } from "../interfaces/user";
+import { Miner } from "../interfaces/miner";
 
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
@@ -135,9 +130,9 @@ export const stakeCollateralToSaberPASS = async (
     // globalState
     accounts.global,
     ///quarry-mine rewader
-    accounts.rewarderKey,
+    accounts.quarry.rewarder, // .rewarderKey
     ///quarry-mine quarry
-    accounts.quarryKey,
+    accounts.quarry.pubkey,
     ///quarry-mine miner of vault
     user.miner
   );

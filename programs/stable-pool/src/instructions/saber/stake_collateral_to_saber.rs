@@ -165,6 +165,7 @@ pub struct StakeCollateralToSaber<'info> {
     #[account(mut)]
     pub miner: Box<Account<'info, Miner>>,
 
+    // the miner (miner-vault's auth is miner, miner's auth is user), this is implemented as an ATA
     #[account(mut)]
     pub miner_vault: Box<Account<'info, TokenAccount>>,
 

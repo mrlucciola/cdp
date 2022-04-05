@@ -5,7 +5,6 @@ import { use as chaiUse } from "chai";
 import chaiAsPromised from "chai-as-promised";
 // local imports
 import { StablePool } from "../../target/types/stable_pool";
-import { Users } from "../config/users";
 import { Accounts } from "../config/accounts";
 // test imports
 import {
@@ -35,6 +34,7 @@ import {
   changeAuthorityFAIL_auth,
   changeAuthorityPASS,
 } from "./changeAuthority";
+import { Users } from "../interfaces/users";
 
 // init env
 chaiUse(chaiAsPromised);

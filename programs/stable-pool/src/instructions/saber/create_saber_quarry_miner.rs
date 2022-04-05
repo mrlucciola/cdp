@@ -126,9 +126,9 @@ pub struct CreateSaberQuarryMiner<'info> {
 
     #[account(
         init,
+        payer = authority,
         associated_token::mint = mint,
         associated_token::authority = miner,
-        payer = authority,
     )]
     pub miner_vault: Box<Account<'info, TokenAccount>>,
 
@@ -136,9 +136,7 @@ pub struct CreateSaberQuarryMiner<'info> {
     pub quarry_program: AccountInfo<'info>,
 
     // system
-    #[account(address = token::ID)]
     pub token_program: Program<'info, Token>,
-    #[account(address = associated_token::ID)]
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,

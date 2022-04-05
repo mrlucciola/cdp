@@ -5,7 +5,6 @@ import { use as chaiUse } from "chai";
 import chaiAsPromised from "chai-as-promised";
 // local imports
 import { StablePool } from "../../target/types/stable_pool";
-import { Users } from "../config/users";
 import { Accounts } from "../config/accounts";
 import {
   createGlobalStateFAIL_auth,
@@ -23,7 +22,7 @@ import {
   setPoolDebtCeilingPASS,
 } from "../admin-panel/setPoolDebtCeiling";
 import { createVaultFAIL_Duplicate, createVaultPASS } from "./createVault";
-import { Miner, Vault } from "../utils/interfaces";
+import { Vault } from "../utils/interfaces";
 import {
   depositCollateralFAIL_NotEnoughTokens,
   depositCollateralPASS,
@@ -45,7 +44,7 @@ import { createVaultRewardVault } from "./createRewardVault";
 import { createSaberQuarryMinerPASS } from "../saber/createSaberQuarryMiner";
 import { stakeCollateralToSaberPASS } from "../saber/stakeCollateralToSaber";
 // import { withdrawFromSaber } from "../saber/withdraw";
-// import { harvestFromSaber } from "../saber/harvest";
+import { harvestRewardsFromSaberPASS } from "../saber/harvestRewardFromSaber";
 import {
   repayUsdxFAIL_RepayMoreThanBorrowed,
   repayUsdxPASS_RepayFullAmountBorrowed,
@@ -53,7 +52,8 @@ import {
   repayUsdxFAIL_ZeroUsdx,
   repayUsdxFAIL_RepayAnotherUsersDebt,
 } from "../cdp/repayUsdx";
-import { sleep } from "@saberhq/token-utils";
+import { Users } from "../interfaces/users";
+import { Miner } from "../interfaces/miner";
 
 // init env
 chaiUse(chaiAsPromised);
@@ -70,14 +70,18 @@ describe("cdp core test suite", async () => {
   before(async () => {
     accounts = new Accounts();
     await accounts.init();
-    await accounts.initQuarry();
+    // await accounts.initQuarry();
 
     users = new Users();
-    await users.init(accounts.usdx.pubKey, accounts.lpSaberUsdcUsdt.mint);
+    await users.init(
+      accounts.usdx.pubKey,
+      accounts.lpSaberUsdcUsdt.mint,
+      accounts.sbr.mint
+    );
     // create miner
     users.base.miner = new Miner(
       users.base.tokens.lpSaber.vault,
-      accounts.quarryKey,
+      accounts.quarry,
       accounts.lpSaberUsdcUsdt.mint
     );
   });
@@ -122,11 +126,7 @@ describe("cdp core test suite", async () => {
   });
 
   it("PASS: Create Pool - lpSaberUsdcUsdt", async () => {
-    await createPoolPASS(
-      users.super,
-      accounts,
-      accounts.lpSaberUsdcUsdt.pool
-    );
+    await createPoolPASS(users.super, accounts, accounts.lpSaberUsdcUsdt.pool);
   });
 
   it("FAIL: Create Pool - duplicate", async () => {
@@ -199,7 +199,7 @@ describe("cdp core test suite", async () => {
     users.base.tokens.lpSaber.vault = new Vault(
       users.base.wallet,
       accounts.lpSaberUsdcUsdt.mint,
-      [accounts.sbr.publicKey]
+      [accounts.sbr.mint]
     );
   });
 
@@ -339,7 +339,7 @@ describe("cdp core test suite", async () => {
       users.base.provider.connection,
       users.base.tokens.lpSaber.vault,
       accounts.lpSaberUsdcUsdt.pool,
-      accounts.sbr.publicKey
+      accounts.sbr.mint
     );
   });
 
@@ -356,5 +356,9 @@ describe("cdp core test suite", async () => {
 
   it("PASS: Stake to saber", async () => {
     await stakeCollateralToSaberPASS(users.base, accounts);
+  });
+
+  it("PASS: Harvest rewards from the saber quarry mine", async () => {
+    await harvestRewardsFromSaberPASS(users.base, users.super, accounts);
   });
 });

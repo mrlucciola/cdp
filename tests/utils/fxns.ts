@@ -3,8 +3,6 @@ import {
   web3,
   Provider,
   utils,
-  workspace,
-  Program,
   getProvider,
   Wallet,
 } from "@project-serum/anchor";
@@ -19,11 +17,16 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 // local
-import { StablePool } from "../../target/types/stable_pool";
-import { User } from "./interfaces";
 import { translateError } from "./errors";
-
-const programStablePool = workspace.StablePool as Program<StablePool>;
+import { TestTokens } from "./types";
+import { User } from "../interfaces/user";
+import { ATA, GeneralToken, MintPubKey, UserToken } from "./interfaces";
+import {
+  // @ts-ignore
+  mintTo,
+  // @ts-ignore
+  createAssociatedTokenAccountInstruction,
+} from "@solana/spl-token";
 
 /**
  * We use user provider and user wallet because
@@ -152,4 +155,86 @@ export const getSolBalance = async (
   provider: Provider = getProvider()
 ) => {
   return await provider.connection.getBalance(pubKey);
+};
+
+export const mintToAta = async (
+  mintTokenStr: TestTokens,
+  mintPubKey: PublicKey,
+  mintAuth: User,
+  dest: UserToken | GeneralToken,
+  amount: number = 200_000_000 // 0.2 units of token
+) => {
+  // mint to newly created ata
+  const ataBalanceOrig = Number((await getAcctBalance(dest.ata.pubKey)).amount);
+  console.log(`minting ${mintTokenStr} to ata, balance: ${ataBalanceOrig}`);
+  try {
+    await mintTo(
+      mintAuth.provider.connection, // connection — Connection to use
+      mintAuth.wallet.payer, // payer — Payer of the transaction fees
+      mintPubKey, // mint — Mint for the account
+      dest.ata.pubKey, // destination — Address of the account to mint to
+      mintAuth.wallet.publicKey, // authority — Minting authority
+      amount // amount — Amount to mint
+    );
+  } catch (error) {
+    throw error;
+  }
+  const ataBalanceNew = Number((await getAcctBalance(dest.ata.pubKey)).amount);
+  const diff = ataBalanceNew - ataBalanceOrig;
+  console.log(`ata balance: ${ataBalanceOrig} -> ${ataBalanceNew}  ∆=${diff}`);
+};
+
+/**
+ * Create an associated token account (ATA) for a given user-auth account.
+ *
+ * 1. Derive the ATA.
+ * 2. Create the ATA on chain
+ * 3. Mint token to the ATA
+ *
+ * @param userWallet
+ * @param userConnection
+ * @param mintPubKey - the mint pub key
+ * @param authorityPubKey - the authority
+ */
+export const deriveAndInitAta = async (
+  userWallet: Wallet,
+  userConnection: Connection,
+  mintPubKey: PublicKey,
+  authorityPubKey?: PublicKey
+): Promise<[PublicKey, number]> => {
+  const auth = authorityPubKey || userWallet.publicKey;
+  // 1) get token acct for user
+  const [ataPubKey, bump] = getAssocTokenAcct(auth, mintPubKey);
+
+  // create instruction & add to transaction
+  const txn = new Transaction().add(
+    createAssociatedTokenAccountInstruction(
+      userWallet.publicKey, // payer: web3.PublicKey,
+      ataPubKey, // associatedToken: web3.PublicKey,
+      auth, // owner: web3.PublicKey,
+      mintPubKey // mint: web3.PublicKey,
+    )
+  );
+
+  // sign and send
+  await handleTxn(txn, userConnection, userWallet);
+  return [ataPubKey, bump];
+};
+
+export const createAtaOnChain = async (
+  userWallet: Wallet,
+  ata: ATA,
+  mintPubKey: MintPubKey,
+  auth?: PublicKey,
+  userConnection: Connection = null
+) => {
+  const txn = new Transaction().add(
+    createAssociatedTokenAccountInstruction(
+      userWallet.publicKey, // payer: web3.PublicKey,
+      ata.pubKey, // associatedToken: web3.PublicKey,
+      auth || userWallet.publicKey, // owner: web3.PublicKey,
+      mintPubKey // mint: web3.PublicKey,
+    )
+  );
+  userConnection && (await handleTxn(txn, userConnection, userWallet));
 };

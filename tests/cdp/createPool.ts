@@ -44,7 +44,7 @@ const createPoolCall = async (
       PLATFORM_TYPE_SABER,
       accounts.usdc.mint,
       accounts.usdt.mint,
-      [accounts.sbr.publicKey],
+      [accounts.sbr.mint],
       tokenADecimals,
       tokenBDecimals,
       {
