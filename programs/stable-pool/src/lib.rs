@@ -276,6 +276,16 @@ pub mod stable_pool {
     }
 
     /**
+     * aliases: unstake_collateral_from_saber, UnstakeCollateralFromSaber, unstakeCollateralFromSaber
+     */
+     pub fn unstake_collateral_from_saber(
+        ctx: Context<UnstakeCollateralFromSaber>,
+        amount: u64,
+    ) -> Result<()> {
+        unstake_collateral_from_saber::handle(ctx, amount)
+    }
+
+    /**
      * aliases: harvest_rewards_from_saber, HarvestRewardsFromSaber, harvestRewardsFromSaber
      */
     pub fn harvest_rewards_from_saber(ctx: Context<HarvestRewardsFromSaber>) -> Result<()> {

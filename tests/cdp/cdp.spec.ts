@@ -43,7 +43,11 @@ import { createOracleFAIL_Duplicate, createOraclePASS } from "./createOracle";
 import { createVaultRewardVault } from "./createRewardVault";
 import { createSaberQuarryMinerPASS } from "../saber/createSaberQuarryMiner";
 import { stakeCollateralToSaberPASS } from "../saber/stakeCollateralToSaber";
-// import { withdrawFromSaber } from "../saber/withdraw";
+import {
+  unstakeColalteralFromSaberFAIL_AttemptToUnstakeMoreThanWasStaked,
+  unstakeColalteralFromSaberFAIL_AttemptToUnstakeFromAnotherUser,
+  unstakeColalteralFromSaberPASS,
+} from "../saber/unstakeCollateralFromSaber";
 import { harvestRewardsFromSaberPASS } from "../saber/harvestRewardFromSaber";
 import {
   repayUsdxFAIL_RepayMoreThanBorrowed,
@@ -142,14 +146,14 @@ describe("cdp core test suite", async () => {
     await setPoolDebtCeilingFAIL_auth(
       users.base,
       accounts.lpSaberUsdcUsdt.pool,
-      accounts,
+      accounts
     );
   });
   it("PASS: Set Pool Debt Ceiling", async () => {
     await setPoolDebtCeilingPASS(
       users.super,
       accounts.lpSaberUsdcUsdt.pool,
-      accounts,
+      accounts
     );
   });
 
@@ -360,5 +364,24 @@ describe("cdp core test suite", async () => {
 
   it("PASS: Harvest rewards from the saber quarry mine", async () => {
     await harvestRewardsFromSaberPASS(users.base, users.super, accounts);
+  });
+
+  it("FAIL: Unstake From Saber - Try To Unstake More Than Was Staked", async () => {
+    await unstakeColalteralFromSaberFAIL_AttemptToUnstakeMoreThanWasStaked(
+      users.base,
+      accounts
+    );
+  });
+
+  it("FAIL: Unstake From Saber - Unstake For Another User", async () => {
+    await unstakeColalteralFromSaberFAIL_AttemptToUnstakeFromAnotherUser(
+      users.base,
+      users.test,
+      accounts
+    );
+  });
+  
+  it("PASS: Unstake From Saber", async () => {
+    await unstakeColalteralFromSaberPASS(users.base, accounts);
   });
 });
