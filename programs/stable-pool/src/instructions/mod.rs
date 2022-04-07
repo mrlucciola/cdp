@@ -20,6 +20,9 @@ pub use toggle_emer_state::*;
 pub mod set_harvest_fee;
 pub use set_harvest_fee::*;
 
+pub mod create_user_state;
+pub use create_user_state::*;
+
 pub mod create_pool;
 pub use create_pool::*;
 

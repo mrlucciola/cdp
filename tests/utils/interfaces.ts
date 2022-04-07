@@ -11,8 +11,6 @@ import {
   getAccount,
   // @ts-ignore
   setAuthority,
-  // @ts-ignore
-  AuthorityType,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import {
@@ -20,7 +18,7 @@ import {
   QuarrySDK,
   QuarryWrapper,
   RewarderWrapper,
-  QUARRY_ADDRESSES
+  QUARRY_ADDRESSES,
 } from "@quarryprotocol/quarry-sdk";
 import {
   TokenAmount,
@@ -44,6 +42,7 @@ import {
 import { StablePool } from "../../target/types/stable_pool";
 import { getAssocTokenAcct, getPda, createAtaOnChain } from "./fxns";
 import { User } from "../interfaces/user";
+import { AuthorityType } from "@solana/spl-token";
 
 // init
 const programStablePool = workspace.StablePool as Program<StablePool>;
@@ -349,6 +348,7 @@ export class BaseAcct extends PDA {
 export class Vault extends BaseAcct {
   ata: ATA;
   ataRewards: ATA[];
+
   constructor(userWallet: Wallet, mintPubKey: MintPubKey, rewardMints = []) {
     super(VAULT_SEED, [mintPubKey.toBuffer(), userWallet.publicKey.toBuffer()]);
     this.type = "vault";
@@ -357,9 +357,6 @@ export class Vault extends BaseAcct {
     this.ata = new ATA(this.pubKey, mintPubKey);
     this.ataRewards = rewardMints.map((mint) => new ATA(this.pubKey, mint));
   }
-  // public async getAccount(): Promise<IdlAccounts<StablePool>["vault"]> {
-  //   return await this.getAccount();
-  // }
 }
 
 // TODO: is this MVP?
@@ -457,35 +454,34 @@ export class QuarryClass {
     this.sdk = QuarrySDK.load({
       provider: this.provider,
     });
-    // this.sbr.splToken.payer
-    // const rewardsMintKP = Keypair.generate();
   }
-  async init(sbrMint: MintPubKey, collateralToken: CollateralAccount) {
-    let sbrSToken = SToken.fromMint(sbrMint, DECIMALS_SBR);
-    let baseHardCap = TokenAmount.parse(sbrSToken, "1000000000000");
 
+  async init(sbr: RewardTokenAccount, collateralToken: CollateralAccount) {
+    const sbrSToken = SToken.fromMint(sbr.mint, DECIMALS_SBR);
+    const baseHardCap = TokenAmount.parse(sbrSToken, "1000000000000");
     // create the mint wrapper
     const { tx: txWrapper, mintWrapper: mintWrapperKey } =
       await this.sdk.mintWrapper.newWrapper({
         hardcap: baseHardCap.toU64(),
-        tokenMint: sbrMint,
+        tokenMint: sbr.mint,
       });
-    await setAuthority(
-      this.provider.connection,
-      this.payer,
-      sbrMint,
-      this.payer,
-      AuthorityType.MintTokens,
-      mintWrapperKey,
+
+    await sbr.splToken.setAuthority(
+      sbr.mint, // account
+      mintWrapperKey, // newAuthority
+      "MintTokens", // authorityType
+      programStablePool.provider.wallet.publicKey, // currentAuthority
+      [(programStablePool.provider.wallet as Wallet).payer] // multiSigners
     );
-    await setAuthority(
-      this.provider.connection,
-      this.payer,
-      sbrMint,
-      this.payer,
-      AuthorityType.FreezeAccount,
-      mintWrapperKey,
+    console.log("pre setAuthority freeze acct");
+    await sbr.splToken.setAuthority(
+      sbr.mint, // account
+      mintWrapperKey, // newAuthority
+      "FreezeAccount", // authorityType
+      programStablePool.provider.wallet.publicKey, // currentAuthority
+      [(programStablePool.provider.wallet as Wallet).payer] // multiSigners
     );
+
     await txWrapper.confirm();
     this.mintWrapper = mintWrapperKey;
 
@@ -495,6 +491,7 @@ export class QuarryClass {
         mintWrapper: this.mintWrapper,
         authority: this.payer.publicKey,
       });
+
     await txRewarder.confirm();
     this.rewarder = rewarderPubKey;
 
@@ -510,7 +507,7 @@ export class QuarryClass {
 
     const allowance = new u64(1_000_000_000);
 
-    let txMinter = await this.sdk.mintWrapper.newMinterWithAllowance(
+    const txMinter = await this.sdk.mintWrapper.newMinterWithAllowance(
       this.mintWrapper,
       this.rewarder,
       allowance
@@ -541,6 +538,5 @@ export class QuarryClass {
       new u64(100_000_000)
     );
     share_tx.confirm();
-
   }
 }

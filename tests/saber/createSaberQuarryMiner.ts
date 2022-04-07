@@ -82,6 +82,7 @@ export const createSaberQuarryMinerPASS = async (
     user.tokens.lpSaber.vault, // vault,
     accounts.lpSaberUsdcUsdt.pool, // pool,
     // accounts.rewarderKey, // rewarderKey,
+    // TODO 002: move quarry into pool class
     accounts.quarry, // quarryKey,
     user.miner, // minerKeys,
     accounts.lpSaberUsdcUsdt.mint // mintPubKey
@@ -100,6 +101,7 @@ export const createSaberQuarryMinerPASS = async (
   );
 
   // get the miner. param is the authority
+  // TODO 002: move quarry into pool class
   const miner = await accounts.quarry.quarryWrapper.getMiner(
     user.tokens.lpSaber.vault.pubKey
   );

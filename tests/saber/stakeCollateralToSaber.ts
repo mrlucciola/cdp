@@ -129,9 +129,11 @@ export const stakeCollateralToSaberPASS = async (
     accounts.lpSaberUsdcUsdt.pool,
     // globalState
     accounts.global,
-    ///quarry-mine rewader
+    // quarry-mine rewader
+    // TODO 002: move quarry into pool class
     accounts.quarry.rewarder, // .rewarderKey
-    ///quarry-mine quarry
+    // quarry-mine quarry
+    // TODO 002: move quarry into pool class
     accounts.quarry.pubkey,
     ///quarry-mine miner of vault
     user.miner

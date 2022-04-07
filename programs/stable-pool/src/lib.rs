@@ -90,6 +90,16 @@ pub mod stable_pool {
 
     /**
      *
+     * Create a user-generated, user-authorized, state account
+     *
+     * aliases: create_user_state, CreateUserState, createUserState
+     */
+    pub fn create_user_state(ctx: Context<CreateUserState>) -> Result<()> {
+        create_user_state::handle(ctx)
+    }
+
+    /**
+     *
      * Create a user-generated, user-authorized, single-collateral token repository
      *
      * aliases: create_vault, CreateVault, createVault
@@ -278,7 +288,7 @@ pub mod stable_pool {
     /**
      * aliases: unstake_collateral_from_saber, UnstakeCollateralFromSaber, unstakeCollateralFromSaber
      */
-     pub fn unstake_collateral_from_saber(
+    pub fn unstake_collateral_from_saber(
         ctx: Context<UnstakeCollateralFromSaber>,
         amount: u64,
     ) -> Result<()> {

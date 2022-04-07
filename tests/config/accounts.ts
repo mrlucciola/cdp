@@ -84,6 +84,7 @@ export class Accounts {
       16555962.623743 * 10 ** DECIMALS_USDT,
       DECIMALS_USDT
     ); // amount found on explorer.solana.com on 3/24/22 5:15pm EST
+
     // init the collateral mint
     this.lpSaberUsdcUsdt.mint = (
       await SPLToken.createMint(
@@ -124,7 +125,7 @@ export class Accounts {
       this.usdt
     );
     this.quarry = new QuarryClass();
-    await this.quarry.init(this.sbr.mint, this.lpSaberUsdcUsdt);
+    await this.quarry.init(this.sbr, this.lpSaberUsdcUsdt);
   }
   
 }

@@ -7,6 +7,7 @@ export const POOL_SEED = "POOL_SEED";
 export const VAULT_SEED = "VAULT_SEED";
 export const MINT_USDX_SEED = "MINT_USDX_SEED";
 export const ORACLE_SEED = "ORACLE_SEED";
+export const USER_STATE_SEED = "USER_STATE_SEED";
 
 // default platform values
 export const EMER_STATE_DISABLED = 0;

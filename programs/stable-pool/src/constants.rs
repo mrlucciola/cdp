@@ -5,6 +5,7 @@ pub const USER_USDX_SEED: &[u8] = b"USER_USDX_SEED";
 pub const POOL_SEED: &[u8] = b"POOL_SEED";
 pub const VAULT_SEED: &[u8] = b"VAULT_SEED";
 pub const ORACLE_SEED: &[u8] = b"ORACLE_SEED";
+pub const USER_STATE_SEED: &[u8] = b"USER_STATE_SEED";
 
 // numbers
 pub const DECIMALS_USD: u8 = 6;

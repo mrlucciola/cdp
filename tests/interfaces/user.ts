@@ -6,7 +6,9 @@ import { GeneralToken, MintPubKey, UserToken } from "../utils/interfaces";
 import { airdropSol, createAtaOnChain, mintToAta } from "../utils/fxns";
 import { TestTokens } from "../utils/types";
 import { StablePool } from "../../target/types/stable_pool";
+import { UserState } from "./userState";
 
+// init
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
 export class User {
@@ -17,7 +19,9 @@ export class User {
     lpSaber?: UserToken; // this doesnt get created until the pass case for vault
     sbr?: UserToken;
   };
+  userState: UserState;
   miner?: any;
+
   constructor(keypair: Keypair) {
     this.wallet = new Wallet(keypair);
     this.provider = new Provider(
@@ -30,7 +34,13 @@ export class User {
       }
     );
     this.tokens = {};
+
+    this.userState = new UserState(this);
   }
+
+  /**
+   * Initialize acct, airdrop
+   */
   public async init() {
     await airdropSol(
       this.provider,
@@ -39,6 +49,7 @@ export class User {
     );
     // await this.addToken("base", mintPubKey, "lpSaber", 200_000_000);
   }
+
   public async addToken(
     mintPubKey: MintPubKey,
     tokenStr: TestTokens,
@@ -49,7 +60,6 @@ export class User {
     this.tokens[tokenStr] = new UserToken(this.wallet, mintPubKey);
 
     // create ata
-    console.log("creating token", tokenStr);
     await createAtaOnChain(
       this.wallet,
       this.tokens[tokenStr].ata,
@@ -59,7 +69,6 @@ export class User {
     );
 
     // mint
-    console.log("minting token", tokenStr);
     if (mintAuth) {
       await mintToAta(
         tokenStr,

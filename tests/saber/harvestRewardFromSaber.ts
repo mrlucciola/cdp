@@ -102,13 +102,18 @@ export const harvestRewardsFromSaberPASS = async (
     accounts.lpSaberUsdcUsdt.pool, // pool
     user.tokens.lpSaber.vault, // vault,
     user.miner, // minerKeys
+    // TODO 002: move quarry into pool class
     accounts.quarry.rewarder, // rewarderKey
+    // TODO 002: move quarry into pool class
     accounts.quarry.pubkey, // quarryKey
+    // TODO 002: move quarry into pool class
     accounts.quarry.minter, // mintWrapper
+    // TODO 002: move quarry into pool class
     accounts.quarry.mintWrapper, // minter
     QUARRY_ADDRESSES.MintWrapper, // mintWrapperProgram
     accounts.lpSaberUsdcUsdt.mint, // tokenMint
     accounts.sbr.mint, // mintRewardPubkey
+    // TODO 002: move quarry into pool class
     accounts.quarry.rewardClaimFeeAccount // claimFeeTokenAccount
     // treasury.tokens.ataSBRKey, // ataTreasurySbr
   );
@@ -117,6 +122,7 @@ export const harvestRewardsFromSaberPASS = async (
     (user.wallet as any).payer
   ).createProvider(user.provider.connection);
   const sdk: QuarrySDK = QuarrySDK.load({ provider: userQuarryProvider });
+  // TODO 002: move quarry into pool class
   const rewarder = await sdk.mine.loadRewarderWrapper(accounts.quarry.rewarder); // .rewarderKey
 
   const poolMintToken = SToken.fromMint(

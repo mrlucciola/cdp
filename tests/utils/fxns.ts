@@ -138,6 +138,13 @@ export const getAcctBalance = async (
   return (await provider.connection.getTokenAccountBalance(acctPubKey)).value;
 };
 
+/**
+ * Wrapper that reduces line length since
+ * utils.publicKey.findProgramAddressSync usually causes a line wrap
+ * @param seeds
+ * @param programId
+ * @returns
+ */
 export const getPda = (seeds: Buffer[], programId: PublicKey) => {
   return utils.publicKey.findProgramAddressSync(seeds, programId);
 };

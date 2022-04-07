@@ -58,6 +58,7 @@ import {
 } from "../cdp/repayUsdx";
 import { Users } from "../interfaces/users";
 import { Miner } from "../interfaces/miner";
+import { createUserStatePASS } from "./createUserState";
 
 // init env
 chaiUse(chaiAsPromised);
@@ -82,9 +83,12 @@ describe("cdp core test suite", async () => {
       accounts.lpSaberUsdcUsdt.mint,
       accounts.sbr.mint
     );
+
     // create miner
+    // TODO 001: move this into the user-init method
     users.base.miner = new Miner(
       users.base.tokens.lpSaber.vault,
+      // TODO 002: move quarry into pool class
       accounts.quarry,
       accounts.lpSaberUsdcUsdt.mint
     );
@@ -195,6 +199,10 @@ describe("cdp core test suite", async () => {
       accounts.usdc.oracle,
       newPrice
     );
+  });
+
+  it("PASS: Create User State", async () => {
+    await createUserStatePASS(users.base);
   });
 
   // vault tests
@@ -380,7 +388,7 @@ describe("cdp core test suite", async () => {
       accounts
     );
   });
-  
+
   it("PASS: Unstake From Saber", async () => {
     await unstakeColalteralFromSaberPASS(users.base, accounts);
   });
