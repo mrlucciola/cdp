@@ -28,7 +28,7 @@ import {
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
 // THIS IS NOT COMPLETE, please see note on the contract fxn (search `BorrowUsdx<'info>`)
-const borrowUsdxCall = async (
+export const borrowUsdxCall = async (
   borrowAmount: number,
   userConnection: Connection,
   userWallet: Wallet,

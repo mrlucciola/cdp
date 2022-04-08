@@ -1,6 +1,6 @@
 // anchor/solana
 import { Program, Wallet, workspace } from "@project-serum/anchor";
-import { PublicKey } from "@solana/web3.js";
+import { AccountInfo, PublicKey } from "@solana/web3.js";
 // TODO: figure out why linter throws error. It is because of quarry's package
 import {
   // @ts-ignore
@@ -58,7 +58,7 @@ export class ATA {
    * Get system account info for this address
    * @returns Object
    */
-  public async getAccountInfo(): Promise<web3.AccountInfo<Buffer>> {
+  public async getAccountInfo(): Promise<AccountInfo<Buffer>> {
     return await programStablePool.provider.connection.getAccountInfo(
       this.pubKey
     );

@@ -11,6 +11,7 @@ export const USER_STATE_SEED = "USER_STATE_SEED";
 
 // default platform values
 export const EMER_STATE_DISABLED = 0;
+export const EMER_STATE_ENABLED = 1;
 export const TVL_LIMIT_USD = 1_000_000;
 export const DEBT_CEILING_GLOBAL_USDX = 500_000;
 export const DEBT_CEILING_POOL_USDX = 500_000;

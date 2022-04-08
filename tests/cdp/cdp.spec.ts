@@ -56,6 +56,11 @@ import {
   repayUsdxFAIL_ZeroUsdx,
   repayUsdxFAIL_RepayAnotherUsersDebt,
 } from "../cdp/repayUsdx";
+import {
+  emergencyStatePASS_DepositDisabled,
+  emergencyStatePASS_BorrowDisabled,
+  emergencyStatePASS_WithdrawDisabled,
+} from "../cdp/emergencyState";
 import { Users } from "../interfaces/users";
 import { Miner } from "../interfaces/miner";
 import { createUserStatePASS } from "./createUserState";
@@ -359,6 +364,30 @@ describe("cdp core test suite", async () => {
   // this works but we need fail tests
   it("PASS: Borrow/mint USDx", async () => {
     await borrowUsdxPASS(users.base, accounts);
+  });
+
+  it("PASS: Emergency State Disables Deposits", async () => {
+    await emergencyStatePASS_DepositDisabled(
+      users.super,
+      users.base,
+      accounts
+    );
+  });
+
+  it("PASS: Emergency State Disables Borrowing", async () => {
+    await emergencyStatePASS_BorrowDisabled(
+      users.super,
+      users.base,
+      accounts
+    );
+  });
+
+  it("PASS: Emergency State Disables Withdraws", async () => {
+    await emergencyStatePASS_WithdrawDisabled(
+      users.super,
+      users.base,
+      accounts
+    );
   });
 
   // This works

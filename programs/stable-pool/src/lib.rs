@@ -120,6 +120,7 @@ pub mod stable_pool {
      *
      * aliases: deposit_collateral, DepositCollateral, depositCollateral
      */
+    #[access_control(is_global_state_paused(&ctx.accounts.global_state))]
     pub fn deposit_collateral(ctx: Context<DepositCollateral>, deposit_amount: u64) -> Result<()> {
         deposit_collateral::handle(ctx, deposit_amount)
     }
@@ -131,6 +132,7 @@ pub mod stable_pool {
      *
      * aliases: withdraw_collateral, WithdrawCollateral, withdrawCollateral
      */
+    #[access_control(is_global_state_paused(&ctx.accounts.global_state))]
     pub fn withdraw_collateral(
         ctx: Context<WithdrawCollateral>,
         withdraw_amount: u64,

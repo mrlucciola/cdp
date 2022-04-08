@@ -13,7 +13,7 @@ import { handleTxn } from "../utils/fxns";
 import { EMER_STATE_DISABLED } from "../utils/constants";
 import { Accounts } from "../config/accounts";
 import { StablePool } from "../../target/types/stable_pool";
-import { User } from "../utils/interfaces";
+import { User } from "../interfaces/user";
 
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
@@ -24,7 +24,7 @@ const programStablePool = workspace.StablePool as Program<StablePool>;
  * @param new_state - new emergency state
  * @returns transaction receipt
  */
-const toggleEmerStateCall = async (
+export const toggleEmerStateCall = async (
     accounts: Accounts,
     user: User,
     new_state: number

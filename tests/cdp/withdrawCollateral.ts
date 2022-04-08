@@ -21,6 +21,7 @@ import {
   UserToken,
   Pool,
 } from "../utils/interfaces";
+import { User } from "../interfaces/user";
 
 // init
 const programStablePool = workspace.StablePool as Program<StablePool>;
@@ -29,7 +30,7 @@ const programStablePool = workspace.StablePool as Program<StablePool>;
  * * we have params and their classes like this so we can guarantee-
  *     we are passing in the right values
  */
-const withdrawCollateralCall = async (
+export const withdrawCollateralCall = async (
   withdrawAmount: number,
   userConnection: Connection,
   userWallet: Wallet,

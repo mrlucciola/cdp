@@ -35,7 +35,7 @@ const programStablePool = workspace.StablePool as Program<StablePool>;
  * * we have params and their classes like this so we can guarantee-
  *     we are passing in the right values
  */
-const depositCollateralCall = async (
+export const depositCollateralCall = async (
   depositAmount: number,
   userConnection: Connection,
   userWallet: Wallet,
