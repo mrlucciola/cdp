@@ -7,7 +7,7 @@ import { assert, expect } from "chai";
 import { handleTxn } from "../utils/fxns";
 import { Accounts } from "../config/accounts";
 import { StablePool } from "../../target/types/stable_pool";
-import { User } from "../utils/interfaces";
+import { User } from "../interfaces/user";
 
 const programStablePool = workspace.StablePool as Program<StablePool>;
 

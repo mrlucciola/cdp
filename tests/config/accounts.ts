@@ -1,26 +1,11 @@
 // libraries
 import { workspace, Program, Wallet } from "@project-serum/anchor";
-import { Keypair, PublicKey, Signer } from "@solana/web3.js";
+import { PublicKey, Signer } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 // @ts-ignore
 import { mintTo } from "@solana/spl-token";
-// utils
-import {
-  findMinterAddress,
-  QuarrySDK,
-  QUARRY_ADDRESSES,
-} from "@quarryprotocol/quarry-sdk";
-import {
-  SignerWallet,
-  Provider as SaberProvider,
-} from "@saberhq/solana-contrib";
-import {
-  TokenAmount,
-  Token as SToken,
-  createInitMintInstructions,
-  u64,
-  SPLToken,
-} from "@saberhq/token-utils";
+// saber
+import { SPLToken } from "@saberhq/token-utils";
 // local
 import { StablePool } from "../../target/types/stable_pool";
 import {
@@ -30,11 +15,9 @@ import {
   MintPubKey,
   GlobalStateAcct,
   Pool,
-  ATA,
   QuarryClass,
   RewardTokenAccount,
 } from "../utils/interfaces";
-// local
 import {
   DECIMALS_SBR,
   DECIMALS_USDCUSDT,
@@ -43,6 +26,7 @@ import {
   DECIMALS_PRICE,
 } from "../utils/constants";
 import { createAtaOnChain } from "../utils/fxns";
+import { ATA } from "../interfaces/ata";
 
 // init
 const programStablePool = workspace.StablePool as Program<StablePool>;
@@ -127,5 +111,4 @@ export class Accounts {
     this.quarry = new QuarryClass();
     await this.quarry.init(this.sbr, this.lpSaberUsdcUsdt);
   }
-  
 }

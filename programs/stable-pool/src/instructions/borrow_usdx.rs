@@ -94,8 +94,7 @@ pub fn handle(ctx: Context<BorrowUsdx>, usdx_borrow_amt_requested: u64) -> Resul
         .unwrap()
         .checked_div(10_u128.checked_pow(DEFAULT_RATIOS_DECIMALS as u32).unwrap())
         .unwrap();
-    msg!("ltv      : {}", ltv);
-    msg!("ltv_max  : {}", ltv_max);
+
     require!(
         usdx_borrow_amt_requested < (ltv_max as u64),
         StablePoolError::LTVExceeded
@@ -167,9 +166,7 @@ pub struct BorrowUsdx<'info> {
     )]
     pub mint_usdx: Box<Account<'info, Mint>>,
     #[account(
-        // TODO: don't init here, create ata outside the contract
-        init_if_needed,
-        payer=authority,
+        mut,
         associated_token::mint = mint_usdx.as_ref(),
         associated_token::authority = authority.as_ref(),
     )]

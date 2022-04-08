@@ -1,3 +1,4 @@
+// anchor/solana
 import {
   BN,
   IdlAccounts,
@@ -10,20 +11,24 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import { Connection, Transaction } from "@solana/web3.js";
+// utils
+import { assert, expect } from "chai";
+// local
 import { StablePool } from "../../target/types/stable_pool";
 import { Accounts } from "../config/accounts";
 import { handleTxn } from "../utils/fxns";
+import { DECIMALS_PRICE, DECIMALS_USDCUSDT } from "../utils/constants";
+// interfaces
 import {
   GlobalStateAcct,
   MintPubKey,
   Vault,
-  User,
   UserToken,
   Pool,
 } from "../utils/interfaces";
-import { assert, expect } from "chai";
-import { DECIMALS_PRICE, DECIMALS_USDCUSDT } from "../utils/constants";
+import { User } from "../interfaces/user";
 
+// init
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
 /**

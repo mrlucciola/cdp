@@ -11,10 +11,7 @@ pub fn handle(ctx: Context<SetGlobalDebtCeiling>, ceiling: u64) -> Result<()> {
 
 #[derive(Accounts)]
 pub struct SetGlobalDebtCeiling<'info> {
-    #[account(
-        mut,
-        constraint = authority.as_ref().key().to_string() == "7Lw3e19CJUvR5qWRj8J6NKrV2tywiJqS9oDu1m8v4rsi"
-    )]
+    #[account(constraint = authority.as_ref().key().to_string() == global_state.authority.to_string().as_ref())]
     pub authority: Signer<'info>,
 
     #[account(

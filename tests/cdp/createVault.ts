@@ -19,7 +19,8 @@ import { assert, expect } from "chai";
 import { StablePool } from "../../target/types/stable_pool";
 import { handleTxn } from "../utils/fxns";
 import { MintPubKey, Vault, Pool } from "../utils/interfaces";
-// program
+
+// init
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
 const createVaultCall = async (

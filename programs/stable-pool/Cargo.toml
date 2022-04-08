@@ -16,7 +16,7 @@ no-idl = []
 no-log-ix-name = []
 
 [dependencies]
-anchor-lang = {version = "^0.22.1", features = ["init-if-needed"]}
+anchor-lang = {version = "^0.22.1"}
 anchor-spl = "^0.22.1"
 quarry-mine = {version = "4.0.0", features = ["cpi"]}
 solana-program = "1.9.8"

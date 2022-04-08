@@ -15,18 +15,17 @@ import {
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
-} from "@solana/spl-token";
-// local
-import { translateError } from "./errors";
-import { TestTokens } from "./types";
-import { User } from "../interfaces/user";
-import { ATA, GeneralToken, MintPubKey, UserToken } from "./interfaces";
-import {
   // @ts-ignore
   mintTo,
   // @ts-ignore
   createAssociatedTokenAccountInstruction,
 } from "@solana/spl-token";
+// local
+import { translateError } from "./errors";
+import { TestTokens } from "./types";
+import { User } from "../interfaces/user";
+import { GeneralToken, MintPubKey, UserToken } from "./interfaces";
+import { ATA } from "../interfaces/ata";
 
 /**
  * We use user provider and user wallet because

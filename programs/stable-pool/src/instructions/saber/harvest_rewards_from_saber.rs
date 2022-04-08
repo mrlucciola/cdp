@@ -100,16 +100,14 @@ pub struct HarvestRewardsFromSaber<'info> {
     pub ata_reward_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(
-        init_if_needed,
+        mut,
         associated_token::mint = mint_reward,
         associated_token::authority = authority,
-        payer = authority,
     )]
     pub ata_user_reward: Box<Account<'info, TokenAccount>>,
 
     #[account(
-        init_if_needed,
-        payer = authority,
+        mut,
         associated_token::mint = mint_reward,
         associated_token::authority = treasury,
     )]

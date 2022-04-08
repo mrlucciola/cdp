@@ -20,8 +20,9 @@ import { assert, expect } from "chai";
 // local
 import { StablePool } from "../../target/types/stable_pool";
 import { handleTxn } from "../utils/fxns";
-import { GlobalStateAcct, Oracle, User } from "../utils/interfaces";
+import { GlobalStateAcct, Oracle } from "../utils/interfaces";
 import { Accounts } from "../config/accounts";
+import { User } from "../interfaces/user";
 // program
 const programStablePool = workspace.StablePool as Program<StablePool>;
 

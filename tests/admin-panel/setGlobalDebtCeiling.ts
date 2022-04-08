@@ -13,8 +13,9 @@ import { handleTxn } from "../utils/fxns";
 import { DEBT_CEILING_GLOBAL_USDX } from "../utils/constants";
 import { Accounts } from "../config/accounts";
 import { StablePool } from "../../target/types/stable_pool";
-import { User } from "../utils/interfaces";
+import { User } from "../interfaces/user";
 
+// init
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
 /**

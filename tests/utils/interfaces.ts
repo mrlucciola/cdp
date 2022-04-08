@@ -6,11 +6,7 @@ import {
   // @ts-ignore
   mintTo,
   // @ts-ignore
-  burn,
-  // @ts-ignore
   getAccount,
-  // @ts-ignore
-  setAuthority,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import {
@@ -40,9 +36,8 @@ import {
   DECIMALS_SBR,
 } from "./constants";
 import { StablePool } from "../../target/types/stable_pool";
-import { getAssocTokenAcct, getPda, createAtaOnChain } from "./fxns";
-import { User } from "../interfaces/user";
-import { AuthorityType } from "@solana/spl-token";
+import { getPda, createAtaOnChain } from "./fxns";
+import { ATA } from "../interfaces/ata";
 
 // init
 const programStablePool = workspace.StablePool as Program<StablePool>;
@@ -54,6 +49,7 @@ const programStablePool = workspace.StablePool as Program<StablePool>;
  */
 export class Acct {
   pubKey: PublicKey;
+
   /**
    * Get system account info for this address
    * @returns Object
@@ -155,70 +151,6 @@ export class RewardTokenAccount {
  */
 export class PDA extends Acct {
   bump: number;
-}
-
-/**
- * Associated Token Account
- * @property pubKey - PublicKey: Public Key for ATA
- * @property bump? - u8: Bump/nonce for ATA
- */
-export class ATA extends Acct {
-  bump?: number;
-
-  constructor(authorityPubKey: PublicKey, mintPubKey: MintPubKey) {
-    super();
-
-    const [ataPubKey, ataBump] = getAssocTokenAcct(authorityPubKey, mintPubKey);
-    this.pubKey = ataPubKey;
-    this.bump = ataBump;
-  }
-  public async getBalance() {
-    return await programStablePool.provider.connection.getTokenAccountBalance(
-      this.pubKey
-    );
-  }
-  public async mintToATA(
-    mintAmount: number,
-    mintAuth: User,
-    mintPubKey: MintPubKey
-  ) {
-    await mintTo(
-      mintAuth.provider.connection, // connection — Connection to use
-      mintAuth.wallet.payer, // payer — Payer of the transaction fees
-      mintPubKey, // mint — Mint for the account
-      this.pubKey, // destination — Address of the account to mint to
-      mintAuth.wallet.publicKey, // authority — Minting authority
-      mintAmount // mintAmount — Amount to mint
-    );
-  }
-  /**
-   * after a test ends, it can be useful to burn tokens
-   *  to reset the balance for the next test.
-   *
-   * Setting burn amount to -1 will burn all tokens
-   */
-  public async burnTokens(
-    burnAmount: number,
-    mintAuth: User,
-    mintPubKey: MintPubKey,
-    userWallet: Wallet
-  ) {
-    // check if -1, then get the total amount in account
-    const amtToBurn = (
-      burnAmount === -1 ? (await this.getBalance()).value.amount : burnAmount
-    ) as number;
-    if (amtToBurn === 0) return;
-
-    // send burn txn
-    await burn(
-      mintAuth.provider.connection, // connection
-      userWallet.payer, // payer
-      this.pubKey, // account: acct to burn tokens from
-      mintPubKey, // mint: the token mint
-      userWallet.publicKey, // owner: Account owner
-      amtToBurn // amount: Amt of token to burn
-    );
-  }
 }
 
 /**

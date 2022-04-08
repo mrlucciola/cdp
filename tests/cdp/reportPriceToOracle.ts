@@ -12,11 +12,13 @@ import { Connection, SYSVAR_CLOCK_PUBKEY } from "@solana/web3.js";
 // utils
 import { assert, expect } from "chai";
 // local
-import { StablePool } from "../../target/types/stable_pool";
 import { handleTxn } from "../utils/fxns";
-import { Oracle } from "../utils/interfaces";
 import { Accounts } from "../config/accounts";
-// program
+import { StablePool } from "../../target/types/stable_pool";
+// interfaces
+import { Oracle } from "../utils/interfaces";
+
+// init
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
 /**

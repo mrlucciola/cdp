@@ -24,6 +24,7 @@ import { assert, expect } from "chai";
 // local
 import { StablePool } from "../../target/types/stable_pool";
 import { Accounts } from "../config/accounts";
+import { User } from "../interfaces/user";
 import { DECIMALS_USDX } from "../utils/constants";
 import { handleTxn } from "../utils/fxns";
 import {
@@ -31,10 +32,10 @@ import {
   MintAcct,
   Pool,
   Vault,
-  User,
   UserToken,
 } from "../utils/interfaces";
 
+// init
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
 const repayUsdxCall = async (

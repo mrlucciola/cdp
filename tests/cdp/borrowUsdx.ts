@@ -15,7 +15,7 @@ import { StablePool } from "../../target/types/stable_pool";
 import { Accounts } from "../config/accounts";
 import { User } from "../interfaces/user";
 import { DECIMALS_USDX } from "../utils/constants";
-import { handleTxn } from "../utils/fxns";
+import { createAtaOnChain, handleTxn } from "../utils/fxns";
 import {
   GlobalStateAcct,
   MintAcct,
@@ -75,6 +75,15 @@ export const borrowUsdxPASS = async (user: User, accounts: Accounts) => {
   const usdxUser = user.tokens.usdx;
   const borrowAmtUi = 900;
   const borrowAmtPrecise = borrowAmtUi * 10 ** DECIMALS_USDX;
+
+  // create the ata
+  await createAtaOnChain(
+    user.wallet,
+    user.tokens.usdx.ata,
+    accounts.usdx.pubKey,
+    null,
+    user.provider.connection
+  );
 
   // THIS IS NOT COMPLETE, please see note on the contract fxn (search `BorrowUsdx<'info>`)
   await borrowUsdxCall(

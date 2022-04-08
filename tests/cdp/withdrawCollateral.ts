@@ -1,23 +1,28 @@
+// anchor/solana
 import { BN, Program, Wallet, workspace } from "@project-serum/anchor";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import { Connection, Transaction } from "@solana/web3.js";
+// utils
 import { assert, expect } from "chai";
+// local
 import { StablePool } from "../../target/types/stable_pool";
 import { Accounts } from "../config/accounts";
 import { DECIMALS_USDCUSDT } from "../utils/constants";
 import { handleTxn } from "../utils/fxns";
+// interfaces
+import { User } from "../interfaces/user";
 import {
   GlobalStateAcct,
   MintPubKey,
   Vault,
-  User,
   UserToken,
   Pool,
 } from "../utils/interfaces";
 
+// init
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
 /**

@@ -57,12 +57,7 @@ pub fn handle(
 
 #[derive(Accounts)]
 pub struct CreatePool<'info> {
-    #[account(
-        mut,
-        // this is for LOCALNET and DEVNET. Please change key for mainnet
-        //      maybe add custom error handling, not a priority
-        constraint = authority.as_ref().key().to_string() == "7Lw3e19CJUvR5qWRj8J6NKrV2tywiJqS9oDu1m8v4rsi"
-    )]
+    #[account(mut, constraint = authority.as_ref().key().to_string() == global_state.authority.to_string().as_ref())]
     pub authority: Signer<'info>,
 
     #[account(

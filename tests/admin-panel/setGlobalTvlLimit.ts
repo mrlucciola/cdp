@@ -9,12 +9,13 @@ import {
 // utils
 import { assert, expect } from "chai";
 // local
+import { StablePool } from "../../target/types/stable_pool";
 import { handleTxn } from "../utils/fxns";
 import { TVL_LIMIT_USD } from "../utils/constants";
 import { Accounts } from "../config/accounts";
-import { StablePool } from "../../target/types/stable_pool";
-import { User } from "../utils/interfaces";
+import { User } from "../interfaces/user";
 
+// init
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
 /**

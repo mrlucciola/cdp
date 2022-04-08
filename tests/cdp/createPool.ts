@@ -21,7 +21,8 @@ import {
 } from "../utils/constants";
 import { handleTxn } from "../utils/fxns";
 import { Accounts } from "../config/accounts";
-import { User, Pool } from "../utils/interfaces";
+import { Pool } from "../utils/interfaces";
+import { User } from "../interfaces/user";
 
 // program
 const programStablePool = workspace.StablePool as Program<StablePool>;

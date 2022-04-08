@@ -1,8 +1,11 @@
-import { QUARRY_ADDRESSES } from "@quarryprotocol/quarry-sdk";
+// anchor/solana
 import { PublicKey } from "@solana/web3.js";
+// saber
+import { QUARRY_ADDRESSES } from "@quarryprotocol/quarry-sdk";
+// local
 import { getPda } from "../utils/fxns";
-import { ATA, MintPubKey, QuarryClass, Vault } from "../utils/interfaces";
-
+import { MintPubKey, QuarryClass, Vault } from "../utils/interfaces";
+import { ATA } from "./ata";
 export class Miner {
   pubkey: PublicKey;
   bump: number;
