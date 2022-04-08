@@ -90,12 +90,8 @@ pub struct RepayUsdx<'info> {
     )]
     pub mint_usdx: Box<Account<'info, Mint>>,
     #[account(
-        init,
-        payer=authority,
         associated_token::mint = mint_usdx.as_ref(),
         associated_token::authority = authority.as_ref(),
-        seeds=[USER_USDX_SEED, authority.key().as_ref(), mint_usdx.key().as_ref()],
-        bump,
     )]
     pub ata_usdx: Box<Account<'info, TokenAccount>>,
     #[account(address = associated_token::ID)]
