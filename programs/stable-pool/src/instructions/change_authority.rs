@@ -17,7 +17,7 @@ pub struct ChangeAuthority<'info> {
     #[account(
         mut,
         seeds = [GLOBAL_STATE_SEED.as_ref()],
-        bump,
+        bump,// TODO 004: precompute bump
         has_one = authority
     )]
     pub global_state: Box<Account<'info, GlobalState>>,

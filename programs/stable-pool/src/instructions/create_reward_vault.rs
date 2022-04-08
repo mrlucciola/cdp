@@ -24,16 +24,16 @@ pub struct CreateUserRewardVault<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
     #[account(
-        seeds = [POOL_SEED, pool.mint_collat.as_ref()],
-        bump,
+        seeds = [POOL_SEED.as_ref(), pool.mint_collat.as_ref()],
+        bump, // TODO 004: precompute bump
         constraint = pool.mint_collat.as_ref() == vault.mint.as_ref(),
     )]
     pub pool: Box<Account<'info, Pool>>,
 
     #[account(
         mut,
-        seeds = [VAULT_SEED, vault.mint.as_ref(), authority.key().as_ref()],
-        bump,
+        seeds = [VAULT_SEED.as_ref(), vault.mint.as_ref(), authority.key().as_ref()],
+        bump, // TODO 004: precompute bump
         constraint = vault.owner.as_ref() == authority.key().as_ref(),
     )]
     pub vault: Box<Account<'info, Vault>>,

@@ -1,4 +1,4 @@
-// anchor/solana imports
+// anchor/solana
 import { BN, Program, Wallet, workspace } from "@project-serum/anchor";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -12,10 +12,11 @@ import {
 } from "@solana/web3.js";
 // local
 import { StablePool } from "../../target/types/stable_pool";
-import { Accounts } from "../config/accounts";
-import { User } from "../interfaces/user";
 import { DECIMALS_USDX } from "../utils/constants";
 import { createAtaOnChain, handleTxn } from "../utils/fxns";
+// interfaces
+import { Accounts } from "../config/accounts";
+import { User } from "../interfaces/user";
 import {
   GlobalStateAcct,
   MintAcct,
@@ -25,6 +26,7 @@ import {
   GeneralToken,
 } from "../utils/interfaces";
 
+// init
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
 // THIS IS NOT COMPLETE, please see note on the contract fxn (search `BorrowUsdx<'info>`)
@@ -56,7 +58,6 @@ export const borrowUsdxCall = async (
 
         mintUsdx: mintUsdx.pubKey,
         ataUsdx: userUSDx.ata.pubKey,
-        ataColl: userToken.ata.pubKey, // why do we need this?
 
         // system accts
         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,

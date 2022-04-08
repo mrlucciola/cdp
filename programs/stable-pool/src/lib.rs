@@ -180,7 +180,7 @@ pub mod stable_pool {
      *
      * Should only be called by the program deployer
      *
-     * aliases: ReportPriceToOracle, report_price_to_oracle
+     * aliases: ReportPriceToOracle, report_price_to_oracle, reportPriceToOracle
      * prev: ReportPrice, report_price, reportPrice
      * prev: UpdatePriceFeed, update_price_feed, updatePriceFeed
      */

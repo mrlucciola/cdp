@@ -21,7 +21,6 @@ import {
   UserToken,
   Pool,
 } from "../utils/interfaces";
-import { User } from "../interfaces/user";
 
 // init
 const programStablePool = workspace.StablePool as Program<StablePool>;

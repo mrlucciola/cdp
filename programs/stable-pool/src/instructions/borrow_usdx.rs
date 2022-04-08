@@ -2,7 +2,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::{self, AssociatedToken},
-    token::{accessor::amount, mint_to, Mint, MintTo, Token, TokenAccount},
+    token::{self, accessor::amount, mint_to, Mint, MintTo, Token, TokenAccount},
 };
 // local
 use crate::{
@@ -19,8 +19,8 @@ pub fn handle(ctx: Context<BorrowUsdx>, usdx_borrow_amt_requested: u64) -> Resul
         &ctx.accounts.pool,
         ctx.accounts.ata_market_a.mint,
         ctx.accounts.ata_market_b.mint,
-        ctx.accounts.oracle_a.mint,
-        ctx.accounts.oracle_b.mint,
+        ctx.accounts.oracle_a.mint_collat,
+        ctx.accounts.oracle_b.mint_collat,
     )?;
 
     let amount_ata_a = amount(&ctx.accounts.ata_market_a.to_account_info())?;
@@ -35,7 +35,7 @@ pub fn handle(ctx: Context<BorrowUsdx>, usdx_borrow_amt_requested: u64) -> Resul
         ctx.accounts.oracle_b.price,
     )?;
 
-    let user_collat_amt = ctx.accounts.ata_coll.amount;
+    let user_collat_amt = ctx.accounts.vault.locked_coll_balance;
     let collat_value = collat_price
         .checked_mul(user_collat_amt)
         .unwrap()
@@ -64,8 +64,8 @@ pub fn handle(ctx: Context<BorrowUsdx>, usdx_borrow_amt_requested: u64) -> Resul
     // let future_total_debt_user = ctx.accounts.user_state.total_debt + usdx_borrow_amt_requested;
     let future_total_debt_user = ctx
         .accounts
-        .ata_usdx
-        .amount
+        .vault
+        .debt
         .checked_add(usdx_borrow_amt_requested)
         .unwrap();
 
@@ -89,14 +89,29 @@ pub fn handle(ctx: Context<BorrowUsdx>, usdx_borrow_amt_requested: u64) -> Resul
     // this measn that in order to borrow from collateral across multiple collateral types,
     // you have to submit one txn per collateral type
     let ltv = *DEFAULT_RATIOS.get(0).unwrap_or(&0) as u128; // risk_level
+
+    // ltv_max should be formed as USDx amount
+    // collat_value is divided by 10^collateral_decimal
     let ltv_max = ltv
         .checked_mul(collat_value as u128)
         .unwrap()
         .checked_div(10_u128.checked_pow(DEFAULT_RATIOS_DECIMALS as u32).unwrap())
+        .unwrap()
+        .checked_mul(10_u128.checked_pow(DECIMALS_USDX as u32).unwrap())
+        .unwrap()
+        .checked_div(
+            10_u128
+                .checked_pow(ctx.accounts.mint_coll.decimals as u32)
+                .unwrap(),
+        )
+        .unwrap();
+
+    let mintable_amount = (ltv_max as u64)
+        .checked_sub(ctx.accounts.vault.debt)
         .unwrap();
 
     require!(
-        usdx_borrow_amt_requested < (ltv_max as u64),
+        usdx_borrow_amt_requested < mintable_amount,
         StablePoolError::LTVExceeded
     );
 
@@ -116,6 +131,27 @@ pub fn handle(ctx: Context<BorrowUsdx>, usdx_borrow_amt_requested: u64) -> Resul
     // mint
     mint_to(mint_ctx, usdx_borrow_amt_requested)?;
 
+    ctx.accounts.global_state.total_debt = ctx
+        .accounts
+        .global_state
+        .total_debt
+        .checked_add(usdx_borrow_amt_requested)
+        .unwrap();
+
+    ctx.accounts.pool.total_debt = ctx
+        .accounts
+        .pool
+        .total_debt
+        .checked_add(usdx_borrow_amt_requested)
+        .unwrap();
+
+    ctx.accounts.vault.debt = ctx
+        .accounts
+        .vault
+        .debt
+        .checked_add(usdx_borrow_amt_requested)
+        .unwrap();
+
     Ok(())
 }
 
@@ -129,17 +165,22 @@ pub fn handle(ctx: Context<BorrowUsdx>, usdx_borrow_amt_requested: u64) -> Resul
 pub struct BorrowUsdx<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
+
     #[account(
         mut,
         seeds = [GLOBAL_STATE_SEED.as_ref()],
         bump = global_state.bump
     )]
     pub global_state: Box<Account<'info, GlobalState>>,
+
     pub oracle_a: Box<Account<'info, Oracle>>,
     pub oracle_b: Box<Account<'info, Oracle>>,
     pub ata_market_a: Box<Account<'info, TokenAccount>>,
     pub ata_market_b: Box<Account<'info, TokenAccount>>,
+
+    #[account(address = pool.mint_collat)]
     pub mint_coll: Box<Account<'info, Mint>>,
+
     #[account(
         mut,
         seeds=[POOL_SEED.as_ref(), pool.mint_collat.as_ref()],
@@ -147,6 +188,7 @@ pub struct BorrowUsdx<'info> {
         constraint = pool.mint_collat.as_ref() == vault.mint.as_ref(),
     )]
     pub pool: Box<Account<'info, Pool>>,
+
     #[account(
         mut,
         seeds=[
@@ -158,6 +200,7 @@ pub struct BorrowUsdx<'info> {
         constraint = pool.mint_collat.as_ref() == vault.mint.as_ref(),
     )]
     pub vault: Box<Account<'info, Vault>>,
+
     #[account(
         mut,
         seeds=[MINT_USDX_SEED.as_ref()],
@@ -165,15 +208,17 @@ pub struct BorrowUsdx<'info> {
         constraint=mint_usdx.key() == global_state.mint_usdx,
     )]
     pub mint_usdx: Box<Account<'info, Mint>>,
+
     #[account(
         mut,
         associated_token::mint = mint_usdx.as_ref(),
         associated_token::authority = authority.as_ref(),
     )]
     pub ata_usdx: Box<Account<'info, TokenAccount>>,
-    pub ata_coll: Box<Account<'info, TokenAccount>>,
+
     #[account(address = associated_token::ID)]
     pub associated_token_program: Program<'info, AssociatedToken>,
+    #[account(address = token::ID)]
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
     pub rent: Sysvar<'info, Rent>,

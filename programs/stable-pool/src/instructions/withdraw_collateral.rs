@@ -1,7 +1,9 @@
 // modules
 use anchor_lang::prelude::*;
-use anchor_spl::associated_token::AssociatedToken;
-use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
+use anchor_spl::{
+    associated_token::{self, AssociatedToken},
+    token::{self, Mint, Token, TokenAccount, Transfer},
+};
 // local
 use crate::{
     constants::*,
@@ -16,6 +18,7 @@ pub fn handle(ctx: Context<WithdrawCollateral>, withdraw_amount: u64) -> Result<
         accts.ata_vault.amount > 0,
         StablePoolError::InvalidTransferAmount,
     );
+    // TODO 005: after liquidation engine is built, allow users to withdraw up to their ltv
     require!(
         accts.vault.debt == 0,
         StablePoolError::WithdrawNotAllowedWithDebt,
@@ -60,6 +63,7 @@ pub fn handle(ctx: Context<WithdrawCollateral>, withdraw_amount: u64) -> Result<
 pub struct WithdrawCollateral<'info> {
     #[account[mut]]
     pub authority: Signer<'info>,
+
     #[account[mut]]
     pub global_state: Box<Account<'info, GlobalState>>,
 
@@ -98,6 +102,10 @@ pub struct WithdrawCollateral<'info> {
 
     #[account(constraint = mint.key().as_ref() == pool.mint_collat.as_ref())]
     pub mint: Box<Account<'info, Mint>>,
+
+    // system accounts
+    #[account(address = token::ID)]
     pub token_program: Program<'info, Token>,
+    #[account(address = associated_token::ID)]
     pub associated_token_program: Program<'info, AssociatedToken>,
 }

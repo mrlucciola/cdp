@@ -19,8 +19,8 @@ pub fn handle(ctx: Context<DepositCollateral>, collat_token_deposit_amt: u64) ->
         &accts.pool,
         accts.ata_market_a.mint,
         accts.ata_market_b.mint,
-        accts.oracle_a.mint,
-        accts.oracle_b.mint,
+        accts.oracle_a.mint_collat,
+        accts.oracle_b.mint_collat,
     )?;
 
     let amount_ata_a = amount(&accts.ata_market_a.to_account_info())?;
@@ -35,7 +35,7 @@ pub fn handle(ctx: Context<DepositCollateral>, collat_token_deposit_amt: u64) ->
         StablePoolError::InvalidTransferAmount,
     );
     require!(
-        accts.ata_user.amount > collat_token_deposit_amt,
+        accts.ata_user.amount >= collat_token_deposit_amt,
         StablePoolError::InvalidTransferAmount,
     );
 

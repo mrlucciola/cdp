@@ -84,8 +84,8 @@ pub struct RepayUsdx<'info> {
     )]
     pub vault: Box<Account<'info, Vault>>,
     #[account(
-        seeds=[MINT_USDX_SEED],
-        bump,
+        seeds=[MINT_USDX_SEED.as_ref()],
+        bump, // TODO 004: precompute bump
         constraint=mint_usdx.key() == global_state.mint_usdx,
     )]
     pub mint_usdx: Box<Account<'info, Mint>>,

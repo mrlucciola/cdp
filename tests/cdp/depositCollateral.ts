@@ -64,7 +64,7 @@ export const depositCollateralCall = async (
       },
     })
   );
-
+    
   await handleTxn(txn, userConnection, userWallet);
 };
 
@@ -114,7 +114,7 @@ export const depositCollateralFAIL_NotEnoughTokens = async (
 
 export const depositCollateralPASS = async (user: User, accounts: Accounts) => {
   // amt to deposit with precision
-  const depositAmount = 0.2 * 10 ** DECIMALS_USDCUSDT;
+  const depositAmount = 1000 * 10 ** DECIMALS_USDCUSDT;
   // price, with precision
   const priceUsd = 1.02 * 10 ** DECIMALS_PRICE; // TODO: fix price feed
   const globalStateAcct: IdlAccounts<StablePool>["globalState"] =

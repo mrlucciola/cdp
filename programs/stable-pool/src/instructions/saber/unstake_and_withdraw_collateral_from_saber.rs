@@ -29,7 +29,7 @@ pub fn unstake_from_saber_pda<'info>(
     token_account: AccountInfo<'info>,
     rewarder: AccountInfo<'info>,
 
-    amount_to_unstake: u64,
+    amount: u64,
     authority_seeds: &[&[u8]],
 ) -> Result<()> {
     // Unstake from saber
@@ -47,12 +47,12 @@ pub fn unstake_from_saber_pda<'info>(
             },
         )
         .with_signer(&[&authority_seeds[..]]),
-        amount_to_unstake,
+        amount,
     )
 }
 
 /// Claims rewards from saber farm
-pub fn handle(ctx: Context<UnstakeCollateralFromSaber>, amount_to_unstake: u64) -> Result<()> {
+pub fn handle(ctx: Context<UnstakeCollateralFromSaber>, amount: u64) -> Result<()> {
     ///////////////////unlock token from the miner vault in quarry////////
     let pool = &mut ctx.accounts.pool;
     require!(
@@ -78,7 +78,7 @@ pub fn handle(ctx: Context<UnstakeCollateralFromSaber>, amount_to_unstake: u64) 
         ctx.accounts.miner_vault.to_account_info(),
         ctx.accounts.ata_vault.to_account_info(),
         ctx.accounts.rewarder.to_account_info(),
-        amount_to_unstake,
+        amount,
         authority_seeds,
     )?;
 
@@ -89,42 +89,38 @@ pub fn handle(ctx: Context<UnstakeCollateralFromSaber>, amount_to_unstake: u64) 
         ctx.accounts.ata_vault.amount > 0,
         StablePoolError::InvalidTransferAmount,
     );
-    // require!(
-    //     ctx.accounts.vault.debt == 0,
-    //     StablePoolError::WithdrawNotAllowedWithDebt,
-    // );
+    require!(
+        ctx.accounts.vault.debt == 0,
+        StablePoolError::WithdrawNotAllowedWithDebt,
+    );
 
     // send the transfer
-    // token::transfer(
-    //     CpiContext::new_with_signer(
-    //         ctx.accounts.token_program.to_account_info(),
-    //         Transfer {
-    //             from: ctx.accounts.ata_vault.clone().to_account_info(),
-    //             to: ctx.accounts.ata_user.clone().to_account_info(),
-    //             authority: ctx.accounts.vault.clone().to_account_info(),
-    //         },
-    //         &[&authority_seeds[..]],
-    //     ),
-    //     ctx.accounts.ata_vault.amount,
-    // )?;
+    token::transfer(
+        CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            Transfer {
+                from: ctx.accounts.ata_vault.clone().to_account_info(),
+                to: ctx.accounts.ata_user.clone().to_account_info(),
+                authority: ctx.accounts.vault.clone().to_account_info(),
+            },
+            &[&authority_seeds[..]],
+        ),
+        ctx.accounts.ata_vault.amount,
+    )?;
 
-    ctx.accounts.pool.total_coll -= amount_to_unstake;
-    ctx.accounts.vault.locked_coll_balance -= amount_to_unstake;
+    ctx.accounts.pool.total_coll -= amount;
+    ctx.accounts.vault.locked_coll_balance -= amount;
 
     Ok(())
 }
 
 #[derive(Accounts)]
 pub struct UnstakeCollateralFromSaber<'info> {
-    /// The client user account requesting to unstake
     #[account(mut)]
     pub authority: Signer<'info>,
-
-    /// The CDP platform global state
     #[account[mut]]
     pub global_state: Box<Account<'info, GlobalState>>,
 
-    // The CDP-owned pool account, represents a single collateral type
     #[account(
         mut,
         seeds=[POOL_SEED.as_ref(), pool.mint_collat.as_ref()],
@@ -133,7 +129,6 @@ pub struct UnstakeCollateralFromSaber<'info> {
     )]
     pub pool: Box<Account<'info, Pool>>,
 
-    // The user-owned vault account, represents a single collateral type for this user
     #[account(
         mut,
         seeds=[
@@ -146,7 +141,6 @@ pub struct UnstakeCollateralFromSaber<'info> {
     )]
     pub vault: Box<Account<'info, Vault>>,
 
-    /// This is the collateral's A.T.A. for the user's vault
     #[account(
         mut,
         associated_token::mint = mint.as_ref(),

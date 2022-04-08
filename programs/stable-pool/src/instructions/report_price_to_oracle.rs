@@ -17,18 +17,24 @@ pub fn handle(ctx: Context<ReportPriceToOracle>, price: u64) -> Result<()> {
 }
 
 #[derive(Accounts)]
-#[instruction(price: u64)]
 pub struct ReportPriceToOracle<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
+
     #[account(seeds = [GLOBAL_STATE_SEED], bump)]
     pub global_state: Box<Account<'info, GlobalState>>,
+
+    /// The oracle account for a single token - holds the USD price of a token
     #[account(
         mut,
         seeds = [ORACLE_SEED, mint.key().as_ref()],
-        bump,
+        bump, // TODO 004: precompute bump
+        // bump = oracle.bump
+        constraint = authority.as_ref().key() == global_state.oracle_reporter,
     )]
     pub oracle: Box<Account<'info, Oracle>>,
     pub mint: Box<Account<'info, Mint>>,
+
+    // system accounts
     pub clock: Sysvar<'info, Clock>,
 }

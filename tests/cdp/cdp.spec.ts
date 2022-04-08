@@ -168,42 +168,31 @@ describe("cdp core test suite", async () => {
 
   // oracle tests - usdc oracle
   it("PASS: Create Oracle - USDC", async () => {
-    await createOraclePASS(users.super, accounts, "usdc");
+    await createOraclePASS(users.oracleReporter, accounts, "usdc");
   });
 
   // oracle tests - duplicated usdc oracle
   it("FAIL: Create Oracle - Duplicate", async () => {
-    await createOracleFAIL_Duplicate(users.super, accounts, "usdc");
+    await createOracleFAIL_Duplicate(users.oracleReporter, accounts, "usdc");
   });
 
   // oracle tests - usdt oracle
   it("PASS: Create Oracle - USDT", async () => {
-    await createOraclePASS(users.super, accounts, "usdt");
+    await createOraclePASS(users.oracleReporter, accounts, "usdt");
   });
 
   it("PASS: Report Price - USDC", async () => {
     // TODO: refactor to include just the high level classes
     const newPrice = 102000000;
-    accounts.usdc.oracle.price = newPrice;
-    await reportPriceToOraclePASS(
-      users.oracleReporter.provider.connection,
-      users.oracleReporter.wallet,
-      accounts,
-      accounts.usdc.oracle,
-      newPrice
-    );
+
+    await reportPriceToOraclePASS(users.oracleReporter, accounts, newPrice);
   });
 
   it("FAIL: Update Price Feed - Not Updater", async () => {
     // TODO: refactor to include just the high level classes
     const newPrice = 134000000;
-    await reportPriceToOracleFAIL_NotUpdater(
-      users.base.provider.connection,
-      users.base.wallet,
-      accounts,
-      accounts.usdc.oracle,
-      newPrice
-    );
+
+    await reportPriceToOracleFAIL_NotUpdater(users.base, accounts, newPrice);
   });
 
   it("PASS: Create User State", async () => {
@@ -272,7 +261,7 @@ describe("cdp core test suite", async () => {
   it("PASS: Deposit Collateral", async () => {
     // mint tokens to the user's account first
     await users.base.tokens.lpSaber.ata.mintToATA(
-      1000 * 10 ** DECIMALS_USDCUSDT, // decimals for this mint = 9
+      10000 * 10 ** DECIMALS_USDCUSDT, // decimals for this mint = 6
       users.super,
       accounts.lpSaberUsdcUsdt.mint
     );
@@ -282,7 +271,7 @@ describe("cdp core test suite", async () => {
   it("PASS: Deposit Collateral from another user", async () => {
     // mint tokens to the user's account first
     await users.test.tokens.lpSaber.ata.mintToATA(
-      10 * 10 ** DECIMALS_USDCUSDT, // decimals for this mint = 9
+      10000 * 10 ** DECIMALS_USDCUSDT, // decimals for this mint = 6
       users.super,
       accounts.lpSaberUsdcUsdt.mint
     );
@@ -367,19 +356,11 @@ describe("cdp core test suite", async () => {
   });
 
   it("PASS: Emergency State Disables Deposits", async () => {
-    await emergencyStatePASS_DepositDisabled(
-      users.super,
-      users.base,
-      accounts
-    );
+    await emergencyStatePASS_DepositDisabled(users.super, users.base, accounts);
   });
 
   it("PASS: Emergency State Disables Borrowing", async () => {
-    await emergencyStatePASS_BorrowDisabled(
-      users.super,
-      users.base,
-      accounts
-    );
+    await emergencyStatePASS_BorrowDisabled(users.super, users.base, accounts);
   });
 
   it("PASS: Emergency State Disables Withdraws", async () => {

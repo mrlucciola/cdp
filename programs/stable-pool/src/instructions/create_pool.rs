@@ -1,6 +1,6 @@
 // libraries
 use anchor_lang::prelude::*;
-use anchor_spl::token::{Mint, Token};
+use anchor_spl::token::{self, Mint, Token};
 // local
 use crate::{
     constants::*,
@@ -22,6 +22,7 @@ pub fn handle(
     token_a_decimals: u8,
     token_b_decimals: u8,
 ) -> Result<()> {
+    // Set the default values for this pool
     ctx.accounts.pool.mint_collat = ctx.accounts.mint_collat.key();
     ctx.accounts.pool.total_coll = 0;
     ctx.accounts.pool.total_debt = 0;
@@ -55,11 +56,14 @@ pub fn handle(
     Ok(())
 }
 
+// TODO 003: Refactor to be specific to 2-coin pools
 #[derive(Accounts)]
 pub struct CreatePool<'info> {
+    /// The authority for this pool, should be the same auth as global state
     #[account(mut, constraint = authority.as_ref().key().to_string() == global_state.authority.to_string().as_ref())]
     pub authority: Signer<'info>,
 
+    /// The pool account
     #[account(
         init,
         payer = authority,
@@ -68,15 +72,20 @@ pub struct CreatePool<'info> {
     )]
     pub pool: Box<Account<'info, Pool>>,
 
+    /// The global state
     #[account(
         mut,
         seeds = [GLOBAL_STATE_SEED.as_ref()],
-        bump,
+        bump, // TODO 004: precompute bump
         has_one = authority,
     )]
     pub global_state: Box<Account<'info, GlobalState>>,
 
+    /// The mint account for collateral token
     pub mint_collat: Box<Account<'info, Mint>>,
+
+    // system accounts
+    #[account(address = token::ID)]
     pub token_program: Program<'info, Token>,
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,

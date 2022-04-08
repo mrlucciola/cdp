@@ -17,6 +17,7 @@ import { Accounts } from "../config/accounts";
 import { StablePool } from "../../target/types/stable_pool";
 // interfaces
 import { Oracle } from "../utils/interfaces";
+import { User } from "../interfaces/user";
 
 // init
 const programStablePool = workspace.StablePool as Program<StablePool>;
@@ -33,12 +34,13 @@ const reportPriceToOracleCall = async (
   userConnection: Connection,
   userWallet: Wallet,
   accounts: Accounts,
-  oracle: Oracle
+  oracle: Oracle,
+  newPrice: number
 ) => {
   const txn = new web3.Transaction().add(
     programStablePool.instruction.reportPriceToOracle(
       // price of token
-      new BN(oracle.price),
+      new BN(newPrice),
       {
         accounts: {
           authority: userWallet.publicKey,
@@ -57,78 +59,77 @@ const reportPriceToOracleCall = async (
   return receipt;
 };
 
-/**
- * Pass when attempting to make a price feed that doesn't exist
- * @param userConnection
- * @param userWallet
- * @param accounts
- * @param oracle
- */
-
 export const reportPriceToOraclePASS = async (
-  userConnection: Connection,
-  userWallet: Wallet,
+  oracleReporter: User,
+  // oracleReporterConnection: Connection, // userConnection
+  // oracleReporterWallet: Wallet, // userWallet
   accounts: Accounts,
-  oracle: Oracle,
-  newPrice: number
+  newPrice: number = 1.01
 ) => {
-  oracle.price = newPrice;
   // derive price feed account
   console.log("getting price feed acct");
 
   // get price feed info
-  const priceFeedInfo: web3.AccountInfo<Buffer> = await oracle.getAccountInfo();
+  const priceFeedInfo: web3.AccountInfo<Buffer> =
+    await accounts.usdc.oracle.getAccountInfo();
 
   // if not created, create price feed
   if (priceFeedInfo) {
     const confirmation = await reportPriceToOracleCall(
-      userConnection,
-      userWallet,
+      oracleReporter.provider.connection,
+      oracleReporter.wallet,
       accounts,
-      oracle
+      accounts.usdc.oracle,
+      newPrice
     );
     console.log("updated price feed: ", confirmation);
   } else console.log("this price feed was not created");
 
   // get the price feed state
   const priceFeedAcc: IdlAccounts<StablePool>["oracle"] =
-    await oracle.getAccount();
+    await accounts.usdc.oracle.getAccount();
   // asserts
   assert(priceFeedAcc.price.toNumber() == newPrice, "price mismatch");
 };
 
 /**
  * Fail when attempting to make a price feed that already exists
+ *
  * @param userConnection
  * @param userWallet
  * @param accounts
  * @param oracle
  */
 export const reportPriceToOracleFAIL_NotUpdater = async (
-  userConnection: Connection,
-  userWallet: Wallet,
+  userBase: User,
+  // userConnection: Connection,
+  // userWallet: Wallet,
   accounts: Accounts,
-  oracle: Oracle,
   newPrice: number
 ) => {
-  oracle.price = newPrice;
   // get price feed info
   const priceFeedInfo: web3.AccountInfo<Buffer> =
-    await getProvider().connection.getAccountInfo(oracle.pubKey);
+    await getProvider().connection.getAccountInfo(accounts.usdc.oracle.pubKey);
   assert(priceFeedInfo, "Price feed does not exist, test needs a price feed");
 
   // get the price feed state
   const priceFeedAccBefore: IdlAccounts<StablePool>["oracle"] =
-    await oracle.getAccount();
+    await accounts.usdc.oracle.getAccount();
 
   await expect(
-    reportPriceToOracleCall(userConnection, userWallet, accounts, oracle),
+    reportPriceToOracleCall(
+      userBase.provider.connection,
+      userBase.wallet,
+      accounts,
+      accounts.usdc.oracle,
+      newPrice
+    ),
     "No error was thrown was trying to update oracle by not oracle reporter"
   ).is.rejected;
 
   // get the price feed state
   const priceFeedAcc: IdlAccounts<StablePool>["oracle"] =
-    await oracle.getAccount();
+    await accounts.usdc.oracle.getAccount();
   // asserts
   assert(
     priceFeedAcc.price.toNumber() == priceFeedAccBefore.price.toNumber(),

@@ -41,7 +41,7 @@ const createOracleCall = async (
           authority: userWallet.publicKey,
           globalState: globalState.pubKey,
           oracle: oracle.pubKey,
-          mint: oracle.mint, // the mint account that represents the token this oracle reports for
+          mintCollat: oracle.mint, // the mint account that represents the token this oracle reports for
           // system accts
           tokenProgram: TOKEN_PROGRAM_ID,
           clock: SYSVAR_CLOCK_PUBKEY,
@@ -65,7 +65,7 @@ const createOracleCall = async (
  * @param oracle
  */
 export const createOraclePASS = async (
-  superUser: User,
+  oracleReporterUser: User,
   accounts: Accounts,
   token: string
 ) => {
@@ -80,8 +80,8 @@ export const createOraclePASS = async (
   // if not created, create oracle
   if (!oracleInfo) {
     const confirmation = await createOracleCall(
-      superUser.provider.connection,
-      superUser.wallet,
+      oracleReporterUser.provider.connection,
+      oracleReporterUser.wallet,
       accounts.global,
       accounts[token].oracle
     );
@@ -101,13 +101,9 @@ export const createOraclePASS = async (
 
 /**
  * Fail when attempting to create a oracle that already exists
- * @param superUser
- * @param accounts
- * @param userWallet
- * @param oracle
  */
 export const createOracleFAIL_Duplicate = async (
-  superUser: User,
+  oracleReporterUser: User,
   accounts: Accounts,
   token: string
 ) => {
@@ -120,8 +116,8 @@ export const createOracleFAIL_Duplicate = async (
   assert(oracleInfo, "Oracle does not exist, test needs a oracle");
   await expect(
     createOracleCall(
-      superUser.provider.connection,
-      superUser.wallet,
+      oracleReporterUser.provider.connection,
+      oracleReporterUser.wallet,
       accounts.global,
       accounts[token].oracle
     ),

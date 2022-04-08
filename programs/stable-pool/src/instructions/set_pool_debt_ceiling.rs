@@ -1,11 +1,7 @@
 use anchor_lang::prelude::*;
 
 // local
-use crate::{
-    constants::*,
-    states::global_state::GlobalState,
-    states::pool::Pool,
-};
+use crate::{constants::*, states::global_state::GlobalState, states::pool::Pool};
 
 pub fn handle(ctx: Context<SetPoolDebtCeiling>, ceiling: u64) -> Result<()> {
     ctx.accounts.pool.debt_ceiling = ceiling;
