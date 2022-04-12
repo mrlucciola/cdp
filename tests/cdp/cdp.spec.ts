@@ -67,10 +67,12 @@ import { createUserStatePASS } from "./createUserState";
 // import x from "../..//target/deploy/stable_pool-keypair.json";
 import stablePoolKeypair from "../../target/deploy/stable_pool-keypair.json";
 import { Keypair } from "@solana/web3.js";
+import { depositAndStakeCollatPASS } from "./depositAndStakeCollat";
 
 const programKp = Keypair.fromSecretKey(
   new Uint8Array(stablePoolKeypair as any[])
 );
+
 // init env
 chaiUse(chaiAsPromised);
 // constants
@@ -390,4 +392,9 @@ describe("cdp core test suite", async () => {
   // it("PASS: Unstake From Saber", async () => {
   //   await unstakeColalteralFromSaberPASS(users.base, accounts);
   // });
+
+  it("PASS: Deposit and stake to Saber miner", async () => {
+    const amtToStake = 100 * 10 ** DECIMALS_USDCUSDT;
+    await depositAndStakeCollatPASS(users.base, accounts, amtToStake);
+  });
 });

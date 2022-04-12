@@ -14,7 +14,6 @@ use crate::{
     enums::PlatformType,
     errors::StablePoolError,
     states::{GlobalState, Pool, Vault},
-    utils::assert_tvl_allowed,
 };
 
 pub fn stake_to_saber_cpi<'info>(
@@ -53,35 +52,35 @@ pub fn stake_to_saber_cpi<'info>(
     Ok(())
 }
 
-pub fn handle(ctx: Context<StakeCollateralToSaber>, amount: u64) -> Result<()> {
+pub fn handle(
+    ctx: Context<StakeCollateralToSaber>,
+    amt_to_stake_requested: Option<u64>,
+) -> Result<()> {
     ///////////deposit to user vault first //////////////////
-    assert_tvl_allowed(
-        ctx.accounts.global_state.tvl_limit,
-        ctx.accounts.global_state.tvl_usd,
-        amount,
-    )?;
+
+    let amt_to_stake: u64 = amt_to_stake_requested.unwrap_or(ctx.accounts.ata_collat_vault.amount);
 
     // validation
     require!(
-        ctx.accounts.ata_user.amount > 0,
+        ctx.accounts.ata_collat_vault.amount > 0,
         StablePoolError::InvalidTransferAmount,
     );
 
     let transfer_ctx = CpiContext::new(
         ctx.accounts.token_program.to_account_info(),
         Transfer {
-            from: ctx.accounts.ata_user.clone().to_account_info(),
-            to: ctx.accounts.ata_collat_vault.clone().to_account_info(),
+            from: ctx.accounts.ata_collat_vault.clone().to_account_info(),
+            to: ctx.accounts.ata_collat_miner.clone().to_account_info(),
             authority: ctx.accounts.authority.clone().to_account_info(),
         },
     );
 
     // send the transfer
-    token::transfer(transfer_ctx, amount)?;
+    token::transfer(transfer_ctx, amt_to_stake)?;
 
     // TODO 014: update for checked math
-    ctx.accounts.pool.total_coll += amount;
-    ctx.accounts.vault.deposited_collat_usd += amount;
+    ctx.accounts.pool.total_coll += amt_to_stake;
+    ctx.accounts.vault.deposited_collat_usd += amt_to_stake;
 
     ///////////////////lock token to the miner vault in quarry////////
     ctx.accounts.ata_collat_vault.reload()?;
@@ -107,7 +106,7 @@ pub fn handle(ctx: Context<StakeCollateralToSaber>, amount: u64) -> Result<()> {
         ctx.accounts.vault.to_account_info(),
         ctx.accounts.quarry.to_account_info(),
         ctx.accounts.miner.to_account_info(),
-        ctx.accounts.miner_vault.to_account_info(),
+        ctx.accounts.ata_collat_miner.to_account_info(),
         ctx.accounts.ata_collat_vault.to_account_info(),
         ctx.accounts.rewarder.to_account_info(),
         ctx.accounts.ata_collat_vault.amount,
@@ -150,13 +149,12 @@ pub struct StakeCollateralToSaber<'info> {
         associated_token::authority = vault.as_ref(),
     )]
     pub ata_collat_vault: Box<Account<'info, TokenAccount>>,
-
-    #[account(
-        mut,
-        associated_token::mint = mint.as_ref(),
-        associated_token::authority = authority.as_ref(),
-    )]
-    pub ata_user: Box<Account<'info, TokenAccount>>,
+    /**
+     * the miner (miner-vault's auth is miner, miner's auth is user), this is implemented as an ATA
+     * alias: miner_vault
+     */
+    #[account(mut)]
+    pub ata_collat_miner: Box<Account<'info, TokenAccount>>,
 
     #[account(constraint = mint.key().as_ref() == pool.mint_collat.as_ref())]
     pub mint: Box<Account<'info, Mint>>,
@@ -166,10 +164,6 @@ pub struct StakeCollateralToSaber<'info> {
 
     #[account(mut)]
     pub miner: Box<Account<'info, Miner>>,
-
-    // the miner (miner-vault's auth is miner, miner's auth is user), this is implemented as an ATA
-    #[account(mut)]
-    pub miner_vault: Box<Account<'info, TokenAccount>>,
 
     //saber farm common
     #[account(mut)]

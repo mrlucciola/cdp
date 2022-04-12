@@ -37,7 +37,6 @@ const programStablePool = workspace.StablePool as Program<StablePool>;
  * zhaohui wrote this
  */
 const stakeToSaberCall = async (
-  amountToStake: number,
   userConnection: Connection,
   userWallet: Wallet,
   userToken: UserToken,
@@ -52,7 +51,6 @@ const stakeToSaberCall = async (
   console.log("ata balance: ", await userToken.ata.getBalance());
   const txn = new Transaction().add(
     programStablePool.instruction.stakeCollateralToSaber(
-      new BN(amountToStake),
       {
         accounts: {
           authority: userWallet.publicKey,
@@ -60,6 +58,7 @@ const stakeToSaberCall = async (
           pool: pool.pubKey,
           vault: vault.pubKey,
           ataCollatVault: vault.ata.pubKey,
+          // TODO 028: Delete
           ataUser: userToken.ata.pubKey,
           mint: mintPubKey,
           tokenProgram: TOKEN_PROGRAM_ID,
@@ -113,8 +112,6 @@ export const stakeCollateralToSaberPASS = async (
   );
 
   await stakeToSaberCall(
-    // deposit amount
-    amountToStakePrecise,
     // user connection
     user.provider.connection,
     // user wallet

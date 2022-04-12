@@ -276,13 +276,13 @@ pub mod stable_pool {
     }
 
     /**
-     * aliases: stake_collateral_to_saber, StakeCollateralToSaber, stakeCollateralToSaber
+     * stake_collateral_to_saber, StakeCollateralToSaber, stakeCollateralToSaber
      */
     pub fn stake_collateral_to_saber(
         ctx: Context<StakeCollateralToSaber>,
-        amount: u64,
+        amt_to_stake: Option<u64>,
     ) -> Result<()> {
-        stake_collateral_to_saber::handle(ctx, amount)
+        stake_collateral_to_saber::handle(ctx, amt_to_stake)
     }
 
     /**

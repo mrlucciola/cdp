@@ -15,7 +15,6 @@ import {
   MintPubKey,
   GlobalStateAcct,
   Pool,
-  QuarryClass,
   RewardTokenAccount,
 } from "../utils/interfaces";
 import {
@@ -27,6 +26,7 @@ import {
 } from "../utils/constants";
 import { createAtaOnChain } from "../utils/fxns";
 import { ATA } from "../interfaces/ata";
+import { QuarryClass } from "../interfaces/quarry";
 
 // init
 const programStablePool = workspace.StablePool as Program<StablePool>;
@@ -69,7 +69,7 @@ export class Accounts {
       DECIMALS_USDT
     ); // amount found on explorer.solana.com on 3/24/22 5:15pm EST
 
-    // init the collateral mint
+    // init the collateral mint account
     this.lpSaberUsdcUsdt.mint = (
       await SPLToken.createMint(
         programStablePool.provider.connection,
@@ -85,7 +85,8 @@ export class Accounts {
       programStablePool.provider.wallet.publicKey,
       this.lpSaberUsdcUsdt.mint
     );
-    // create an ata for the collateral mint
+
+    // create an A.T.A. for the collateral mint
     await createAtaOnChain(
       programStablePool.provider.wallet as Wallet,
       lpATASuper,
@@ -94,6 +95,7 @@ export class Accounts {
       programStablePool.provider.connection
     );
 
+    // mint tokens to this A.T.A.
     await mintTo(
       programStablePool.provider.connection, // connection — Connection to use
       // @ts-ignore
@@ -109,6 +111,6 @@ export class Accounts {
       this.usdt
     );
     this.quarry = new QuarryClass();
-    await this.quarry.init(this.sbr, this.lpSaberUsdcUsdt);
+    await this.quarry.init(this.sbr.mint, this.lpSaberUsdcUsdt);
   }
 }
