@@ -34,7 +34,7 @@ const createVaultCall = async (
     programStablePool.instruction.createVault(
       // vault_bump
       vault.bump,
-      // ata_vault_bump
+      // ata_vault_bump -> ata_collat_vault_bump
       vault.ata.bump,
       {
         accounts: {
@@ -45,7 +45,7 @@ const createVaultCall = async (
           // the user's vault is the authority for the collateral tokens within it
           vault: vault.pubKey,
           // this is the vault's ATA for the collateral's mint, previously named tokenColl
-          ataVault: vault.ata.pubKey,
+          ataCollatVault: vault.ata.pubKey,
           // the mint address for the specific collateral provided to this vault
           mint: mintPubKey,
           tokenProgram: TOKEN_PROGRAM_ID,

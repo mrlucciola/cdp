@@ -56,12 +56,13 @@ pub enum StablePoolError {
     #[msg("Invalid platform type")]
     InvalidPlatformType,
 
+    // TODO 008: reword or delete
     #[msg("Invalid saber platform")]
     InvalidSaberPlatform,
 
-    #[msg("Reward Mint should be more than one")]
-    InvalidRewardMintCount,
-
     #[msg("Attempting to repay more than the amount originally borrowed")]
     RepayingMoreThanBorrowed,
+    
+    #[msg("Reward mint account mismatch")]
+    RewardMintMismatch,
 }

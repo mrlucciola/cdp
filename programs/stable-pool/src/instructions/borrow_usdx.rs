@@ -19,8 +19,8 @@ pub fn handle(ctx: Context<BorrowUsdx>, usdx_borrow_amt_requested: u64) -> Resul
         &ctx.accounts.pool,
         ctx.accounts.ata_market_a.mint,
         ctx.accounts.ata_market_b.mint,
-        ctx.accounts.oracle_a.mint_collat,
-        ctx.accounts.oracle_b.mint_collat,
+        ctx.accounts.oracle_a.mint,
+        ctx.accounts.oracle_b.mint,
     )?;
 
     let amount_ata_a = amount(&ctx.accounts.ata_market_a.to_account_info())?;
@@ -35,7 +35,7 @@ pub fn handle(ctx: Context<BorrowUsdx>, usdx_borrow_amt_requested: u64) -> Resul
         ctx.accounts.oracle_b.price,
     )?;
 
-    let user_collat_amt = ctx.accounts.vault.locked_coll_balance;
+    let user_collat_amt = ctx.accounts.vault.deposited_collat_usd;
     let collat_value = collat_price
         .checked_mul(user_collat_amt)
         .unwrap()

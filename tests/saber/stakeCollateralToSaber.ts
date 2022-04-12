@@ -59,7 +59,7 @@ const stakeToSaberCall = async (
           globalState: globalState.pubKey,
           pool: pool.pubKey,
           vault: vault.pubKey,
-          ataVault: vault.ata.pubKey,
+          ataCollatVault: vault.ata.pubKey,
           ataUser: userToken.ata.pubKey,
           mint: mintPubKey,
           tokenProgram: TOKEN_PROGRAM_ID,

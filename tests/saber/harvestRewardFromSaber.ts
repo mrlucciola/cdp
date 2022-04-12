@@ -67,7 +67,7 @@ const harvestFromSaberCall = async (
         quarry,
         miner: miner.pubkey,
         minerVault: miner.ata.pubKey,
-        ataVault: vault.ata.pubKey,
+        ataCollatVault: vault.ata.pubKey,
         // quarry-specific accounts
         rewarder,
         mintWrapper,

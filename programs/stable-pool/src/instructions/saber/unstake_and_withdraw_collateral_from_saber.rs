@@ -57,6 +57,7 @@ pub fn handle(ctx: Context<UnstakeCollateralFromSaber>, amount: u64) -> Result<(
     let pool = &mut ctx.accounts.pool;
     require!(
         pool.platform_type == PlatformType::Saber as u8,
+        // TODO 008: reword or delete
         StablePoolError::InvalidSaberPlatform
     );
 
@@ -76,7 +77,7 @@ pub fn handle(ctx: Context<UnstakeCollateralFromSaber>, amount: u64) -> Result<(
         ctx.accounts.quarry.to_account_info(),
         ctx.accounts.miner.to_account_info(),
         ctx.accounts.miner_vault.to_account_info(),
-        ctx.accounts.ata_vault.to_account_info(),
+        ctx.accounts.ata_collat_vault.to_account_info(),
         ctx.accounts.rewarder.to_account_info(),
         amount,
         authority_seeds,
@@ -84,9 +85,9 @@ pub fn handle(ctx: Context<UnstakeCollateralFromSaber>, amount: u64) -> Result<(
 
     ///////////withdraw from user trove vault to user wallet //////////////////
     // validation
-    ctx.accounts.ata_vault.reload()?;
+    ctx.accounts.ata_collat_vault.reload()?;
     require!(
-        ctx.accounts.ata_vault.amount > 0,
+        ctx.accounts.ata_collat_vault.amount > 0,
         StablePoolError::InvalidTransferAmount,
     );
     require!(
@@ -99,17 +100,18 @@ pub fn handle(ctx: Context<UnstakeCollateralFromSaber>, amount: u64) -> Result<(
         CpiContext::new_with_signer(
             ctx.accounts.token_program.to_account_info(),
             Transfer {
-                from: ctx.accounts.ata_vault.clone().to_account_info(),
+                from: ctx.accounts.ata_collat_vault.clone().to_account_info(),
                 to: ctx.accounts.ata_user.clone().to_account_info(),
                 authority: ctx.accounts.vault.clone().to_account_info(),
             },
             &[&authority_seeds[..]],
         ),
-        ctx.accounts.ata_vault.amount,
+        ctx.accounts.ata_collat_vault.amount,
     )?;
 
+    // TODO 014: update for checked math
     ctx.accounts.pool.total_coll -= amount;
-    ctx.accounts.vault.locked_coll_balance -= amount;
+    ctx.accounts.vault.deposited_collat_usd -= amount;
 
     Ok(())
 }
@@ -146,7 +148,7 @@ pub struct UnstakeCollateralFromSaber<'info> {
         associated_token::mint = mint.as_ref(),
         associated_token::authority = vault.as_ref(),
     )]
-    pub ata_vault: Box<Account<'info, TokenAccount>>,
+    pub ata_collat_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(
         mut,

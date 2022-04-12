@@ -1,20 +1,20 @@
+// anchor/solana
 import { BN, Program, Wallet, workspace } from "@project-serum/anchor";
-import { QUARRY_ADDRESSES } from "@quarryprotocol/quarry-sdk";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import {
-  Connection,
-  LAMPORTS_PER_SOL,
-  PublicKey,
-  Transaction,
-} from "@solana/web3.js";
+import { Connection, PublicKey, Transaction } from "@solana/web3.js";
+// saber
+import { QUARRY_ADDRESSES } from "@quarryprotocol/quarry-sdk";
+// utils
 import { assert, expect } from "chai";
+// local
 import { StablePool } from "../../target/types/stable_pool";
-import { Accounts } from "../config/accounts";
 import { DECIMALS_USDCUSDT } from "../utils/constants";
 import { handleTxn } from "../utils/fxns";
+// interfaces
+import { Accounts } from "../config/accounts";
 import {
   GlobalStateAcct,
   MintPubKey,
@@ -25,21 +25,12 @@ import {
 import { User } from "../interfaces/user";
 import { Miner } from "../interfaces/miner";
 
+// init
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
 /**
  * * we have params and their classes like this so we can guarantee-
  *     we are passing in the right values
- * @param unstakeAmount
- * @param userWallet
- * @param userToken
- * @param mintPubKey
- * @param vault
- * @param pool
- * @param globalState
- * @param rewader
- * @param quarry
- * @param miner
  */
 const unstakeColalteralFromSaberCall = async (
   unstakeAmount: number,
@@ -63,7 +54,7 @@ const unstakeColalteralFromSaberCall = async (
           globalState: globalState.pubKey,
           pool: pool.pubKey,
           vault: vault.pubKey,
-          ataVault: vault.ata.pubKey,
+          ataCollatVault: vault.ata.pubKey,
           ataUser: userToken.ata.pubKey,
           mint: mintPubKey,
           tokenProgram: TOKEN_PROGRAM_ID,
@@ -93,6 +84,8 @@ export const unstakeColalteralFromSaberFAIL_AttemptToUnstakeMoreThanWasStaked =
     const vaultBalPre = (await userlpSaber.vault.ata.getBalance()).value
       .uiAmount;
     const userBalPre = (await userlpSaber.ata.getBalance()).value.uiAmount;
+    // TODO 007: move miner into its respective user-token relationship
+    const minerBalPre = (await user.miner.ata.getBalance()).value.uiAmount;
 
     assert(
       unstakeAmountPrecise >= lockedBalPre,
@@ -243,7 +236,7 @@ export const unstakeColalteralFromSaberPASS = async (
   // check balances before
   const lockedBalPre = (await userLpSaber.vault.getAccount()).lockedCollBalance;
   const vaultBalPre = (await userLpSaber.vault.ata.getBalance()).value.uiAmount;
-  const userBalPre = (await userLpSaber.ata.getBalance()).value.uiAmount;
+  const minerBalPre = (await user.miner.ata.getBalance()).value.uiAmount;
 
   assert(
     unstakeAmountPrecise <= lockedBalPre,
@@ -286,19 +279,16 @@ export const unstakeColalteralFromSaberPASS = async (
     .lockedCollBalance;
   const vaultBalPost = (await userLpSaber.vault.ata.getBalance()).value
     .uiAmount;
-  const userBalPost = (await userLpSaber.ata.getBalance()).value.uiAmount;
+  const minerBalPost = (await user.miner.ata.getBalance()).value.uiAmount;
 
   const lockedBalDiff = lockedBalPost - lockedBalPre;
   const vaultBalDiff = vaultBalPost - vaultBalPre;
-  const userDiff = userBalPost - userBalPre;
+  const minerBalDiff = minerBalPre - vaultBalPre;
 
   const differenceThreshold = 0.0001; // set arbitrarily
   assert(
     Math.abs(lockedBalDiff + unstakeAmountPrecise) < differenceThreshold,
-    "Expected Locked Bal Diff: " +
-      -unstakeAmountUi +
-      " Actual Locked Bal Diff: " +
-      lockedBalDiff
+    `Expected Locked Bal Diff: ${-unstakeAmountUi}   Actual Locked Bal Diff: ${lockedBalDiff}`
   );
   // assert(
   //   vaultBalDiff == 0,

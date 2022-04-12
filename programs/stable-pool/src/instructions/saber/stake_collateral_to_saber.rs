@@ -71,7 +71,7 @@ pub fn handle(ctx: Context<StakeCollateralToSaber>, amount: u64) -> Result<()> {
         ctx.accounts.token_program.to_account_info(),
         Transfer {
             from: ctx.accounts.ata_user.clone().to_account_info(),
-            to: ctx.accounts.ata_vault.clone().to_account_info(),
+            to: ctx.accounts.ata_collat_vault.clone().to_account_info(),
             authority: ctx.accounts.authority.clone().to_account_info(),
         },
     );
@@ -79,14 +79,16 @@ pub fn handle(ctx: Context<StakeCollateralToSaber>, amount: u64) -> Result<()> {
     // send the transfer
     token::transfer(transfer_ctx, amount)?;
 
+    // TODO 014: update for checked math
     ctx.accounts.pool.total_coll += amount;
-    ctx.accounts.vault.locked_coll_balance += amount;
+    ctx.accounts.vault.deposited_collat_usd += amount;
 
     ///////////////////lock token to the miner vault in quarry////////
-    ctx.accounts.ata_vault.reload()?;
+    ctx.accounts.ata_collat_vault.reload()?;
     let pool = &mut ctx.accounts.pool;
     require!(
         pool.platform_type == PlatformType::Saber as u8,
+        // TODO 008: reword or delete
         StablePoolError::InvalidSaberPlatform
     );
 
@@ -106,9 +108,9 @@ pub fn handle(ctx: Context<StakeCollateralToSaber>, amount: u64) -> Result<()> {
         ctx.accounts.quarry.to_account_info(),
         ctx.accounts.miner.to_account_info(),
         ctx.accounts.miner_vault.to_account_info(),
-        ctx.accounts.ata_vault.to_account_info(),
+        ctx.accounts.ata_collat_vault.to_account_info(),
         ctx.accounts.rewarder.to_account_info(),
-        ctx.accounts.ata_vault.amount,
+        ctx.accounts.ata_collat_vault.amount,
         authority_seeds,
     )?;
 
@@ -147,7 +149,7 @@ pub struct StakeCollateralToSaber<'info> {
         associated_token::mint = mint.as_ref(),
         associated_token::authority = vault.as_ref(),
     )]
-    pub ata_vault: Box<Account<'info, TokenAccount>>,
+    pub ata_collat_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(
         mut,

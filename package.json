@@ -25,7 +25,7 @@
     "get-pool-faucet-address": "solana address -k target/deploy/stable_pool_faucet_v1-keypair.json",
     "use-devnet": "solana config set --url devnet --config ./.config/config.yml",
     "use-localnet": "solana config set --url localhost --config ./.config/config.yml",
-    "airdrop": "for i in `seq 1 10`; do solana airdrop 2 ./.config/testUser-super-keypair.json; done",
+    "airdrop": "for i in `seq 1 10`; do solana airdrop 2 ./.config/testKeys/super.json; done",
     "update-pid": "sh ./scripts/update_pid.sh"
   },
   "engines": {

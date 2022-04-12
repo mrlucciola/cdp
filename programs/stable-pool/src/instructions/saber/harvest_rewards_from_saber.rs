@@ -1,8 +1,8 @@
 // modules
 use anchor_lang::prelude::*;
 use anchor_spl::{
-    associated_token::{self, AssociatedToken},
-    token::{self, Mint, Token, TokenAccount},
+    associated_token::AssociatedToken,
+    token::{Mint, Token, TokenAccount},
 };
 use quarry_mine::{
     cpi::{
@@ -22,6 +22,7 @@ use crate::{
 pub fn handle(ctx: Context<HarvestRewardsFromSaber>) -> Result<()> {
     require!(
         ctx.accounts.pool.platform_type == PlatformType::Saber as u8,
+        // TODO 008: reword or delete
         StablePoolError::InvalidSaberPlatform
     );
     ////////////// harvest from saber first///////////////
@@ -52,7 +53,7 @@ pub fn handle(ctx: Context<HarvestRewardsFromSaber>) -> Result<()> {
                     quarry: ctx.accounts.quarry.to_account_info(),
                     /// Placeholder for the miner vault.
                     unused_miner_vault: ctx.accounts.miner_vault.to_account_info(),
-                    unused_token_account: ctx.accounts.ata_vault.to_account_info(),
+                    unused_token_account: ctx.accounts.ata_collat_vault.to_account_info(),
                     token_program: ctx.accounts.token_program.to_account_info(),
                     rewarder: ctx.accounts.rewarder.to_account_info(),
                 },
@@ -96,7 +97,7 @@ pub struct HarvestRewardsFromSaber<'info> {
     )]
     pub vault: Box<Account<'info, Vault>>,
 
-    #[account(mut, constraint = ata_reward_vault.key() == vault.reward_token_a)]
+    #[account(mut, constraint = ata_reward_vault.key() == vault.mint_reward)]
     pub ata_reward_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(
@@ -140,7 +141,7 @@ pub struct HarvestRewardsFromSaber<'info> {
         associated_token::mint = mint.as_ref(),
         associated_token::authority = vault.as_ref(),
     )]
-    pub ata_vault: Box<Account<'info, TokenAccount>>,
+    pub ata_collat_vault: Box<Account<'info, TokenAccount>>,
 
     // saber farm common
     pub rewarder: Box<Account<'info, Rewarder>>,
@@ -156,7 +157,7 @@ pub struct HarvestRewardsFromSaber<'info> {
     #[account(mut)]
     pub minter: AccountInfo<'info>,
 
-    #[account(mut, address = pool.mint_reward_a)]
+    #[account(mut, address = pool.mint_reward)]
     pub mint_reward: Box<Account<'info, Mint>>,
 
     /// Quarry: Token account in which the rewards token fees are collected.

@@ -1,62 +1,49 @@
-import {
-  BN,
-  IdlAccounts,
-  Program,
-  Wallet,
-  workspace,
-} from "@project-serum/anchor";
-import {
-  ASSOCIATED_TOKEN_PROGRAM_ID,
-  TOKEN_PROGRAM_ID,
-} from "@solana/spl-token";
-import { Connection, Transaction } from "@solana/web3.js";
+import { IdlAccounts, Program, workspace } from "@project-serum/anchor";
 import { StablePool } from "../../target/types/stable_pool";
 import { Accounts } from "../config/accounts";
-import { handleTxn } from "../utils/fxns";
-import {
-  GlobalStateAcct,
-  MintPubKey,
-  Vault,
-  UserToken,
-  Pool,
-} from "../utils/interfaces";
 import { User } from "../interfaces/user";
 import { assert, expect } from "chai";
 import {
-  DECIMALS_PRICE,
   DECIMALS_USDCUSDT,
   DECIMALS_USDX,
   EMER_STATE_DISABLED,
   EMER_STATE_ENABLED,
 } from "../utils/constants";
 import { toggleEmerStateCall } from "../admin-panel/toggleEmerState";
-import { depositCollateralCall} from "./depositCollateral";
+import { depositCollateralCall } from "./depositCollateral";
 import { withdrawCollateralCall } from "./withdrawCollateral";
 import { borrowUsdxCall } from "./borrowUsdx";
-  
-const programStablePool = workspace.StablePool as Program<StablePool>;
-  
+
 export const emergencyStatePASS_DepositDisabled = async (
   superUser: User,
   user: User,
   accounts: Accounts
 ) => {
   const depositAmount = 0.2 * 10 ** DECIMALS_USDCUSDT;
-  
+
   let globalState: IdlAccounts<StablePool>["globalState"] =
     await accounts.global.getAccount();
 
   if (globalState.paused == EMER_STATE_DISABLED) {
-    let confirmation = await toggleEmerStateCall(accounts, superUser, EMER_STATE_ENABLED);
+    let confirmation = await toggleEmerStateCall(
+      accounts,
+      superUser,
+      EMER_STATE_ENABLED
+    );
     assert(confirmation, "Failed to enable emergency state");
     globalState = await accounts.global.getAccount();
-    assert(globalState.paused == EMER_STATE_ENABLED, "Failed to enable emergency state");
+    assert(
+      globalState.paused == EMER_STATE_ENABLED,
+      "Failed to enable emergency state"
+    );
   }
 
   const userlpSaber = user.tokens.lpSaber;
 
   const userBalPre = Number((await userlpSaber.ata.getBalance()).value.amount);
-  const vaultBalPre = Number((await userlpSaber.vault.ata.getBalance()).value.amount);
+  const vaultBalPre = Number(
+    (await userlpSaber.vault.ata.getBalance()).value.amount
+  );
 
   assert(
     userBalPre >= depositAmount,
@@ -81,7 +68,8 @@ export const emergencyStatePASS_DepositDisabled = async (
       // pool
       accounts.lpSaberUsdcUsdt.pool,
       // globalState
-      accounts.global
+      accounts.global,
+      user
     )
   ).to.be.rejectedWith(
     "6005", // NotAllowed
@@ -89,10 +77,18 @@ export const emergencyStatePASS_DepositDisabled = async (
   );
 
   const userBalPost = Number((await userlpSaber.ata.getBalance()).value.amount);
-  const vaultBalPost = Number((await userlpSaber.vault.ata.getBalance()).value.amount);
+  const vaultBalPost = Number(
+    (await userlpSaber.vault.ata.getBalance()).value.amount
+  );
 
-  assert(userBalPre == userBalPost, "User Bal changed despite deposit being rejected");
-  assert(vaultBalPre == vaultBalPost, "Vault Bal changed depsite deposit being rejected");
+  assert(
+    userBalPre == userBalPost,
+    "User Bal changed despite deposit being rejected"
+  );
+  assert(
+    vaultBalPre == vaultBalPost,
+    "Vault Bal changed depsite deposit being rejected"
+  );
 };
 
 export const emergencyStatePASS_BorrowDisabled = async (
@@ -110,10 +106,17 @@ export const emergencyStatePASS_BorrowDisabled = async (
 
   // Disable emergency state if necessary
   if (globalState.paused == EMER_STATE_DISABLED) {
-    let confirmation = await toggleEmerStateCall(accounts, superUser, EMER_STATE_ENABLED);
+    let confirmation = await toggleEmerStateCall(
+      accounts,
+      superUser,
+      EMER_STATE_ENABLED
+    );
     assert(confirmation, "Failed to enable emergency state");
     globalState = await accounts.global.getAccount();
-    assert(globalState.paused == EMER_STATE_ENABLED, "Failed to enable emergency state");
+    assert(
+      globalState.paused == EMER_STATE_ENABLED,
+      "Failed to enable emergency state"
+    );
   }
 
   await expect(
@@ -142,9 +145,14 @@ export const emergencyStatePASS_BorrowDisabled = async (
     "No error thrown when trying to borrow when emergency state enabled"
   );
 
-  const userUsdxBalPost = Number((await usdxUser.ata.getBalance()).value.amount);
+  const userUsdxBalPost = Number(
+    (await usdxUser.ata.getBalance()).value.amount
+  );
 
-  assert(userUsdxBalPre == userUsdxBalPost, "User Bal changed despite borrow being rejected");
+  assert(
+    userUsdxBalPre == userUsdxBalPost,
+    "User Bal changed despite borrow being rejected"
+  );
 };
 
 export const emergencyStatePASS_WithdrawDisabled = async (
@@ -156,7 +164,9 @@ export const emergencyStatePASS_WithdrawDisabled = async (
   const userlpSaber = user.tokens.lpSaber;
 
   // check balances before
-  const vaultBalPre = Number((await userlpSaber.vault.ata.getBalance()).value.amount);
+  const vaultBalPre = Number(
+    (await userlpSaber.vault.ata.getBalance()).value.amount
+  );
   const userBalPre = Number((await userlpSaber.ata.getBalance()).value.amount);
 
   // let globalStateAcct: IdlAccounts<StablePool>["globalState"] = await accounts.global.getAccount();
@@ -173,10 +183,17 @@ export const emergencyStatePASS_WithdrawDisabled = async (
 
   // Disable emergency state if necessary
   if (globalState.paused == EMER_STATE_DISABLED) {
-    let confirmation = await toggleEmerStateCall(accounts, superUser, EMER_STATE_ENABLED);
+    let confirmation = await toggleEmerStateCall(
+      accounts,
+      superUser,
+      EMER_STATE_ENABLED
+    );
     assert(confirmation, "Failed to enable emergency state");
     globalState = await accounts.global.getAccount();
-    assert(globalState.paused == EMER_STATE_ENABLED, "Failed to enable emergency state");
+    assert(
+      globalState.paused == EMER_STATE_ENABLED,
+      "Failed to enable emergency state"
+    );
   }
 
   await expect(
@@ -204,21 +221,34 @@ export const emergencyStatePASS_WithdrawDisabled = async (
   );
 
   // check balances after
-  const vaultBalPost = Number((await userlpSaber.vault.ata.getBalance()).value.amount);
+  const vaultBalPost = Number(
+    (await userlpSaber.vault.ata.getBalance()).value.amount
+  );
   const userBalPost = Number((await userlpSaber.ata.getBalance()).value.amount);
 
-  assert(userBalPre == userBalPost, "User Bal changed despite withdraw being rejected");
-  assert(vaultBalPre == vaultBalPost, "Vault Bal changed depsite withdraw being rejected");
+  assert(
+    userBalPre == userBalPost,
+    "User Bal changed despite withdraw being rejected"
+  );
+  assert(
+    vaultBalPre == vaultBalPost,
+    "Vault Bal changed depsite withdraw being rejected"
+  );
 
   globalState = await accounts.global.getAccount();
 
   // Unpause emergency state
   if (globalState.paused == EMER_STATE_ENABLED) {
-    let confirmation = await toggleEmerStateCall(accounts, superUser, EMER_STATE_DISABLED);
+    let confirmation = await toggleEmerStateCall(
+      accounts,
+      superUser,
+      EMER_STATE_DISABLED
+    );
     assert(confirmation, "Failed to disable emergency state");
     globalState = await accounts.global.getAccount();
-    assert(globalState.paused == EMER_STATE_DISABLED, "Failed to disable emergency state");
+    assert(
+      globalState.paused == EMER_STATE_DISABLED,
+      "Failed to disable emergency state"
+    );
   }
 };
-
-  

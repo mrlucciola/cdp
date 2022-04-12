@@ -7,6 +7,7 @@ import { airdropSol, createAtaOnChain, mintToAta } from "../utils/fxns";
 import { TestTokens } from "../utils/types";
 import { StablePool } from "../../target/types/stable_pool";
 import { UserState } from "./userState";
+import { Miner } from "./miner";
 
 // init
 const programStablePool = workspace.StablePool as Program<StablePool>;
@@ -20,7 +21,7 @@ export class User {
     sbr?: UserToken;
   };
   userState: UserState;
-  miner?: any;
+  miner?: Miner;
 
   constructor(keypair: Keypair) {
     this.wallet = new Wallet(keypair);

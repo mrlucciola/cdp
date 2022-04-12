@@ -64,7 +64,13 @@ import {
 import { Users } from "../interfaces/users";
 import { Miner } from "../interfaces/miner";
 import { createUserStatePASS } from "./createUserState";
+// import x from "../..//target/deploy/stable_pool-keypair.json";
+import stablePoolKeypair from "../../target/deploy/stable_pool-keypair.json";
+import { Keypair } from "@solana/web3.js";
 
+const programKp = Keypair.fromSecretKey(
+  new Uint8Array(stablePoolKeypair as any[])
+);
 // init env
 chaiUse(chaiAsPromised);
 // constants
@@ -72,6 +78,7 @@ const programStablePool = workspace.StablePool as Program<StablePool>;
 // init variables
 let accounts: Accounts;
 let users: Users;
+console.log("program keys id: ", programKp.publicKey.toString());
 
 describe("cdp core test suite", async () => {
   // Configure the client to use the local cluster.
@@ -158,6 +165,7 @@ describe("cdp core test suite", async () => {
       accounts
     );
   });
+
   it("PASS: Set Pool Debt Ceiling", async () => {
     await setPoolDebtCeilingPASS(
       users.super,
@@ -197,18 +205,10 @@ describe("cdp core test suite", async () => {
 
   it("PASS: Create User State", async () => {
     await createUserStatePASS(users.base);
+    await createUserStatePASS(users.test);
   });
 
   // vault tests
-  before(async () => {
-    // derive vault account
-    users.base.tokens.lpSaber.vault = new Vault(
-      users.base.wallet,
-      accounts.lpSaberUsdcUsdt.mint,
-      [accounts.sbr.mint]
-    );
-  });
-
   it("PASS: Create Vault", async () => {
     // TODO: refactor to include just the high level classes
     await createVaultPASS(
@@ -258,24 +258,12 @@ describe("cdp core test suite", async () => {
     await depositCollateralFAIL_NotEnoughTokens(users.test, accounts);
   });
 
-  it("PASS: Deposit Collateral", async () => {
-    // mint tokens to the user's account first
-    await users.base.tokens.lpSaber.ata.mintToATA(
-      10000 * 10 ** DECIMALS_USDCUSDT, // decimals for this mint = 6
-      users.super,
-      accounts.lpSaberUsdcUsdt.mint
-    );
-    await depositCollateralPASS(users.base, accounts);
+  it("PASS: Deposit Collateral - first time for base", async () => {
+    await depositCollateralPASS(users.base, users.super, accounts);
   });
 
   it("PASS: Deposit Collateral from another user", async () => {
-    // mint tokens to the user's account first
-    await users.test.tokens.lpSaber.ata.mintToATA(
-      10000 * 10 ** DECIMALS_USDCUSDT, // decimals for this mint = 6
-      users.super,
-      accounts.lpSaberUsdcUsdt.mint
-    );
-    await depositCollateralPASS(users.test, accounts);
+    await depositCollateralPASS(users.test, users.super, accounts);
   });
 
   it("FAIL: Deposit Collateral - Deposit Exceeding TVL", async () => {
@@ -296,14 +284,14 @@ describe("cdp core test suite", async () => {
   //   );
   // });
 
-  it("PASS: Withdraw Collateral", async () => {
-    await withdrawCollateralPASS(users.base, accounts);
-  });
+  // it("PASS: Withdraw Collateral", async () => {
+  //   await withdrawCollateralPASS(users.base, accounts);
+  // });
 
   // THIS IS NOT COMPLETE, please see note on the contract fxn (search `BorrowUsdx<'info>`)
-  it("PASS: Borrow/mint USDx", async () => {
-    // await borrowUsdxPASS(users.base, accounts);
-  });
+  // it("PASS: Borrow/mint USDx", async () => {
+  //   // await borrowUsdxPASS(users.base, accounts);
+  // });
 
   // repay
   // it("FAIL: Repay USDx - Repaying More Than Originally Borrowed", async () => {
@@ -338,68 +326,68 @@ describe("cdp core test suite", async () => {
   //     accounts);
   // });
 
-  it("PASS: Create vault ataReward", async () => {
-    // TODO: refactor to include just the high level classes
-    await createVaultRewardVault(
-      users.base.wallet,
-      users.base.provider.connection,
-      users.base.tokens.lpSaber.vault,
-      accounts.lpSaberUsdcUsdt.pool,
-      accounts.sbr.mint
-    );
-  });
+  // it("PASS: Create vault ataReward", async () => {
+  //   // TODO: refactor to include just the high level classes
+  //   await createVaultRewardVault(
+  //     users.base.wallet,
+  //     users.base.provider.connection,
+  //     users.base.tokens.lpSaber.vault,
+  //     accounts.lpSaberUsdcUsdt.pool,
+  //     accounts.sbr.mint
+  //   );
+  // });
 
-  // THIS IS NOT COMPLETE, please see note on the contract fxn (search `BorrowUsdx<'info>`)
-  // this works but we need fail tests
-  it("PASS: Borrow/mint USDx", async () => {
-    await borrowUsdxPASS(users.base, accounts);
-  });
+  // // THIS IS NOT COMPLETE, please see note on the contract fxn (search `BorrowUsdx<'info>`)
+  // // this works but we need fail tests
+  // it("PASS: Borrow/mint USDx", async () => {
+  //   await borrowUsdxPASS(users.base, accounts);
+  // });
 
-  it("PASS: Emergency State Disables Deposits", async () => {
-    await emergencyStatePASS_DepositDisabled(users.super, users.base, accounts);
-  });
+  // it("PASS: Emergency State Disables Deposits", async () => {
+  //   await emergencyStatePASS_DepositDisabled(users.super, users.base, accounts);
+  // });
 
-  it("PASS: Emergency State Disables Borrowing", async () => {
-    await emergencyStatePASS_BorrowDisabled(users.super, users.base, accounts);
-  });
+  // it("PASS: Emergency State Disables Borrowing", async () => {
+  //   await emergencyStatePASS_BorrowDisabled(users.super, users.base, accounts);
+  // });
 
-  it("PASS: Emergency State Disables Withdraws", async () => {
-    await emergencyStatePASS_WithdrawDisabled(
-      users.super,
-      users.base,
-      accounts
-    );
-  });
+  // it("PASS: Emergency State Disables Withdraws", async () => {
+  //   await emergencyStatePASS_WithdrawDisabled(
+  //     users.super,
+  //     users.base,
+  //     accounts
+  //   );
+  // });
 
-  // This works
-  it("PASS: Create Quarry Miner", async () => {
-    await createSaberQuarryMinerPASS(users.base, accounts);
-  });
+  // // This works
+  // it("PASS: Create Quarry Miner", async () => {
+  //   await createSaberQuarryMinerPASS(users.base, accounts);
+  // });
 
-  it("PASS: Stake to saber", async () => {
-    await stakeCollateralToSaberPASS(users.base, accounts);
-  });
+  // it("PASS: Stake to saber", async () => {
+  //   await stakeCollateralToSaberPASS(users.base, accounts);
+  // });
 
-  it("PASS: Harvest rewards from the saber quarry mine", async () => {
-    await harvestRewardsFromSaberPASS(users.base, users.super, accounts);
-  });
+  // it("PASS: Harvest rewards from the saber quarry mine", async () => {
+  //   await harvestRewardsFromSaberPASS(users.base, users.super, accounts);
+  // });
 
-  it("FAIL: Unstake From Saber - Try To Unstake More Than Was Staked", async () => {
-    await unstakeColalteralFromSaberFAIL_AttemptToUnstakeMoreThanWasStaked(
-      users.base,
-      accounts
-    );
-  });
+  // it("FAIL: Unstake From Saber - Try To Unstake More Than Was Staked", async () => {
+  //   await unstakeColalteralFromSaberFAIL_AttemptToUnstakeMoreThanWasStaked(
+  //     users.base,
+  //     accounts
+  //   );
+  // });
 
-  it("FAIL: Unstake From Saber - Unstake For Another User", async () => {
-    await unstakeColalteralFromSaberFAIL_AttemptToUnstakeFromAnotherUser(
-      users.base,
-      users.test,
-      accounts
-    );
-  });
+  // it("FAIL: Unstake From Saber - Unstake For Another User", async () => {
+  //   await unstakeColalteralFromSaberFAIL_AttemptToUnstakeFromAnotherUser(
+  //     users.base,
+  //     users.test,
+  //     accounts
+  //   );
+  // });
 
-  it("PASS: Unstake From Saber", async () => {
-    await unstakeColalteralFromSaberPASS(users.base, accounts);
-  });
+  // it("PASS: Unstake From Saber", async () => {
+  //   await unstakeColalteralFromSaberPASS(users.base, accounts);
+  // });
 });

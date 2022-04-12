@@ -54,6 +54,7 @@ pub fn handle(ctx: Context<CreateSaberQuarryMiner>, miner_bump: u8) -> Result<()
     // verify that the pool is using the correct platform
     require!(
         ctx.accounts.pool.as_ref().platform_type == PlatformType::Saber as u8,
+        // TODO 008: reword or delete
         StablePoolError::InvalidSaberPlatform
     );
     require!(

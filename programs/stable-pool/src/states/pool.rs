@@ -10,17 +10,13 @@ pub struct Pool {
     /// the mint account for the collateral token that represents this pool
     pub mint_collat: Pubkey,
     /// TODO: turn this into an array
-    pub mint_reward_a: Pubkey,
-    pub mint_reward_b: Pubkey,
+    pub mint_reward: Pubkey,
 
     // tokens that comprise the collateral token
     /// token a decimal precision
     pub token_a_decimals: u8,
     /// token b decimal precision
     pub token_b_decimals: u8,
-
-    /// TODO: remove. pool classes will be by their type and possibly even platform
-    pub is_dual: u8,
     /// total USD value locked across CDP platform for this pool's collateral class
     pub tvl_usd: u64,
     pub total_coll: u64,

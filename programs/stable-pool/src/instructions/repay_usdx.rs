@@ -59,12 +59,14 @@ pub fn handle(ctx: Context<RepayUsdx>, repay_amount: u64) -> Result<()> {
 pub struct RepayUsdx<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
+
     #[account(
         mut,
         seeds = [GLOBAL_STATE_SEED.as_ref()],
         bump = global_state.bump
     )]
     pub global_state: Box<Account<'info, GlobalState>>,
+
     #[account(
         mut,
         seeds=[POOL_SEED.as_ref(), pool.mint_collat.as_ref()],
@@ -72,6 +74,7 @@ pub struct RepayUsdx<'info> {
         constraint = pool.mint_collat.as_ref() == vault.mint.as_ref(),
     )]
     pub pool: Box<Account<'info, Pool>>,
+
     #[account(
         mut,
         seeds=[
@@ -83,19 +86,24 @@ pub struct RepayUsdx<'info> {
         constraint = pool.mint_collat.as_ref() == vault.mint.as_ref(),
     )]
     pub vault: Box<Account<'info, Vault>>,
+
     #[account(
         seeds=[MINT_USDX_SEED.as_ref()],
-        bump, // TODO 004: precompute bump
+        bump,
         constraint=mint_usdx.key() == global_state.mint_usdx,
     )]
     pub mint_usdx: Box<Account<'info, Mint>>,
+
     #[account(
         associated_token::mint = mint_usdx.as_ref(),
         associated_token::authority = authority.as_ref(),
     )]
     pub ata_usdx: Box<Account<'info, TokenAccount>>,
+
+    // system accounts
     #[account(address = associated_token::ID)]
     pub associated_token_program: Program<'info, AssociatedToken>,
+    #[account(address = token::ID)]
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
     pub rent: Sysvar<'info, Rent>,

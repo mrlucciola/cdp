@@ -17,7 +17,7 @@ pub struct ChangeTreasuryWallet<'info> {
     #[account(
         mut,
         seeds = [GLOBAL_STATE_SEED.as_ref()],
-        bump,// TODO 004: precompute bump
+        bump = global_state.bump,
         has_one = authority,
     )]
     pub global_state: Box<Account<'info, GlobalState>>,

@@ -31,23 +31,24 @@ const createPoolCall = async (
   user: User,
   accounts: Accounts,
   riskLevel: number,
-  isDual: number,
   pool: Pool,
   tokenADecimals: number,
   tokenBDecimals: number
 ) => {
+  const debtCeiling = DEBT_CEILING_POOL_USDX * 10 ** DECIMALS_USDX;
+
+  // TODO 013: update the frontend createPool call
   const txnCreateUserPool = new web3.Transaction().add(
     programStablePool.instruction.createPool(
-      pool.bump,
-      new BN(riskLevel),
-      new BN(isDual),
-      new BN(DEBT_CEILING_POOL_USDX * 10 ** DECIMALS_USDX),
-      PLATFORM_TYPE_SABER,
-      accounts.usdc.mint,
-      accounts.usdt.mint,
-      [accounts.sbr.mint],
-      tokenADecimals,
-      tokenBDecimals,
+      pool.bump, // pool_bump: u8,
+      new BN(riskLevel), // risk_level: u8,
+      new BN(debtCeiling), // debt_ceiling: u64,
+      PLATFORM_TYPE_SABER, // platform_type: u8,
+      accounts.usdc.mint, // mint_token_a: Pubkey,
+      accounts.usdt.mint, // mint_token_b: Pubkey,
+      accounts.sbr.mint, // mint_reward: Pubkey,
+      tokenADecimals, // token_a_decimals: u8,
+      tokenBDecimals, // token_b_decimals: u8,
       {
         accounts: {
           authority: user.wallet.publicKey,
@@ -93,7 +94,6 @@ export const createPoolFAIL_auth = async (
   else {
     // params
     const riskLevel = 0;
-    const isDual = 0;
 
     // asserts
     // this does not identify the correct error code properly
@@ -102,7 +102,6 @@ export const createPoolFAIL_auth = async (
         notSuperUser,
         accounts,
         riskLevel,
-        isDual,
         pool,
         DECIMALS_USDC,
         DECIMALS_USDT
@@ -138,13 +137,12 @@ export const createPoolFAIL_noGlobalState = async (
   if (!globalStateInfo) {
     // params
     const riskLevel = 0;
-    const isDual = 0;
+
     await expect(
       createPoolCall(
         superUser,
         accounts,
         riskLevel,
-        isDual,
         pool,
         DECIMALS_USDC,
         DECIMALS_USDT
@@ -190,13 +188,12 @@ export const createPoolFAIL_dup = async (
 
   // params
   const riskLevel = 0;
-  const isDual = 0;
+
   await expect(
     createPoolCall(
       superUser,
       accounts,
       riskLevel,
-      isDual,
       pool,
       DECIMALS_USDC,
       DECIMALS_USDT
@@ -231,12 +228,11 @@ export const createPoolPASS = async (
   // if not created, create token pool
   if (!poolAcctInfo) {
     const riskLevel = 0;
-    const isDual = 0;
+
     const confirmation = await createPoolCall(
       superUser,
       accounts,
       riskLevel,
-      isDual,
       pool,
       DECIMALS_USDC,
       DECIMALS_USDT

@@ -7,8 +7,8 @@ use crate::{constants::*, states::*};
 pub fn handle(ctx: Context<CreateOracle>, price: u64) -> Result<()> {
     let oracle = &mut ctx.accounts.oracle;
 
-    oracle.mint_collat = ctx.accounts.mint_collat.key();
-    oracle.decimals = ctx.accounts.mint_collat.decimals;
+    oracle.mint = ctx.accounts.mint.key();
+    oracle.decimals = ctx.accounts.mint.decimals;
     oracle.last_updated_time = ctx.accounts.clock.unix_timestamp as u64;
     oracle.price = price;
     oracle.bump = *ctx.bumps.get("oracle").unwrap();
@@ -24,7 +24,7 @@ pub struct CreateOracle<'info> {
 
     #[account(
         seeds = [GLOBAL_STATE_SEED.as_ref()],
-        bump, // TODO 004: precompute bump
+        bump = global_state.bump,
         constraint = authority.as_ref().key() == global_state.oracle_reporter,
     )]
     pub global_state: Box<Account<'info, GlobalState>>,
@@ -33,12 +33,14 @@ pub struct CreateOracle<'info> {
     #[account(
         init,
         payer = authority,
-        seeds = [ORACLE_SEED.as_ref(), mint_collat.key().as_ref()],
+        seeds = [ORACLE_SEED.as_ref(), mint.key().as_ref()],
         bump,
     )]
     pub oracle: Box<Account<'info, Oracle>>,
+    // TODO 019: rename in client
+    // TODO 020: rename in frontend
     /// The mint account for the collateral token
-    pub mint_collat: Box<Account<'info, Mint>>,
+    pub mint: Box<Account<'info, Mint>>,
 
     // system accounts
     #[account(address = token::ID)]

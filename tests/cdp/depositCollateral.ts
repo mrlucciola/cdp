@@ -43,7 +43,8 @@ export const depositCollateralCall = async (
   vault: Vault,
   mintPubKey: MintPubKey,
   pool: Pool,
-  globalState: GlobalStateAcct
+  globalState: GlobalStateAcct,
+  user: User
 ) => {
   const txn = new Transaction().add(
     programStablePool.instruction.depositCollateral(new BN(depositAmount), {
@@ -52,8 +53,9 @@ export const depositCollateralCall = async (
         globalState: globalState.pubKey,
         pool: pool.pubKey,
         vault: vault.pubKey,
-        ataVault: vault.ata.pubKey,
-        ataUser: userToken.ata.pubKey,
+        userState: user.userState.pubKey,
+        ataCollatVault: vault.ata.pubKey,
+        ataCollatUser: userToken.ata.pubKey,
         mintCollat: mintPubKey,
         oracleA: pool.oracles.usdc.pubKey,
         oracleB: pool.oracles.usdt.pubKey,
@@ -64,7 +66,7 @@ export const depositCollateralCall = async (
       },
     })
   );
-    
+
   await handleTxn(txn, userConnection, userWallet);
 };
 
@@ -98,7 +100,8 @@ export const depositCollateralFAIL_NotEnoughTokens = async (
       // pool
       accounts.lpSaberUsdcUsdt.pool,
       // globalState
-      accounts.global
+      accounts.global,
+      user
     ),
     "No error was thrown when trying to deposit an amount greater than the user's balance"
   ).is.rejected;
@@ -112,13 +115,25 @@ export const depositCollateralFAIL_NotEnoughTokens = async (
   );
 };
 
-export const depositCollateralPASS = async (user: User, accounts: Accounts) => {
-  // amt to deposit with precision
+export const depositCollateralPASS = async (
+  user: User,
+  superUser: User,
+  accounts: Accounts
+) => {
+  // mint tokens to the user's account first
+  await user.tokens.lpSaber.ata.mintToATA(
+    10000 * 10 ** DECIMALS_USDCUSDT, // decimals for this mint = 6
+    superUser,
+    accounts.lpSaberUsdcUsdt.mint
+  );
+
+  // amt of collateral to deposit with precision
   const depositAmount = 1000 * 10 ** DECIMALS_USDCUSDT;
+
   // price, with precision
-  const priceUsd = 1.02 * 10 ** DECIMALS_PRICE; // TODO: fix price feed
-  const globalStateAcct: IdlAccounts<StablePool>["globalState"] =
-    await accounts.global.getAccount();
+  // const priceUsd = 1.02 * 10 ** DECIMALS_PRICE; // TODO: fix price feed
+  // const globalStateAcct: IdlAccounts<StablePool>["globalState"] =
+  //   await accounts.global.getAccount();
 
   const userlpSaber = user.tokens.lpSaber;
 
@@ -155,7 +170,8 @@ export const depositCollateralPASS = async (user: User, accounts: Accounts) => {
     // pool
     accounts.lpSaberUsdcUsdt.pool,
     // globalState
-    accounts.global
+    accounts.global,
+    user
   );
 
   const userBalPost = Number((await userlpSaber.ata.getBalance()).value.amount);
@@ -244,7 +260,8 @@ export const depositCollateralFAIL_DepositExceedingTVL = async (
       // pool
       accounts.lpSaberUsdcUsdt.pool,
       // globalState
-      accounts.global
+      accounts.global,
+      user
     )
   ).to.be.rejectedWith(
     "6016",

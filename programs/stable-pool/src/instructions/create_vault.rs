@@ -11,15 +11,15 @@ use crate::{
 pub fn handle(
     ctx: Context<CreateVault>,
     vault_bump: u8,
-    ata_vault_bump: u8, // TODO: remove
+    ata_collat_vault_bump: u8, // TODO: remove
 ) -> Result<()> {
     ctx.accounts.vault.mint = ctx.accounts.mint.key();
-    ctx.accounts.vault.locked_coll_balance = 0;
+    ctx.accounts.vault.deposited_collat_usd = 0;
     ctx.accounts.vault.debt = 0;
     ctx.accounts.vault.bump = vault_bump;
-    ctx.accounts.vault.ata_vault_bump = ata_vault_bump;
+    ctx.accounts.vault.ata_collat_vault_bump = ata_collat_vault_bump;
     ctx.accounts.vault.owner = ctx.accounts.authority.clone().key();
-    // ctx.accounts.vault.pool = ctx.accounts.pool;
+    ctx.accounts.vault.pool = ctx.accounts.pool.clone().key();
 
     Ok(())
 }
@@ -53,12 +53,13 @@ pub struct CreateVault<'info> {
         associated_token::authority = vault.as_ref(),
         payer = authority,
     )]
-    pub ata_vault: Box<Account<'info, TokenAccount>>,
+    pub ata_collat_vault: Box<Account<'info, TokenAccount>>,
 
     // mint for the collateral that is being deposited into the vault
     #[account(constraint = mint.key().as_ref() == pool.mint_collat.as_ref())]
     pub mint: Box<Account<'info, Mint>>,
 
+    // system accounts
     #[account(address = token::ID)]
     pub token_program: Program<'info, Token>,
     #[account(address = associated_token::ID)]

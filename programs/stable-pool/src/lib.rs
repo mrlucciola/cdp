@@ -12,7 +12,7 @@ pub mod utils;
 use crate::instructions::*;
 use crate::utils::is_global_state_paused;
 
-declare_id!("FvTjLbwbHY4v8Gfv18JKuPCJG2Hj87CG8kPNHqGeHAR4");
+declare_id!("98B2NM7bqqzFb5drsVroZbw6Bsnabpm36mjmCMzCfiUC");
 
 #[program]
 pub mod stable_pool {
@@ -64,12 +64,11 @@ pub mod stable_pool {
         ctx: Context<CreatePool>,
         pool_bump: u8,
         risk_level: u8,
-        is_dual: u8,
         debt_ceiling: u64,
         platform_type: u8,
         mint_token_a: Pubkey,
         mint_token_b: Pubkey,
-        reward_mints: Vec<Pubkey>,
+        mint_reward: Pubkey,
         token_a_decimals: u8,
         token_b_decimals: u8,
     ) -> Result<()> {
@@ -77,12 +76,11 @@ pub mod stable_pool {
             ctx,
             pool_bump,
             risk_level,
-            is_dual,
             debt_ceiling,
             platform_type,
             mint_token_a,
             mint_token_b,
-            reward_mints,
+            mint_reward,
             token_a_decimals,
             token_b_decimals,
         )
@@ -108,9 +106,9 @@ pub mod stable_pool {
     pub fn create_vault(
         ctx: Context<CreateVault>,
         vault_bump: u8,
-        ata_vault_bump: u8,
+        ata_collat_vault_bump: u8,
     ) -> Result<()> {
-        create_vault::handle(ctx, vault_bump, ata_vault_bump)
+        create_vault::handle(ctx, vault_bump, ata_collat_vault_bump)
     }
 
     /**
