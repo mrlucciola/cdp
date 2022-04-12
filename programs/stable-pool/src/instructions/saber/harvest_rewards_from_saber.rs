@@ -2,7 +2,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::AssociatedToken,
-    token::{Mint, Token, TokenAccount},
+    token::{self, Mint, Token, TokenAccount, Transfer},
 };
 use quarry_mine::{
     cpi::{
@@ -20,47 +20,94 @@ use crate::{
 };
 
 pub fn handle(ctx: Context<HarvestRewardsFromSaber>) -> Result<()> {
+    let auth = ctx.accounts.authority.key().clone();
+    let accts = ctx.accounts;
+
     require!(
-        ctx.accounts.pool.platform_type == PlatformType::Saber as u8,
+        accts.pool.platform_type == PlatformType::Saber as u8,
         // TODO 008: reword or delete
         StablePoolError::InvalidSaberPlatform
     );
     ////////////// harvest from saber first///////////////
-    let mint_key = ctx.accounts.vault.mint;
-    let owner_key = ctx.accounts.authority.key();
-    let bump = ctx.accounts.vault.bump;
     let authority_seeds = &[
         VAULT_SEED.as_ref(),
-        mint_key.as_ref(),
-        owner_key.as_ref(),
-        &[bump],
+        accts.vault.mint.as_ref(),
+        auth.as_ref(),
+        &[accts.vault.bump],
     ];
 
     claim_rewards(
         CpiContext::new(
-            ctx.accounts.quarry_program.to_account_info(),
+            accts.quarry_program.to_account_info(),
             ClaimRewards {
-                mint_wrapper: ctx.accounts.mint_wrapper.to_account_info(),
-                mint_wrapper_program: ctx.accounts.mint_wrapper_program.to_account_info(),
-                minter: ctx.accounts.minter.to_account_info(),
-                rewards_token_mint: ctx.accounts.mint_reward.to_account_info(),
-                rewards_token_account: ctx.accounts.ata_reward_vault.to_account_info(),
-                // claim_fee_token_account: ctx.accounts.claim_fee_token_account.to_account_info(),
-                claim_fee_token_account: ctx.accounts.claim_fee_token_account.to_account_info(),
+                mint_wrapper: accts.mint_wrapper.to_account_info(),
+                mint_wrapper_program: accts.mint_wrapper_program.to_account_info(),
+                minter: accts.minter.to_account_info(),
+                rewards_token_mint: accts.mint_reward.to_account_info(),
+                rewards_token_account: accts.ata_reward_vault.to_account_info(),
+                // claim_fee_token_account: accts.claim_fee_token_account.to_account_info(),
+                claim_fee_token_account: accts.claim_fee_token_account.to_account_info(),
                 stake: UserClaim {
-                    authority: ctx.accounts.vault.to_account_info(),
-                    miner: ctx.accounts.miner.to_account_info(),
-                    quarry: ctx.accounts.quarry.to_account_info(),
+                    authority: accts.vault.to_account_info(),
+                    miner: accts.miner.to_account_info(),
+                    quarry: accts.quarry.to_account_info(),
                     /// Placeholder for the miner vault.
-                    unused_miner_vault: ctx.accounts.miner_vault.to_account_info(),
-                    unused_token_account: ctx.accounts.ata_collat_vault.to_account_info(),
-                    token_program: ctx.accounts.token_program.to_account_info(),
-                    rewarder: ctx.accounts.rewarder.to_account_info(),
+                    unused_miner_vault: accts.ata_collat_miner.to_account_info(),
+                    unused_token_account: accts.ata_collat_vault.to_account_info(),
+                    token_program: accts.token_program.to_account_info(),
+                    rewarder: accts.rewarder.to_account_info(),
                 },
             },
         )
         .with_signer(&[&authority_seeds[..]]),
     )?;
+
+    // calculate fee amt - to go to treasury
+    let fee_amount = (accts.ata_reward_vault.amount as u128)
+        .checked_mul(accts.global_state.fee_num as u128)
+        .unwrap()
+        .checked_div(accts.global_state.fee_deno as u128)
+        .unwrap() as u64;
+    // calc amt to go to user
+    let user_amount = accts
+        .ata_reward_vault
+        .amount
+        .checked_sub(fee_amount)
+        .unwrap();
+
+    let vault_seeds: &[&[&[u8]]] = &[&[
+        VAULT_SEED.as_ref(),
+        &accts.pool.mint_collat.to_bytes(),
+        &accts.authority.key().to_bytes(),
+        &[accts.vault.bump],
+    ]];
+
+    // user
+    let transfer_to_user_ctx = CpiContext::new(
+        accts.token_program.to_account_info(),
+        Transfer {
+            from: accts.ata_reward_vault.to_account_info(),
+            to: accts.ata_reward_user.to_account_info(),
+            authority: accts.vault.to_account_info(),
+        },
+    );
+    let transfer_to_treasury_ctx = CpiContext::new(
+        accts.token_program.to_account_info(),
+        Transfer {
+            from: accts.ata_reward_vault.to_account_info(),
+            to: accts.ata_cdp_treasury.to_account_info(),
+            authority: accts.vault.to_account_info(),
+        },
+    );
+
+    // send to treasury
+    token::transfer(
+        transfer_to_treasury_ctx.with_signer(vault_seeds),
+        fee_amount,
+    )?;
+
+    // send to user
+    token::transfer(transfer_to_user_ctx.with_signer(vault_seeds), user_amount)?;
 
     Ok(())
 }
@@ -79,8 +126,8 @@ pub struct HarvestRewardsFromSaber<'info> {
 
     #[account(
         mut,
-        seeds=[POOL_SEED.as_ref(), pool.mint_collat.as_ref()],
-        bump=pool.bump,
+        seeds = [POOL_SEED.as_ref(), pool.mint_collat.as_ref()],
+        bump = pool.bump,
         // constraint = pool.mint_collat.as_ref() == vault.mint.as_ref(),
     )]
     pub pool: Box<Account<'info, Pool>>,
@@ -92,7 +139,7 @@ pub struct HarvestRewardsFromSaber<'info> {
             vault.mint.as_ref(),
             authority.key().as_ref(),
         ],
-        bump=vault.bump,
+        bump = vault.bump,
         // constraint = pool.mint_collat.as_ref() == vault.mint.as_ref(),
     )]
     pub vault: Box<Account<'info, Vault>>,
@@ -105,7 +152,7 @@ pub struct HarvestRewardsFromSaber<'info> {
         associated_token::mint = mint_reward,
         associated_token::authority = authority,
     )]
-    pub ata_user_reward: Box<Account<'info, TokenAccount>>,
+    pub ata_reward_user: Box<Account<'info, TokenAccount>>,
 
     #[account(
         mut,
@@ -119,8 +166,8 @@ pub struct HarvestRewardsFromSaber<'info> {
     pub treasury: AccountInfo<'info>,
 
     // the collateral mint account
-    #[account(constraint = mint.key() == pool.mint_collat)]
-    pub mint: Box<Account<'info, Mint>>,
+    #[account(constraint = mint_collat.key() == pool.mint_collat)]
+    pub mint_collat: Box<Account<'info, Mint>>,
 
     /// saber farm to stake to
     #[account(mut)]
@@ -130,15 +177,17 @@ pub struct HarvestRewardsFromSaber<'info> {
     #[account(mut)]
     pub miner: Box<Account<'info, Miner>>,
 
-    /// the miner (miner-vault's auth is miner, miner's auth is user), this is implemented as an ATA
-    /// but we are not appending ata_ to the beginning to match the quarry implementation
+    /**
+     * the miner (miner-vault's auth is miner, miner's auth is user), this is implemented as an ATA
+     * alias: miner_vault
+     */
     #[account(mut)]
-    pub miner_vault: Box<Account<'info, TokenAccount>>,
+    pub ata_collat_miner: Box<Account<'info, TokenAccount>>,
 
     /// associated collateral token account for vault
     #[account(
         mut,
-        associated_token::mint = mint.as_ref(),
+        associated_token::mint = mint_collat.as_ref(),
         associated_token::authority = vault.as_ref(),
     )]
     pub ata_collat_vault: Box<Account<'info, TokenAccount>>,

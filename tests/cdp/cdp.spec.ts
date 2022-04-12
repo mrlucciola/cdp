@@ -34,6 +34,7 @@ import {
   withdrawCollateralPASS,
 } from "./withdrawCollateral";
 import { borrowUsdxPASS } from "./borrowUsdx";
+import { harvestRewardsPASS } from "./harvestReward";
 import { DECIMALS_USDCUSDT } from "../utils/constants";
 import {
   reportPriceToOracleFAIL_NotUpdater,
@@ -365,6 +366,16 @@ describe("cdp core test suite", async () => {
   // it("PASS: Create Quarry Miner", async () => {
   //   await createSaberQuarryMinerPASS(users.base, accounts);
   // });
+  it("PASS: Harvest rewards from the User Vault", async () => {
+    await harvestRewardsPASS(users.base, users.super, accounts);
+  });
+
+  it("FAIL: Unstake From Saber - Try To Unstake More Than Was Staked", async () => {
+    await unstakeColalteralFromSaberFAIL_AttemptToUnstakeMoreThanWasStaked(
+      users.base,
+      accounts
+    );
+  });
 
   // it("PASS: Stake to saber", async () => {
   //   await stakeCollateralToSaberPASS(users.base, accounts);

@@ -295,9 +295,13 @@ pub mod stable_pool {
         unstake_collateral_from_saber::handle(ctx, amount)
     }
 
-    /**
-     * aliases: harvest_rewards_from_saber, HarvestRewardsFromSaber, harvestRewardsFromSaber
-     */
+    // /**
+    //  * aliases: harvest_rewards_from_saber, HarvestRewardsFromSaber, harvestRewardsFromSaber
+    //  */
+    // pub fn harvest_rewards_from_saber(ctx: Context<HarvestRewardsFromSaber>) -> Result<()> {
+    //     harvest_rewards_from_saber_old::handle(ctx)
+    // }
+    #[access_control(is_global_state_paused(&ctx.accounts.global_state))]
     pub fn harvest_rewards_from_saber(ctx: Context<HarvestRewardsFromSaber>) -> Result<()> {
         harvest_rewards_from_saber::handle(ctx)
     }

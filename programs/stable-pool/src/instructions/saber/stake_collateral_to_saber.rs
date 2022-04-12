@@ -149,6 +149,7 @@ pub struct StakeCollateralToSaber<'info> {
         associated_token::authority = vault.as_ref(),
     )]
     pub ata_collat_vault: Box<Account<'info, TokenAccount>>,
+
     /**
      * the miner (miner-vault's auth is miner, miner's auth is user), this is implemented as an ATA
      * alias: miner_vault

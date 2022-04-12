@@ -26,7 +26,7 @@ import {
   Vault,
 } from "../utils/interfaces";
 import { assert } from "chai";
-import { handleTxn } from "../utils/fxns";
+import { handleTxn, delay } from "../utils/fxns";
 import { DECIMALS_USDCUSDT } from "../utils/constants";
 import { User } from "../interfaces/user";
 import { Miner } from "../interfaces/miner";
@@ -36,10 +36,7 @@ const programStablePool = workspace.StablePool as Program<StablePool>;
 const harvestFromSaberCall = async (
   userConnection: Connection,
   userWallet: Wallet,
-  userRewardToken: UserToken, // prev: ataSBRKey
   globalState: GlobalStateAcct,
-  treasury: PublicKey,
-  ataTreasurySbr: PublicKey,
   pool: Pool,
   vault: Vault,
   miner: Miner,
@@ -60,9 +57,6 @@ const harvestFromSaberCall = async (
         pool: pool.pubKey,
         vault: vault.pubKey,
         ataRewardVault: vault.ataRewards[0].pubKey,
-        ataUserReward: userRewardToken.ata.pubKey,
-        ataCdpTreasury: ataTreasurySbr, // this is SBR for this example
-        treasury,
         mint: tokenMint,
         quarry,
         miner: miner.pubkey,
@@ -92,13 +86,12 @@ export const harvestRewardsFromSaberPASS = async (
   treasury: User, // TODO: add treasury to users - this is super for now
   accounts: Accounts
 ) => {
+  // wait here to make rewards
+  await delay(2000);
   const confirmation = await harvestFromSaberCall(
     user.provider.connection, // userConnection
     user.wallet, // userWallet
-    user.tokens.sbr, // userRewardToken
     accounts.global, // global state
-    treasury.wallet.publicKey, // treasury
-    treasury.tokens.sbr.ata.pubKey, // ataTreasurySbr
     accounts.lpSaberUsdcUsdt.pool, // pool
     user.tokens.lpSaber.vault, // vault,
     user.miner, // minerKeys
