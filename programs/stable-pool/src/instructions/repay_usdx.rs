@@ -69,28 +69,28 @@ pub struct RepayUsdx<'info> {
 
     #[account(
         mut,
-        seeds=[POOL_SEED.as_ref(), pool.mint_collat.as_ref()],
-        bump=pool.bump,
-        constraint = pool.mint_collat.as_ref() == vault.mint.as_ref(),
+        seeds = [POOL_SEED.as_ref(), pool.mint_collat.as_ref()],
+        bump = pool.bump,
+        constraint = pool.mint_collat.as_ref() == vault.mint_collat.as_ref(),
     )]
     pub pool: Box<Account<'info, Pool>>,
 
     #[account(
         mut,
-        seeds=[
+        seeds = [
             VAULT_SEED.as_ref(),
-            vault.mint.as_ref(),
+            vault.mint_collat.as_ref(),
             authority.key().as_ref(),
         ],
-        bump=vault.bump,
-        constraint = pool.mint_collat.as_ref() == vault.mint.as_ref(),
+        bump = vault.bump,
+        constraint = pool.mint_collat.as_ref() == vault.mint_collat.as_ref(),
     )]
     pub vault: Box<Account<'info, Vault>>,
 
     #[account(
-        seeds=[MINT_USDX_SEED.as_ref()],
+        seeds = [MINT_USDX_SEED.as_ref()],
         bump,
-        constraint=mint_usdx.key() == global_state.mint_usdx,
+        constraint = mint_usdx.key() == global_state.mint_usdx,
     )]
     pub mint_usdx: Box<Account<'info, Mint>>,
 

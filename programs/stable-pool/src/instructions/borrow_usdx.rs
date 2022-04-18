@@ -8,9 +8,37 @@ use anchor_spl::{
 use crate::{
     constants::*,
     errors::StablePoolError,
-    states::{global_state::GlobalState, Oracle, Pool, Vault},
-    utils::{calc_lp_price, validate_market_accounts},
+    states::{global_state::GlobalState, Oracle, Pool, UserState, Vault},
+    utils::{calc_stable_lp_price, validate_market_accounts},
 };
+
+pub fn calc_stable_lp_value(
+    lp_amt: u64,
+    ata_mkt_a: &AccountInfo,
+    ata_mkt_b: &AccountInfo,
+    mint_collat_supply: u64,
+    oracle_a_price: u64,
+    oracle_b_price: u64,
+) -> Result<u64> {
+    let amount_ata_a = amount(ata_mkt_a)?;
+    let amount_ata_b = amount(ata_mkt_b)?;
+
+    let collat_price = calc_stable_lp_price(
+        mint_collat_supply,
+        amount_ata_a,
+        oracle_a_price,
+        amount_ata_b,
+        oracle_b_price,
+    )?;
+
+    let lp_value = collat_price
+        .checked_mul(lp_amt)
+        .unwrap()
+        .checked_div(10u64.checked_pow(DECIMALS_PRICE as u32).unwrap())
+        .unwrap();
+
+    Ok(lp_value)
+}
 
 // borrow_amount is in 10 ** DECIMALS_USDX
 pub fn handle(ctx: Context<BorrowUsdx>, usdx_borrow_amt_requested: u64) -> Result<()> {
@@ -23,24 +51,39 @@ pub fn handle(ctx: Context<BorrowUsdx>, usdx_borrow_amt_requested: u64) -> Resul
         ctx.accounts.oracle_b.mint,
     )?;
 
-    let amount_ata_a = amount(&ctx.accounts.ata_market_a.to_account_info())?;
-    let amount_ata_b = amount(&ctx.accounts.ata_market_b.to_account_info())?;
+    let user_collat_amt = ctx
+        .accounts
+        .ata_collat_vault
+        .amount
+        .checked_add(ctx.accounts.ata_collat_miner.amount)
+        .unwrap();
 
-    // This price is not in human format, its multiplied by decimal amount
-    let collat_price = calc_lp_price(
-        ctx.accounts.mint_coll.supply.clone(),
-        amount_ata_a,
+    let user_collat_value = calc_stable_lp_value(
+        user_collat_amt,
+        &ctx.accounts.ata_market_a.to_account_info(),
+        &ctx.accounts.ata_market_b.to_account_info(),
+        ctx.accounts.mint_collat.supply,
         ctx.accounts.oracle_a.price,
-        amount_ata_b,
         ctx.accounts.oracle_b.price,
     )?;
+    msg!("user_collat_amt: {}", user_collat_amt);
+    msg!("amt requested: {}", usdx_borrow_amt_requested);
+    msg!("limit global : {}", ctx.accounts.global_state.tvl_limit);
+    msg!("limit pool   : {}", ctx.accounts.pool.debt_ceiling);
+    msg!(
+        "limit user   : {}",
+        ctx.accounts.global_state.user_debt_ceiling
+    );
+    // msg!("limit user   : {}", ctx.accounts.user.debt_ceiling);
 
-    let user_collat_amt = ctx.accounts.vault.deposited_collat_usd;
-    let collat_value = collat_price
-        .checked_mul(user_collat_amt)
-        .unwrap()
-        .checked_div(10u64.checked_pow(DECIMALS_PRICE as u32).unwrap())
-        .unwrap();
+    // This price is not in human format, its multiplied by decimal amount
+    // let collat_price = calc_stable_lp_price(
+    //     ctx.accounts.mint_collat.supply.clone(),
+    //     amount_ata_a,
+    //     ctx.accounts.oracle_a.price,
+    //     amount_ata_b,
+    //     ctx.accounts.oracle_b.price,
+    // )?;
 
     // assertions
     // calculate the future total_debt values for global state, pool, and user
@@ -91,9 +134,9 @@ pub fn handle(ctx: Context<BorrowUsdx>, usdx_borrow_amt_requested: u64) -> Resul
     let ltv = *DEFAULT_RATIOS.get(0).unwrap_or(&0) as u128; // risk_level
 
     // ltv_max should be formed as USDx amount
-    // collat_value is divided by 10^collateral_decimal
+    // user_collat_value is divided by 10^collateral_decimal
     let ltv_max = ltv
-        .checked_mul(collat_value as u128)
+        .checked_mul(user_collat_value as u128)
         .unwrap()
         .checked_div(10_u128.checked_pow(DEFAULT_RATIOS_DECIMALS as u32).unwrap())
         .unwrap()
@@ -101,7 +144,7 @@ pub fn handle(ctx: Context<BorrowUsdx>, usdx_borrow_amt_requested: u64) -> Resul
         .unwrap()
         .checked_div(
             10_u128
-                .checked_pow(ctx.accounts.mint_coll.decimals as u32)
+                .checked_pow(ctx.accounts.mint_collat.decimals as u32)
                 .unwrap(),
         )
         .unwrap();
@@ -110,6 +153,11 @@ pub fn handle(ctx: Context<BorrowUsdx>, usdx_borrow_amt_requested: u64) -> Resul
         .checked_sub(ctx.accounts.vault.debt)
         .unwrap();
 
+    msg!("user_collat_value: {}", user_collat_value);
+    msg!("ltv: {}", ltv);
+    msg!("ltv_max: {}", ltv_max);
+    msg!("ctx.accounts.vault.debt: {}", ctx.accounts.vault.debt);
+    msg!("mintable: {}", mintable_amount);
     require!(
         usdx_borrow_amt_requested < mintable_amount,
         StablePoolError::LTVExceeded
@@ -166,56 +214,74 @@ pub struct BorrowUsdx<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
 
+    // cdp-state accounts
     #[account(
         mut,
         seeds = [GLOBAL_STATE_SEED.as_ref()],
         bump = global_state.bump
     )]
     pub global_state: Box<Account<'info, GlobalState>>,
-
-    pub oracle_a: Box<Account<'info, Oracle>>,
-    pub oracle_b: Box<Account<'info, Oracle>>,
-    pub ata_market_a: Box<Account<'info, TokenAccount>>,
-    pub ata_market_b: Box<Account<'info, TokenAccount>>,
-
-    #[account(address = pool.mint_collat)]
-    pub mint_coll: Box<Account<'info, Mint>>,
-
     #[account(
         mut,
-        seeds=[POOL_SEED.as_ref(), pool.mint_collat.as_ref()],
-        bump=pool.bump,
-        constraint = pool.mint_collat.as_ref() == vault.mint.as_ref(),
+        seeds = [POOL_SEED.as_ref(), pool.mint_collat.as_ref()],
+        bump = pool.bump,
+        constraint = pool.mint_collat.as_ref() == vault.mint_collat.as_ref(),
     )]
     pub pool: Box<Account<'info, Pool>>,
 
+    // user-authored CDP accounts
     #[account(
         mut,
-        seeds=[
+        seeds = [
             VAULT_SEED.as_ref(),
-            vault.mint.as_ref(),
+            vault.mint_collat.as_ref(),
             authority.key().as_ref(),
         ],
-        bump=vault.bump,
-        constraint = pool.mint_collat.as_ref() == vault.mint.as_ref(),
+        bump = vault.bump,
+        constraint = pool.mint_collat.as_ref() == vault.mint_collat.as_ref(),
     )]
     pub vault: Box<Account<'info, Vault>>,
-
-    #[account(
-        mut,
-        seeds=[MINT_USDX_SEED.as_ref()],
-        bump=global_state.mint_usdx_bump,
-        constraint=mint_usdx.key() == global_state.mint_usdx,
-    )]
-    pub mint_usdx: Box<Account<'info, Mint>>,
-
+    #[account[mut, seeds = [USER_STATE_SEED.as_ref(), authority.key().as_ref()], bump = user_state.bump]]
+    pub user_state: Box<Account<'info, UserState>>,
+    // Quarry-specific accounts
+    // A.T.A.s
     #[account(
         mut,
         associated_token::mint = mint_usdx.as_ref(),
         associated_token::authority = authority.as_ref(),
     )]
     pub ata_usdx: Box<Account<'info, TokenAccount>>,
-
+    #[account(
+        associated_token::mint = mint_collat.as_ref(),
+        associated_token::authority = vault.as_ref(),
+    )]
+    pub ata_collat_vault: Box<Account<'info, TokenAccount>>,
+    #[account(address = vault.ata_collat_miner)]
+    pub ata_collat_miner: Box<Account<'info, TokenAccount>>,
+    pub ata_market_a: Box<Account<'info, TokenAccount>>,
+    pub ata_market_b: Box<Account<'info, TokenAccount>>,
+    // Mint accounts
+    #[account(address = pool.mint_collat)]
+    pub mint_collat: Box<Account<'info, Mint>>,
+    #[account(
+        mut,
+        seeds = [MINT_USDX_SEED.as_ref()],
+        bump = global_state.mint_usdx_bump,
+        constraint = mint_usdx.key() == global_state.mint_usdx,
+    )]
+    pub mint_usdx: Box<Account<'info, Mint>>,
+    // Other accounts
+    #[account(
+        seeds = [ORACLE_SEED.as_ref(), pool.mint_token_a.as_ref()],
+        bump = oracle_a.bump,
+    )]
+    pub oracle_a: Box<Account<'info, Oracle>>,
+    #[account(
+        seeds = [ORACLE_SEED.as_ref(), pool.mint_token_b.as_ref()],
+        bump = oracle_b.bump,
+    )]
+    pub oracle_b: Box<Account<'info, Oracle>>,
+    // system accounts
     #[account(address = associated_token::ID)]
     pub associated_token_program: Program<'info, AssociatedToken>,
     #[account(address = token::ID)]

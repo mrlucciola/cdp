@@ -4,7 +4,7 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { Connection, PublicKey, Transaction } from "@solana/web3.js";
+import { Connection, Transaction } from "@solana/web3.js";
 // saber
 import { QUARRY_ADDRESSES } from "@quarryprotocol/quarry-sdk";
 // utils
@@ -15,15 +15,14 @@ import { DECIMALS_USDCUSDT } from "../utils/constants";
 import { handleTxn } from "../utils/fxns";
 // interfaces
 import { Accounts } from "../config/accounts";
-import {
-  GlobalStateAcct,
-  MintPubKey,
-  Vault,
-  UserToken,
-  Pool,
-} from "../utils/interfaces";
+import { MintPubKey } from "../utils/interfaces";
 import { User } from "../interfaces/user";
 import { Miner } from "../interfaces/miner";
+import { Pool } from "../interfaces/pool";
+import { Vault } from "../interfaces/vault";
+import { QuarryClass } from "../interfaces/quarry";
+import { TokenCollatUser } from "../interfaces/TokenCollatUser";
+import { GlobalState } from "../interfaces/GlobalState";
 
 // init
 const programStablePool = workspace.StablePool as Program<StablePool>;
@@ -36,15 +35,15 @@ const unstakeColalteralFromSaberCall = async (
   unstakeAmount: number,
   userConnection: Connection,
   userWallet: Wallet,
-  userToken: UserToken,
+  tokenCollatUser: TokenCollatUser,
   vault: Vault,
   mintPubKey: MintPubKey,
   pool: Pool,
-  globalState: GlobalStateAcct,
-  rewarder: PublicKey,
-  quarry: PublicKey,
+  globalState: GlobalState,
+  quarry: QuarryClass,
   miner: Miner
 ) => {
+  quarry.rewarder;
   const txn = new Transaction().add(
     programStablePool.instruction.unstakeCollateralFromSaber(
       new BN(unstakeAmount),
@@ -54,15 +53,16 @@ const unstakeColalteralFromSaberCall = async (
           globalState: globalState.pubKey,
           pool: pool.pubKey,
           vault: vault.pubKey,
-          ataCollatVault: vault.ata.pubKey,
-          ataUser: userToken.ata.pubKey,
+          ataCollatVault: vault.ataCollat.pubKey,
+          // TODO: remove
+          ataCollatUser: tokenCollatUser.ata.pubKey,
           mint: mintPubKey,
           tokenProgram: TOKEN_PROGRAM_ID,
           associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-          quarry,
+          quarry: quarry.pubkey,
           miner: miner.pubkey,
           minerVault: miner.ata.pubKey,
-          rewarder,
+          rewarder: quarry.rewarder,
           quarryProgram: QUARRY_ADDRESSES.Mine,
         },
       }
@@ -81,11 +81,12 @@ export const unstakeColalteralFromSaberFAIL_AttemptToUnstakeMoreThanWasStaked =
     // check balances before
     const lockedBalPre = (await userlpSaber.vault.getAccount())
       .lockedCollBalance;
-    const vaultBalPre = (await userlpSaber.vault.ata.getBalance()).value
+    const vaultBalPre = (await userlpSaber.vault.ataCollat.getBalance()).value
       .uiAmount;
     const userBalPre = (await userlpSaber.ata.getBalance()).value.uiAmount;
     // TODO 007: move miner into its respective user-token relationship
-    const minerBalPre = (await user.miner.ata.getBalance()).value.uiAmount;
+    const minerBalPre = (await userlpSaber.vault.miner.ata.getBalance()).value
+      .uiAmount;
 
     assert(
       unstakeAmountPrecise >= lockedBalPre,
@@ -104,7 +105,7 @@ export const unstakeColalteralFromSaberFAIL_AttemptToUnstakeMoreThanWasStaked =
         user.provider.connection,
         // user wallet
         user.wallet,
-        // user token
+        // user collat token
         userlpSaber,
         // vault
         userlpSaber.vault,
@@ -114,14 +115,10 @@ export const unstakeColalteralFromSaberFAIL_AttemptToUnstakeMoreThanWasStaked =
         accounts.lpSaberUsdcUsdt.pool,
         // globalState
         accounts.global,
-        ///quarry-mine rewader
-        // TODO 002: move quarry into pool class
-        accounts.quarry.rewarder,
-        ///quarry-mine quarry
-        // TODO 002: move quarry into pool class
-        accounts.quarry.pubkey,
+        // quarry-mine quarry
+        accounts.lpSaberUsdcUsdt.pool.quarry,
         ///quarry-mine miner of vault
-        user.miner
+        userlpSaber.vault.miner
       )
     ).to.be.rejectedWith(
       "6001",
@@ -131,7 +128,7 @@ export const unstakeColalteralFromSaberFAIL_AttemptToUnstakeMoreThanWasStaked =
     // check balances after
     const lockedBalPost = (await userlpSaber.vault.getAccount())
       .lockedCollBalance;
-    const vaultBalPost = (await userlpSaber.vault.ata.getBalance()).value
+    const vaultBalPost = (await userlpSaber.vault.ataCollat.getBalance()).value
       .uiAmount;
     const userBalPost = (await userlpSaber.ata.getBalance()).value.uiAmount;
 
@@ -159,7 +156,7 @@ export const unstakeColalteralFromSaberFAIL_AttemptToUnstakeFromAnotherUser =
     // check balances before
     const lockedBalPre = (await userlpSaber.vault.getAccount())
       .lockedCollBalance;
-    const vaultBalPre = (await userlpSaber.vault.ata.getBalance()).value
+    const vaultBalPre = (await userlpSaber.vault.ataCollat.getBalance()).value
       .uiAmount;
     const userBalPre = (await userlpSaber.ata.getBalance()).value.uiAmount;
 
@@ -190,14 +187,10 @@ export const unstakeColalteralFromSaberFAIL_AttemptToUnstakeFromAnotherUser =
         accounts.lpSaberUsdcUsdt.pool,
         // globalState
         accounts.global,
-        // quarry-mine rewader
-        // TODO 002: move quarry into pool class
-        accounts.quarry.rewarder,
         // quarry-mine quarry
-        // TODO 002: move quarry into pool class
-        accounts.quarry.pubkey,
+        accounts.lpSaberUsdcUsdt.pool.quarry,
         ///quarry-mine miner of vault
-        user.miner
+        userlpSaber.vault.miner
       )
     ).to.be.rejectedWith(
       "2006",
@@ -207,7 +200,7 @@ export const unstakeColalteralFromSaberFAIL_AttemptToUnstakeFromAnotherUser =
     // check balances after
     const lockedBalPost = (await userlpSaber.vault.getAccount())
       .lockedCollBalance;
-    const vaultBalPost = (await userlpSaber.vault.ata.getBalance()).value
+    const vaultBalPost = (await userlpSaber.vault.ataCollat.getBalance()).value
       .uiAmount;
     const userBalPost = (await userlpSaber.ata.getBalance()).value.uiAmount;
 
@@ -235,8 +228,10 @@ export const unstakeColalteralFromSaberPASS = async (
 
   // check balances before
   const lockedBalPre = (await userLpSaber.vault.getAccount()).lockedCollBalance;
-  const vaultBalPre = (await userLpSaber.vault.ata.getBalance()).value.uiAmount;
-  const minerBalPre = (await user.miner.ata.getBalance()).value.uiAmount;
+  const vaultBalPre = (await userLpSaber.vault.ataCollat.getBalance()).value
+    .uiAmount;
+  const minerBalPre = (await user.tokens.lpSaber.vault.miner.ata.getBalance()).value
+    .uiAmount;
 
   assert(
     unstakeAmountPrecise <= lockedBalPre,
@@ -264,22 +259,19 @@ export const unstakeColalteralFromSaberPASS = async (
     accounts.lpSaberUsdcUsdt.pool,
     // globalState
     accounts.global,
-    // quarry-mine rewader
-    // TODO 002: move quarry into pool class
-    accounts.quarry.rewarder,
     // quarry-mine quarry
-    // TODO 002: move quarry into pool class
-    accounts.quarry.pubkey,
+    accounts.lpSaberUsdcUsdt.pool.quarry,
     ///quarry-mine miner of vault
-    user.miner
+    user.tokens.lpSaber.vault.miner
   );
 
   // check balances after
   const lockedBalPost = (await userLpSaber.vault.getAccount())
     .lockedCollBalance;
-  const vaultBalPost = (await userLpSaber.vault.ata.getBalance()).value
+  const vaultBalPost = (await userLpSaber.vault.ataCollat.getBalance()).value
     .uiAmount;
-  const minerBalPost = (await user.miner.ata.getBalance()).value.uiAmount;
+  const minerBalPost = (await user.tokens.lpSaber.vault.miner.ata.getBalance())
+    .value.uiAmount;
 
   const lockedBalDiff = lockedBalPost - lockedBalPre;
   const vaultBalDiff = vaultBalPost - vaultBalPre;

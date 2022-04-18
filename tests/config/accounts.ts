@@ -1,116 +1,79 @@
-// libraries
-import { workspace, Program, Wallet } from "@project-serum/anchor";
-import { PublicKey, Signer } from "@solana/web3.js";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
-// @ts-ignore
-import { mintTo } from "@solana/spl-token";
-// saber
-import { SPLToken } from "@saberhq/token-utils";
-// local
-import { StablePool } from "../../target/types/stable_pool";
-import {
-  MarketTokenAccount,
-  CollateralAccount,
-  MintAcct,
-  MintPubKey,
-  GlobalStateAcct,
-  Pool,
-  RewardTokenAccount,
-} from "../utils/interfaces";
+// utils
 import {
   DECIMALS_SBR,
   DECIMALS_USDCUSDT,
   DECIMALS_USDC,
   DECIMALS_USDT,
-  DECIMALS_PRICE,
+  MINT_USDX_SEED,
+  DECIMALS_USDX,
 } from "../utils/constants";
-import { createAtaOnChain } from "../utils/fxns";
-import { ATA } from "../interfaces/ata";
-import { QuarryClass } from "../interfaces/quarry";
-
-// init
-const programStablePool = workspace.StablePool as Program<StablePool>;
+import { addZeros } from "../utils/fxns";
+// interfaces
+import { TokenReward } from "../interfaces/TokenReward";
+import { User } from "../interfaces/user";
+import { TokenCollat } from "../interfaces/TokenCollat";
+import { TokenMarket } from "../interfaces/TokenMarket";
+import { TokenPda } from "../interfaces/TokenPDA";
+import { GlobalState } from "../interfaces/GlobalState";
 
 export class Accounts {
-  public global: GlobalStateAcct;
-  public usdx: MintAcct;
-  public sbr: RewardTokenAccount;
-  public lpSaberUsdcUsdt: CollateralAccount;
-  public usdc: MarketTokenAccount;
-  public usdt: MarketTokenAccount;
+  public global: GlobalState;
+  public usdx: TokenPda;
+  public sbr: TokenReward;
+  public lpSaberUsdcUsdt: TokenCollat;
+  public usdc: TokenMarket;
+  public usdt: TokenMarket;
 
-  public quarry: QuarryClass;
-
-  constructor() {
-    // init global state acct
-    this.global = new GlobalStateAcct();
+  constructor(externalUser: User, oracleReporter: User) {
     // init usdx mint acct
-    this.usdx = new MintAcct();
-    this.usdc = new MarketTokenAccount();
-    this.usdt = new MarketTokenAccount();
-    this.sbr = new RewardTokenAccount(); // rewardsMintKP.publicKey,
-    // init lp token
-    this.lpSaberUsdcUsdt = {
-      pool: null as Pool,
-      mint: null as PublicKey,
-    };
+    this.usdx = new TokenPda(MINT_USDX_SEED, [], "usdx", DECIMALS_USDX);
+    // init global state acct
+    this.global = new GlobalState(this.usdx, oracleReporter);
+
+    // create the market tokens
+    this.usdc = new TokenMarket(
+      externalUser,
+      DECIMALS_USDC,
+      "usdc",
+      "usdcUsdt",
+      "saber"
+    );
+    this.usdt = new TokenMarket(
+      externalUser,
+      DECIMALS_USDT,
+      "usdt",
+      "usdcUsdt",
+      "saber"
+    );
+
+    // create the reward token
+    this.sbr = new TokenReward(externalUser, "sbr", DECIMALS_SBR); // rewardsMintKP.publicKey,
+
+    // init the collateral token (lp)
+    this.lpSaberUsdcUsdt = new TokenCollat(
+      externalUser,
+      this.sbr,
+      "lpSaberUsdcUsdt",
+      DECIMALS_USDCUSDT,
+      "saber",
+      "usdcUsdt",
+      [
+        { name: "usdc", tokenMarket: this.usdc },
+        { name: "usdt", tokenMarket: this.usdt },
+      ]
+    );
   }
-  public async init() {
-    // init the token mint, oracle and markettoken
-    await this.sbr.init(DECIMALS_SBR);
-    await this.usdc.init(
-      1.03 * 10 ** DECIMALS_PRICE,
-      25331785.961795 * 10 ** DECIMALS_USDC,
-      DECIMALS_USDC
-    ); // amount found on explorer.solana.com on 3/24/22 5:15pm EST
-    await this.usdt.init(
-      0.97 * 10 ** DECIMALS_PRICE,
-      16555962.623743 * 10 ** DECIMALS_USDT,
-      DECIMALS_USDT
-    ); // amount found on explorer.solana.com on 3/24/22 5:15pm EST
 
-    // init the collateral mint account
-    this.lpSaberUsdcUsdt.mint = (
-      await SPLToken.createMint(
-        programStablePool.provider.connection,
-        (programStablePool.provider.wallet as Wallet).payer as Signer,
-        programStablePool.provider.wallet.publicKey,
-        null,
-        DECIMALS_USDCUSDT,
-        TOKEN_PROGRAM_ID
-      )
-    ).publicKey as MintPubKey;
+  public async initAccounts(userSuper: User, platformParticipants: User[]) {
+    // init the token mint, oracle and market-token
+    await this.global.initGlobalState(userSuper);
+    await this.sbr.initTokenReward();
+    await this.usdc.initMktToken(addZeros(25331785.961795, DECIMALS_USDC)); // amount found on explorer.solana.com on 3/24/22 5:15pm EST
+    await this.usdt.initMktToken(addZeros(16555962.623743, DECIMALS_USDT)); // amount found on explorer.solana.com on 3/24/22 5:15pm EST
 
-    const lpATASuper = new ATA(
-      programStablePool.provider.wallet.publicKey,
-      this.lpSaberUsdcUsdt.mint
-    );
+    // init the token mint, oracle and market token
+    await this.lpSaberUsdcUsdt.initCdpCollat();
 
-    // create an A.T.A. for the collateral mint
-    await createAtaOnChain(
-      programStablePool.provider.wallet as Wallet,
-      lpATASuper,
-      this.lpSaberUsdcUsdt.mint,
-      programStablePool.provider.wallet.publicKey,
-      programStablePool.provider.connection
-    );
-
-    // mint tokens to this A.T.A.
-    await mintTo(
-      programStablePool.provider.connection, // connection — Connection to use
-      // @ts-ignore
-      programStablePool.provider.wallet.payer, // payer — Payer of the transaction fees
-      this.lpSaberUsdcUsdt.mint, // mint — Mint for the account
-      lpATASuper.pubKey, // destination — Address of the account to mint to
-      programStablePool.provider.wallet.publicKey, // authority — Minting authority
-      40262269.031312 * 10 ** DECIMALS_USDCUSDT // mintAmount — Amount to mint in human form
-    );
-    this.lpSaberUsdcUsdt.pool = new Pool(
-      this.lpSaberUsdcUsdt.mint,
-      this.usdc,
-      this.usdt
-    );
-    this.quarry = new QuarryClass();
-    await this.quarry.init(this.sbr.mint, this.lpSaberUsdcUsdt);
+    await this.lpSaberUsdcUsdt.initCollatForUsers(platformParticipants);
   }
 }

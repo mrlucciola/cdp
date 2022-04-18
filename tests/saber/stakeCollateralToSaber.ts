@@ -10,25 +10,26 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { Connection, PublicKey, Transaction } from "@solana/web3.js";
+import { Connection, Transaction } from "@solana/web3.js";
 // quarry
 import { QUARRY_ADDRESSES } from "@quarryprotocol/quarry-sdk";
-// local
-import { StablePool } from "../../target/types/stable_pool";
-import { Accounts } from "../config/accounts";
-import {
-  GlobalStateAcct,
-  MintPubKey,
-  Pool,
-  UserToken,
-  Vault,
-} from "../utils/interfaces";
+// utils
 import { assert } from "chai";
-import { handleTxn } from "../utils/fxns";
+import { StablePool } from "../../target/types/stable_pool";
 import { DECIMALS_USD, DECIMALS_USDCUSDT } from "../utils/constants";
+import { handleTxn } from "../utils/fxns";
+// interfaces
+import { Accounts } from "../config/accounts";
+import { MintPubKey } from "../utils/interfaces";
 import { User } from "../interfaces/user";
 import { Miner } from "../interfaces/miner";
+import { Pool } from "../interfaces/pool";
+import { Vault } from "../interfaces/vault";
+import { TokenCollatUser } from "../interfaces/TokenCollatUser";
+import { QuarryClass } from "../interfaces/quarry";
+import { GlobalState } from "../interfaces/GlobalState";
 
+// init
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
 /**
@@ -39,38 +40,34 @@ const programStablePool = workspace.StablePool as Program<StablePool>;
 const stakeToSaberCall = async (
   userConnection: Connection,
   userWallet: Wallet,
-  userToken: UserToken,
+  tokenCollatUser: TokenCollatUser,
   vault: Vault,
   mintPubKey: MintPubKey,
   pool: Pool,
-  globalState: GlobalStateAcct,
-  rewarder: PublicKey,
-  quarry: PublicKey,
+  globalState: GlobalState,
+  quarry: QuarryClass,
   miner: Miner
 ) => {
-  console.log("ata balance: ", await userToken.ata.getBalance());
+  console.log("ata balance: ", await tokenCollatUser.ata.getBalance());
+
   const txn = new Transaction().add(
-    programStablePool.instruction.stakeCollateralToSaber(
-      {
-        accounts: {
-          authority: userWallet.publicKey,
-          globalState: globalState.pubKey,
-          pool: pool.pubKey,
-          vault: vault.pubKey,
-          ataCollatVault: vault.ata.pubKey,
-          // TODO 028: Delete
-          ataUser: userToken.ata.pubKey,
-          mint: mintPubKey,
-          tokenProgram: TOKEN_PROGRAM_ID,
-          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-          quarry,
-          miner: miner.pubkey,
-          minerVault: miner.ata.pubKey,
-          rewarder,
-          quarryProgram: QUARRY_ADDRESSES.Mine,
-        },
-      }
-    )
+    programStablePool.instruction.stakeCollateralToSaber({
+      accounts: {
+        authority: userWallet.publicKey,
+        globalState: globalState.pubKey,
+        pool: pool.pubKey,
+        vault: vault.pubKey,
+        miner: miner.pubkey,
+        ataCollatVault: vault.ataCollat.pubKey,
+        ataCollatMiner: miner.ata.pubKey,
+        quarry: quarry.pubkey,
+        rewarder: quarry.rewarder,
+        mintCollat: mintPubKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        quarryProgram: QUARRY_ADDRESSES.Mine,
+      },
+    })
   );
 
   await handleTxn(txn, userConnection, userWallet);
@@ -91,7 +88,7 @@ export const stakeCollateralToSaberPASS = async (
   // const tvlPre = globalStateAcct.tvlUsd.toNumber();
   const userBalPre = Number((await userlpSaber.ata.getBalance()).value.amount);
   const vaultBalPre = Number(
-    (await userlpSaber.vault.ata.getBalance()).value.amount
+    (await userlpSaber.vault.ataCollat.getBalance()).value.amount
   );
 
   assert(
@@ -126,18 +123,14 @@ export const stakeCollateralToSaberPASS = async (
     accounts.lpSaberUsdcUsdt.pool,
     // globalState
     accounts.global,
-    // quarry-mine rewader
-    // TODO 002: move quarry into pool class
-    accounts.quarry.rewarder, // .rewarderKey
     // quarry-mine quarry
-    // TODO 002: move quarry into pool class
-    accounts.quarry.pubkey,
+    accounts.lpSaberUsdcUsdt.pool.quarry,
     ///quarry-mine miner of vault
-    user.miner
+    user.tokens.lpSaber.vault.miner
   );
 
   const userBalPost = (await userlpSaber.ata.getBalance()).value.uiAmount;
-  const vaultBalPost = (await userlpSaber.vault.ata.getBalance()).value
+  const vaultBalPost = (await userlpSaber.vault.ataCollat.getBalance()).value
     .uiAmount;
   const userDiff = userBalPost - userBalPre;
 

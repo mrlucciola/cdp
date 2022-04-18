@@ -30,14 +30,14 @@ pub struct CreateUserRewardVault<'info> {
     #[account(
         seeds = [POOL_SEED.as_ref(), pool.mint_collat.as_ref()],
         bump = pool.bump,
-        constraint = pool.mint_collat.as_ref() == vault.mint.as_ref(),
+        constraint = pool.mint_collat.as_ref() == vault.mint_collat.as_ref(),
     )]
     pub pool: Box<Account<'info, Pool>>,
 
     /// The authority's vault
     #[account(
         mut,
-        seeds = [VAULT_SEED.as_ref(), vault.mint.as_ref(), authority.key().as_ref()],
+        seeds = [VAULT_SEED.as_ref(), vault.mint_collat.as_ref(), authority.key().as_ref()],
         bump = vault.bump,
         constraint = vault.owner.as_ref() == authority.key().as_ref(),
     )]

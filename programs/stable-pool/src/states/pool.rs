@@ -19,6 +19,7 @@ pub struct Pool {
     pub token_b_decimals: u8,
     /// total USD value locked across CDP platform for this pool's collateral class
     pub tvl_usd: u64,
+    /// total amount of collateral tokens deposited to vaults of the same collateral type as this pool
     pub total_coll: u64,
     /// total amount of debt
     pub total_debt: u64, // TODO: total_debt -> total_debt_usd

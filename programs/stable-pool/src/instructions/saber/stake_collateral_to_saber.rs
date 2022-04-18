@@ -91,7 +91,7 @@ pub fn handle(
         StablePoolError::InvalidSaberPlatform
     );
 
-    let mint_key = ctx.accounts.vault.mint;
+    let mint_key = ctx.accounts.vault.mint_collat;
     let owner_key = ctx.accounts.authority.key();
 
     let authority_seeds = &[
@@ -127,7 +127,7 @@ pub struct StakeCollateralToSaber<'info> {
         mut,
         seeds=[POOL_SEED.as_ref(), pool.mint_collat.as_ref()],
         bump=pool.bump,
-        constraint = pool.mint_collat.as_ref() == vault.mint.as_ref(),
+        constraint = pool.mint_collat.as_ref() == vault.mint_collat.as_ref(),
     )]
     pub pool: Box<Account<'info, Pool>>,
 
@@ -135,17 +135,17 @@ pub struct StakeCollateralToSaber<'info> {
         mut,
         seeds=[
             VAULT_SEED.as_ref(),
-            vault.mint.as_ref(),
+            vault.mint_collat.as_ref(),
             authority.key().as_ref(),
         ],
         bump=vault.bump,
-        constraint = pool.mint_collat.as_ref() == vault.mint.as_ref(),
+        constraint = pool.mint_collat.as_ref() == vault.mint_collat.as_ref(),
     )]
     pub vault: Box<Account<'info, Vault>>,
 
     #[account(
         mut,
-        associated_token::mint = mint.as_ref(),
+        associated_token::mint = mint_collat.as_ref(),
         associated_token::authority = vault.as_ref(),
     )]
     pub ata_collat_vault: Box<Account<'info, TokenAccount>>,
@@ -157,8 +157,8 @@ pub struct StakeCollateralToSaber<'info> {
     #[account(mut)]
     pub ata_collat_miner: Box<Account<'info, TokenAccount>>,
 
-    #[account(constraint = mint.key().as_ref() == pool.mint_collat.as_ref())]
-    pub mint: Box<Account<'info, Mint>>,
+    #[account(constraint = mint_collat.key().as_ref() == pool.mint_collat.as_ref())]
+    pub mint_collat: Box<Account<'info, Mint>>,
 
     #[account(mut)]
     pub quarry: Box<Account<'info, Quarry>>,

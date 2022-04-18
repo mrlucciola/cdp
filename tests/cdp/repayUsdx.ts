@@ -24,39 +24,36 @@ import { assert, expect } from "chai";
 // local
 import { StablePool } from "../../target/types/stable_pool";
 import { Accounts } from "../config/accounts";
+import { GlobalState } from "../interfaces/GlobalState";
+import { Pool } from "../interfaces/pool";
+import { TokenPda, TokenPDAUser } from "../interfaces/TokenPDA";
 import { User } from "../interfaces/user";
+import { Vault } from "../interfaces/vault";
 import { DECIMALS_USDX } from "../utils/constants";
-import { handleTxn } from "../utils/fxns";
-import {
-  GlobalStateAcct,
-  MintAcct,
-  Pool,
-  Vault,
-  UserToken,
-} from "../utils/interfaces";
+import { addZeros, handleTxn } from "../utils/fxns";
 
 // init
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
 const repayUsdxCall = async (
-  repayAmount: number,
+  amtToRepay: number,
   userConnection: Connection,
   userWallet: Wallet,
-  userToken: UserToken,
-  mintUsdx: MintAcct,
+  tokenUsdxUser: TokenPDAUser,
+  mintUsdx: TokenPda,
   pool: Pool,
   vault: Vault,
-  globalState: GlobalStateAcct
+  globalState: GlobalState
 ) => {
   const txn = new Transaction().add(
-    programStablePool.instruction.repayUsdx(new BN(repayAmount), {
+    programStablePool.instruction.repayUsdx(new BN(amtToRepay), {
       accounts: {
         authority: userWallet.publicKey,
         globalState: globalState.pubKey,
         pool: pool.pubKey,
         vault: vault.pubKey, // TODO: vault -> vault
         mintUsdx: mintUsdx.pubKey,
-        ataUsdx: userToken.ata.pubKey,
+        ataUsdx: tokenUsdxUser.ata.pubKey,
 
         // system accts
         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -72,11 +69,11 @@ const repayUsdxCall = async (
 
 export const repayUsdxFAIL_RepayMoreThanBorrowed = async (
   user: User,
-  vault: Vault, // TODO: vault -> vault
+  vault: Vault,
   accounts: Accounts
 ) => {
   const repayAmountUi = 1;
-  const repayAmountPrecise = repayAmountUi * 10 ** DECIMALS_USDX;
+  const repayAmountPrecise = addZeros(repayAmountUi, DECIMALS_USDX);
 
   // get global state info
   const globalStateAccttInfo: web3.AccountInfo<Buffer> =
@@ -91,38 +88,31 @@ export const repayUsdxFAIL_RepayMoreThanBorrowed = async (
   assert(vaultInfo, "Test requires vault to already be created");
 
   const userUsdx = user.tokens.usdx;
-  let vaultAcct: IdlAccounts<StablePool>["vault"] = await vault.getAccount();
   const ataUsdxBalPre = (await userUsdx.ata.getBalance()).value.uiAmount;
-  const vaultDebtPre = vaultAcct.debt.toNumber();
+  const vaultDebtPre = (await vault.getAccount()).debt.toNumber();
 
   assert(
     repayAmountPrecise >= vaultDebtPre,
     "Test requires repay amount >= vault balance. Please increase repay amount." +
-      "Repay Amount: " +
-      repayAmountPrecise +
-      " Vault Balance :" +
-      vaultDebtPre
+      `Repay Amount: ${repayAmountPrecise}  ||  Vault Balance: ${vaultDebtPre}`
   );
   assert(
     repayAmountPrecise <= ataUsdxBalPre,
     "Test requires that ATA balance be >= repay amount. Please increase ATA balance." +
-      "Repay Amount: " +
-      repayAmountPrecise +
-      " ATA Balance: " +
-      ataUsdxBalPre
+      `Repay Amount: ${repayAmountPrecise}  ||  ATA Balance: ${ataUsdxBalPre}`
   );
 
   await expect(
     repayUsdxCall(
-      // borrow/mint amount
+      // amtToRepay
       repayAmountPrecise * LAMPORTS_PER_SOL,
-      // user connection
+      // userConnection
       user.provider.connection,
-      // user wallet
+      // userWallet
       user.wallet,
-      // user token
-      user.tokens.lpSaber,
-      // mintUsdx MintAcct
+      // tokenUsdxUser
+      user.tokens.usdx,
+      // mintUsdx
       accounts.usdx,
       // pool
       accounts.lpSaberUsdcUsdt.pool,
@@ -133,9 +123,8 @@ export const repayUsdxFAIL_RepayMoreThanBorrowed = async (
     )
   ).to.be.rejectedWith("6019"); // RepayingMoreThanBorrowed
 
-  vaultAcct = await vault.getAccount();
   const ataUsdxBalPost = (await userUsdx.ata.getBalance()).value.uiAmount;
-  const vaultDebtPost = vaultAcct.debt.toNumber();
+  const vaultDebtPost = (await vault.getAccount()).debt.toNumber();
   const ataDiff = ataUsdxBalPost - ataUsdxBalPre;
   const vaultDiff = vaultDebtPost - vaultDebtPre;
 
@@ -167,9 +156,8 @@ export const repayUsdxPASS_RepayFullAmountBorrowed = async (
   assert(vaultInfo, "Test requires vault to already be created");
 
   const userUsdx = user.tokens.usdx;
-  let vaultAcct: IdlAccounts<StablePool>["vault"] = await vault.getAccount();
   const ataUsdxBalPre = (await userUsdx.ata.getBalance()).value.uiAmount;
-  const vaultDebtPre = vaultAcct.debt.toNumber();
+  const vaultDebtPre = (await vault.getAccount()).debt.toNumber();
   const repayAmountPrecise = ataUsdxBalPre;
 
   assert(
@@ -182,15 +170,15 @@ export const repayUsdxPASS_RepayFullAmountBorrowed = async (
   );
 
   await repayUsdxCall(
-    // borrow/mint amount
+    // amtToRepay
     repayAmountPrecise * LAMPORTS_PER_SOL,
-    // user connection
+    // userConnection
     user.provider.connection,
-    // user wallet
+    // userWallet
     user.wallet,
-    // user token
-    user.tokens.lpSaber,
-    // mintUsdx MintAcct
+    // tokenUsdxUser
+    user.tokens.usdx,
+    // mintUsdx
     accounts.usdx,
     // pool
     accounts.lpSaberUsdcUsdt.pool,
@@ -200,9 +188,8 @@ export const repayUsdxPASS_RepayFullAmountBorrowed = async (
     accounts.global
   );
 
-  vaultAcct = await vault.getAccount();
   const ataUsdxBalPost = (await userUsdx.ata.getBalance()).value.uiAmount;
-  const vaultDebtPost = vaultAcct.debt.toNumber();
+  const vaultDebtPost = (await vault.getAccount()).debt.toNumber();
 
   assert(
     ataUsdxBalPost == 0,
@@ -238,9 +225,8 @@ export const repayUsdxPASS_RepayLessThanBorrowed = async (
   assert(vaultInfo, "Test requires vault to already be created");
 
   const userUsdx = user.tokens.usdx;
-  let vaultAcct: IdlAccounts<StablePool>["vault"] = await vault.getAccount();
   const ataUsdxBalPre = (await userUsdx.ata.getBalance()).value.uiAmount;
-  const vaultDebtPre = vaultAcct.debt.toNumber();
+  const vaultDebtPre = (await vault.getAccount()).debt.toNumber();
 
   const repayAmount = 1;
 
@@ -262,15 +248,15 @@ export const repayUsdxPASS_RepayLessThanBorrowed = async (
   );
 
   await repayUsdxCall(
-    // borrow/mint amount
+    // amtToRepay
     repayAmount * LAMPORTS_PER_SOL,
-    // user connection
+    // userConnection
     user.provider.connection,
-    // user wallet
+    // userWallet
     user.wallet,
-    // user token
-    user.tokens.lpSaber,
-    // mintUsdx MintAcct
+    // tokenUsdxUser
+    user.tokens.usdx,
+    // mintUsdx
     accounts.usdx,
     // pool
     accounts.lpSaberUsdcUsdt.pool,
@@ -280,9 +266,8 @@ export const repayUsdxPASS_RepayLessThanBorrowed = async (
     accounts.global
   );
 
-  vaultAcct = await vault.getAccount();
   const ataUsdxBalPost = (await userUsdx.ata.getBalance()).value.uiAmount;
-  const vaultDebtPost = vaultAcct.debt.toNumber();
+  const vaultDebtPost = (await vault.getAccount()).debt.toNumber();
   const ataDiff = ataUsdxBalPost - ataUsdxBalPre;
   const vaultDiff = vaultDebtPost - vaultDebtPre;
 
@@ -324,9 +309,8 @@ export const repayUsdxFAIL_ZeroUsdx = async (
   assert(vaultInfo, "Test requires vault to already be created");
 
   const userUsdx = user.tokens.usdx;
-  let vaultAcct: IdlAccounts<StablePool>["vault"] = await vault.getAccount();
   const ataUsdxBalPre = (await userUsdx.ata.getBalance()).value.uiAmount;
-  const vaultDebtPre = vaultAcct.debt.toNumber();
+  const vaultDebtPre = (await vault.getAccount()).debt.toNumber();
 
   assert(
     repayAmount == 0,
@@ -335,15 +319,15 @@ export const repayUsdxFAIL_ZeroUsdx = async (
 
   await expect(
     repayUsdxCall(
-      // borrow/mint amount
+      // amtToRepay
       repayAmount * LAMPORTS_PER_SOL,
-      // user connection
+      // userConnection
       user.provider.connection,
-      // user wallet
+      // userWallet
       user.wallet,
-      // user token
-      user.tokens.lpSaber,
-      // mintUsdx MintAcct
+      // tokenUsdxUser
+      user.tokens.usdx,
+      // mintUsdx
       accounts.usdx,
       // pool
       accounts.lpSaberUsdcUsdt.pool,
@@ -354,9 +338,8 @@ export const repayUsdxFAIL_ZeroUsdx = async (
     )
   ).to.be.rejectedWith("6015"); // InvalidTransferAmount
 
-  vaultAcct = await vault.getAccount();
   const ataUsdxBalPost = (await userUsdx.ata.getBalance()).value.uiAmount;
-  const vaultDebtPost = vaultAcct.debt.toNumber();
+  const vaultDebtPost = (await vault.getAccount()).debt.toNumber();
   const ataDiff = ataUsdxBalPost - ataUsdxBalPre;
   const vaultDiff = vaultDebtPost - vaultDebtPre;
 
@@ -387,15 +370,16 @@ export const repayUsdxFAIL_RepayAnotherUsersDebt = async (
   );
 
   // get user vault info
-  const vaultInfo: web3.AccountInfo<Buffer> =
-    await otherUserVault.getAccountInfo();
-  assert(vaultInfo, "Test requires vault to already be created");
+  assert(
+    await otherUserVault.getAccount(),
+    "Test requires vault to already be created"
+  );
 
   const userUsdx = user.tokens.usdx;
-  let vaultAcct: IdlAccounts<StablePool>["vault"] =
-    await otherUserVault.getAccount();
   const userAtaUsdxBalPre = (await userUsdx.ata.getBalance()).value.uiAmount;
-  const otherUserVaultDebtPre = vaultAcct.debt.toNumber();
+  const otherUserVaultDebtPre = (
+    await otherUserVault.getAccount()
+  ).debt.toNumber();
 
   assert(
     repayAmountPrecise <= userAtaUsdxBalPre,
@@ -416,15 +400,15 @@ export const repayUsdxFAIL_RepayAnotherUsersDebt = async (
 
   await expect(
     repayUsdxCall(
-      // borrow/mint amount
+      // amtToRepay
       repayAmountPrecise,
-      // user connection
+      // userConnection
       user.provider.connection,
-      // user wallet
+      // userWallet
       user.wallet,
-      // user token
-      user.tokens.lpSaber,
-      // mintUsdx MintAcct
+      // tokenUsdxUser
+      user.tokens.usdx,
+      // mintUsdx
       accounts.usdx,
       // pool
       accounts.lpSaberUsdcUsdt.pool,
@@ -435,9 +419,10 @@ export const repayUsdxFAIL_RepayAnotherUsersDebt = async (
     )
   ).to.be.rejectedWith("2003"); // Raw Constraint Violated
 
-  vaultAcct = await otherUserVault.getAccount();
   const userAtaUsdxBalPost = (await userUsdx.ata.getBalance()).value.uiAmount;
-  const otherUserVaultDebtPost = vaultAcct.debt.toNumber();
+  const otherUserVaultDebtPost = (
+    await otherUserVault.getAccount()
+  ).debt.toNumber();
   const ataDiff = userAtaUsdxBalPost - userAtaUsdxBalPre;
   const vaultDiff = otherUserVaultDebtPost - otherUserVaultDebtPre;
 

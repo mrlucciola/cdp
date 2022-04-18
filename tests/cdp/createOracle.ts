@@ -20,28 +20,28 @@ import { assert, expect } from "chai";
 // local
 import { StablePool } from "../../target/types/stable_pool";
 import { handleTxn } from "../utils/fxns";
-import { GlobalStateAcct, Oracle } from "../utils/interfaces";
 import { Accounts } from "../config/accounts";
 import { User } from "../interfaces/user";
+import { Oracle } from "../interfaces/oracle";
+import { GlobalState } from "../interfaces/GlobalState";
 // program
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
 const createOracleCall = async (
   userConnection: Connection,
   userWallet: Wallet,
-  globalState: GlobalStateAcct,
+  globalState: GlobalState,
   oracle: Oracle
 ) => {
   const txn = new web3.Transaction().add(
     programStablePool.instruction.createOracle(
       // price of token
-      new BN(oracle.price),
       {
         accounts: {
           authority: userWallet.publicKey,
           globalState: globalState.pubKey,
           oracle: oracle.pubKey,
-          mintCollat: oracle.mint, // the mint account that represents the token this oracle reports for
+          mint: oracle.mint, // the mint account that represents the token this oracle reports for
           // system accts
           tokenProgram: TOKEN_PROGRAM_ID,
           clock: SYSVAR_CLOCK_PUBKEY,
@@ -94,8 +94,8 @@ export const createOraclePASS = async (
   ].oracle.getAccount();
   // final asserts
   assert(
-    oracleAcct.price.toNumber() == accounts[token].oracle.price,
-    "price mismatch"
+    !!oracleAcct,
+    "oracle not created"
   );
 };
 

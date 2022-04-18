@@ -1,8 +1,7 @@
 // anchor/solana
 import { workspace, Program } from "@project-serum/anchor";
 import { Keypair, PublicKey } from "@solana/web3.js";
-// @ts-ignore
-import { setAuthority } from "@solana/spl-token";
+// saber
 import {
   findMinterAddress,
   QuarrySDK,
@@ -16,9 +15,10 @@ import {
   Provider as SaberProvider,
 } from "@saberhq/solana-contrib";
 // local
-import { DECIMALS_SBR } from "../utils/constants";
 import { StablePool } from "../../target/types/stable_pool";
-import { CollateralAccount, MintPubKey } from "../utils/interfaces";
+// interfaces
+import { TokenReward } from "./TokenReward";
+import { TokenCollat } from "./TokenCollat";
 
 // init
 const programStablePool = workspace.StablePool as Program<StablePool>;
@@ -34,46 +34,65 @@ export class QuarryClass {
   public rewarderWrapper: RewarderWrapper; // rewarderWrapper
   public rewardClaimFeeAccount: PublicKey;
   public quarryWrapper: QuarryWrapper; // quarryWrapper
+  public tokenReward: TokenReward;
+  public tokenCollat: TokenCollat;
 
-  constructor() {
-    this.payer = (programStablePool.provider.wallet as any).payer;
+  // TokenAccountReward -> TokenReward
+  constructor(tokenReward: TokenReward, tokenCollat: TokenCollat) {
+    this.tokenReward = tokenReward;
+    this.tokenCollat = tokenCollat;
+    this.payer = (this.tokenReward.mintAuth.wallet as any).payer;
     this.provider = new SignerWallet(this.payer).createProvider(
-      programStablePool.provider.connection
+      this.tokenReward.mintAuth.provider.connection
     );
     this.sdk = QuarrySDK.load({
       provider: this.provider,
     });
-    // this.sbr.splToken.payer
-    // const rewardsMintKP = Keypair.generate();
   }
-  async init(sbrMint: MintPubKey, collateralToken: CollateralAccount) {
-    let sbrSToken = SToken.fromMint(sbrMint, DECIMALS_SBR);
-    let baseHardCap = TokenAmount.parse(sbrSToken, "1000000000000");
+
+  /**
+   * create the quarry on chain
+   * @param sbrMint
+   * @param collateralToken
+   */
+  async initQuarry() {
+    const sbrSToken = SToken.fromMint(
+      this.tokenReward.mint,
+      this.tokenReward.decimals
+    );
+    const baseHardCap = TokenAmount.parse(sbrSToken, "1000000000000");
 
     // create the mint wrapper
     const { tx: txWrapper, mintWrapper: mintWrapperKey } =
       await this.sdk.mintWrapper.newWrapper({
         hardcap: baseHardCap.toU64(),
-        tokenMint: sbrMint,
+        tokenMint: this.tokenReward.mint,
+        baseKP: this.tokenReward.mintAuth.wallet.payer,
+        admin: this.tokenReward.mintAuth.wallet.publicKey,
+        payer: this.tokenReward.mintAuth.wallet.publicKey,
       });
-    await setAuthority(
-      this.provider.connection,
-      this.payer,
-      sbrMint,
-      this.payer,
-      "MintTokens",
-      mintWrapperKey
-    );
-    await setAuthority(
-      this.provider.connection,
-      this.payer,
-      sbrMint,
-      this.payer,
-      "FreezeAccount",
-      mintWrapperKey
-    );
-    await txWrapper.confirm();
     this.mintWrapper = mintWrapperKey;
+
+    // assign wrapper to be the new auth
+    await this.tokenReward.splToken.setAuthority(
+      this.tokenReward.mint, // account
+      this.mintWrapper, // newAuthority
+      "MintTokens", // authorityTYpe
+      this.tokenReward.mintAuth.wallet.publicKey, // currentAuthority
+      [this.tokenReward.mintAuth.wallet.payer] // Signer
+    );
+    await this.tokenReward.splToken.setAuthority(
+      this.tokenReward.mint, // account
+      this.mintWrapper, // newAruthority
+      "FreezeAccount", // authorityTYpe
+      this.tokenReward.mintAuth.wallet.publicKey, // currentAuthority
+      [this.tokenReward.mintAuth.wallet.payer] // Signer
+    );
+
+    // this.tokenReward.mintAuth = null as User;
+
+    // send the txn to create the wrapper which is now the auth for this reward token
+    await txWrapper.confirm();
 
     // create the rewarder
     const { tx: txRewarder, key: rewarderPubKey } =
@@ -81,8 +100,10 @@ export class QuarryClass {
         mintWrapper: this.mintWrapper,
         authority: this.payer.publicKey,
       });
-    await txRewarder.confirm();
     this.rewarder = rewarderPubKey;
+
+    // send the rewarder ixn
+    await txRewarder.confirm();
 
     // set annual rewards
     this.rewarderWrapper = await this.sdk.mine.loadRewarderWrapper(
@@ -90,13 +111,15 @@ export class QuarryClass {
     );
 
     const rate_tx = this.rewarderWrapper.setAnnualRewards({
-      newAnnualRate: new u64(1000000000000),
+      newAnnualRate: new u64(1_000_000_000_000),
     });
     await rate_tx.confirm();
+    this.rewardClaimFeeAccount =
+      this.rewarderWrapper.rewarderData.claimFeeTokenAccount;
 
     const allowance = new u64(1_000_000_000);
 
-    let txMinter = await this.sdk.mintWrapper.newMinterWithAllowance(
+    const txMinter = await this.sdk.mintWrapper.newMinterWithAllowance(
       this.mintWrapper,
       this.rewarder,
       allowance
@@ -107,13 +130,9 @@ export class QuarryClass {
       this.rewarder, // rewarderKey,
       QUARRY_ADDRESSES.MintWrapper
     );
-    console.log("Passed creating minter->" + [this.minter]);
-
-    this.rewardClaimFeeAccount =
-      this.rewarderWrapper.rewarderData.claimFeeTokenAccount;
 
     // only a rewarder can create a quarry
-    const collateralSToken = SToken.fromMint(collateralToken.mint, 9); // prev: usdcUsdtLPToken
+    const collateralSToken = SToken.fromMint(this.tokenCollat.mint, 9); // prev: usdcUsdtLPToken
     const { quarry: quarryPubKey, tx: txQuarry } =
       await this.rewarderWrapper.createQuarry({
         token: collateralSToken, // token: baseToken, == sbrSToken

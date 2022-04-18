@@ -10,7 +10,7 @@ pub struct Vault {
     /// The associated pool's pubkey
     pub pool: Pubkey,
     /// the collateral mint acct that corresponds to this vault
-    pub mint: Pubkey,
+    pub mint_collat: Pubkey,
     // TODO 010: mint_reward -> get from pool
     /// the mint account for the reward
     pub mint_reward: Pubkey,

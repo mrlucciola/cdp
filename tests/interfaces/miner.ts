@@ -2,34 +2,60 @@
 import { PublicKey } from "@solana/web3.js";
 // saber
 import { QUARRY_ADDRESSES } from "@quarryprotocol/quarry-sdk";
-// local
+// utils
 import { getPda } from "../utils/fxns";
-import { MintPubKey, QuarryClass, Vault } from "../utils/interfaces";
+// interfaces
 import { ATA } from "./ata";
+import { Pool } from "./pool";
+import { Vault } from "./vault";
+import { TokenReward } from "./TokenReward";
+import { TokenCollatUser } from "./TokenCollatUser";
+
+/**
+ * owned by a user
+ */
 export class Miner {
   pubkey: PublicKey;
   bump: number;
   ata: ATA;
+  // TODO: combine reward token into one class and input
+  tokenReward: TokenReward;
+  tokenCollatUser: TokenCollatUser;
+  pool: Pool;
+  vault: Vault;
 
-  constructor(vault: Vault, quarry: QuarryClass, mintPubKey: MintPubKey) {
+  constructor(
+    tokenCollatUser: TokenCollatUser,
+    tokenReward: TokenReward,
+    vault: Vault,
+    pool: Pool
+  ) {
+    this.tokenReward = tokenReward;
+    this.vault = vault;
+    this.tokenCollatUser = tokenCollatUser;
+    this.pool = pool;
+
     const [pubkey, bump] = getPda(
       [
         Buffer.from("Miner"), // b"Miner".as_ref(),
-        quarry.pubkey.toBuffer(), // quarry.key().to_bytes().as_ref(),
-        vault.pubKey.toBuffer(), // authority.key().to_bytes().as_ref()
+        this.pool.quarry.pubkey.toBuffer(), // quarry.key().to_bytes().as_ref(),
+        this.vault.pubKey.toBuffer(), // authority.key().to_bytes().as_ref()
       ],
       QUARRY_ADDRESSES.Mine
     );
     this.pubkey = pubkey;
     this.bump = bump;
-    // [this.pubkey, this.bump] = findProgramAddressSync(
-    //   [
-    //     Buffer.from(utils.bytes.utf8.encode("Miner")),
-    //     quarry.toBytes(),
-    //     vault.pubKey.toBytes(),
-    //   ],
-    //   QUARRY_ADDRESSES.Mine
-    // );
-    this.ata = new ATA(this.pubkey, mintPubKey);
+
+    // alias: miner_vault
+    this.ata = new ATA(
+      this.pubkey, // authPubKey
+      this.tokenCollatUser.tokenCollat.mint, // mintPubKey
+      this.tokenCollatUser.tokenCollat.mintAuth, // mintAuth
+      this.tokenCollatUser.tokenCollat.decimals, // decimals
+      this.tokenCollatUser.tokenCollat.nameToken, // nameToken
+      `miner-${this.tokenCollatUser.tokenCollat.nameToken}-${this.tokenReward.nameToken}`, // nameInstance
+      null, // mintAuthPubKey
+      // this.tokenCollatUser.authority // owner
+    );
   }
 }

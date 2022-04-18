@@ -61,7 +61,7 @@ pub fn handle(ctx: Context<UnstakeCollateralFromSaber>, amount: u64) -> Result<(
         StablePoolError::InvalidSaberPlatform
     );
 
-    let mint_key = ctx.accounts.vault.mint;
+    let mint_key = ctx.accounts.vault.mint_collat;
     let owner_key = ctx.accounts.authority.key();
 
     let authority_seeds = &[
@@ -127,7 +127,7 @@ pub struct UnstakeCollateralFromSaber<'info> {
         mut,
         seeds=[POOL_SEED.as_ref(), pool.mint_collat.as_ref()],
         bump=pool.bump,
-        constraint = pool.mint_collat.as_ref() == vault.mint.as_ref(),
+        constraint = pool.mint_collat.as_ref() == vault.mint_collat.as_ref(),
     )]
     pub pool: Box<Account<'info, Pool>>,
 
@@ -135,11 +135,11 @@ pub struct UnstakeCollateralFromSaber<'info> {
         mut,
         seeds=[
             VAULT_SEED.as_ref(),
-            vault.mint.as_ref(),
+            vault.mint_collat.as_ref(),
             authority.key().as_ref(),
         ],
         bump=vault.bump,
-        constraint = pool.mint_collat.as_ref() == vault.mint.as_ref(),
+        constraint = pool.mint_collat.as_ref() == vault.mint_collat.as_ref(),
     )]
     pub vault: Box<Account<'info, Vault>>,
 

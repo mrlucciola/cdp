@@ -16,17 +16,16 @@ import { assert, expect } from "chai";
 // local
 import { StablePool } from "../../target/types/stable_pool";
 import { Accounts } from "../config/accounts";
-import { handleTxn } from "../utils/fxns";
+import { addZeros, handleTxn } from "../utils/fxns";
 import { DECIMALS_PRICE, DECIMALS_USDCUSDT } from "../utils/constants";
 // interfaces
-import {
-  GlobalStateAcct,
-  MintPubKey,
-  Vault,
-  UserToken,
-  Pool,
-} from "../utils/interfaces";
+import { MintPubKey } from "../utils/interfaces";
 import { User } from "../interfaces/user";
+import { Pool } from "../interfaces/pool";
+import { Vault } from "../interfaces/vault";
+import { TokenCollatUser } from "../interfaces/TokenCollatUser";
+import { GlobalState } from "../interfaces/GlobalState";
+import { Miner } from "../interfaces/miner";
 
 // init
 const programStablePool = workspace.StablePool as Program<StablePool>;
@@ -36,27 +35,31 @@ const programStablePool = workspace.StablePool as Program<StablePool>;
  *     we are passing in the right values
  */
 export const depositCollateralCall = async (
-  depositAmount: number,
+  amtToDeposit: number,
   userConnection: Connection,
   userWallet: Wallet,
-  userToken: UserToken,
+  tokenCollatUser: TokenCollatUser,
   vault: Vault,
-  mintPubKey: MintPubKey,
+  mintCollatPubKey: MintPubKey,
   pool: Pool,
-  globalState: GlobalStateAcct,
-  user: User
+  globalState: GlobalState,
+  user: User,
+  miner: Miner
 ) => {
   const txn = new Transaction().add(
-    programStablePool.instruction.depositCollateral(new BN(depositAmount), {
+    programStablePool.instruction.depositCollateral(new BN(amtToDeposit), {
       accounts: {
-        authority: userWallet.publicKey,
-        globalState: globalState.pubKey,
-        pool: pool.pubKey,
-        vault: vault.pubKey,
+        authority: userWallet.publicKey, //
+        globalState: globalState.pubKey, //
+        pool: pool.pubKey, //
+        // user-derived accounts
         userState: user.userState.pubKey,
-        ataCollatVault: vault.ata.pubKey,
-        ataCollatUser: userToken.ata.pubKey,
-        mintCollat: mintPubKey,
+        vault: vault.pubKey, //
+        // A.T.A.s
+        ataCollatUser: tokenCollatUser.ata.pubKey, //
+        ataCollatVault: vault.ataCollat.pubKey, //
+        ataCollatMiner: miner.ata.pubKey, //
+        mintCollat: mintCollatPubKey,
         oracleA: pool.oracles.usdc.pubKey,
         oracleB: pool.oracles.usdt.pubKey,
         ataMarketA: pool.ataMarketTokens.usdc.pubKey,
@@ -75,18 +78,18 @@ export const depositCollateralFAIL_NotEnoughTokens = async (
   accounts: Accounts
 ) => {
   const userlpSaber = user.tokens.lpSaber;
-  const depositAmount = 0.9 * 10 ** DECIMALS_USDCUSDT;
+  const amtToDeposit = addZeros(0.9, DECIMALS_USDCUSDT);
   const ataBalPre = Number((await userlpSaber.ata.getBalance()).value.amount);
 
   assert(
-    depositAmount > ataBalPre,
+    amtToDeposit > ataBalPre,
     "Test requires attempting to deposit more tokens than in the ATA. Please increase deposit amount"
   );
 
   await expect(
     depositCollateralCall(
-      // deposit amount
-      depositAmount,
+      // amt to deposit
+      amtToDeposit,
       // user connection
       user.provider.connection,
       // user wallet
@@ -101,7 +104,8 @@ export const depositCollateralFAIL_NotEnoughTokens = async (
       accounts.lpSaberUsdcUsdt.pool,
       // globalState
       accounts.global,
-      user
+      user,
+      user.tokens.lpSaber.vault.miner
     ),
     "No error was thrown when trying to deposit an amount greater than the user's balance"
   ).is.rejected;
@@ -115,20 +119,12 @@ export const depositCollateralFAIL_NotEnoughTokens = async (
   );
 };
 
-export const depositCollateralPASS = async (
-  user: User,
-  superUser: User,
-  accounts: Accounts
-) => {
+export const depositCollateralPASS = async (user: User, accounts: Accounts) => {
   // mint tokens to the user's account first
-  await user.tokens.lpSaber.ata.mintToATA(
-    10000 * 10 ** DECIMALS_USDCUSDT, // decimals for this mint = 6
-    superUser,
-    accounts.lpSaberUsdcUsdt.mint
-  );
+  await user.tokens.lpSaber.ata.mintToAta(addZeros(10000, DECIMALS_USDCUSDT));
 
   // amt of collateral to deposit with precision
-  const depositAmount = 1000 * 10 ** DECIMALS_USDCUSDT;
+  const amtToDeposit = addZeros(1000, DECIMALS_USDCUSDT);
 
   // price, with precision
   // const priceUsd = 1.02 * 10 ** DECIMALS_PRICE; // TODO: fix price feed
@@ -140,23 +136,30 @@ export const depositCollateralPASS = async (
   // const tvlPre = globalStateAcct.tvlUsd.toNumber();
   const userBalPre = Number((await userlpSaber.ata.getBalance()).value.amount);
   const vaultBalPre = Number(
-    (await userlpSaber.vault.ata.getBalance()).value.amount
+    (await userlpSaber.vault.ataCollat.getBalance()).value.amount
   );
 
   assert(
-    userBalPre >= depositAmount,
+    userBalPre >= amtToDeposit,
     "Test requires ATA balance to be >= deposit amount. Please increase deposit amount" +
-      `\nATA bal.: ${userBalPre}   deposit amt: ${depositAmount}`
+      `\nATA bal.: ${userBalPre}   deposit amt: ${amtToDeposit}`
   );
+  const doesExist = await user.tokens.lpSaber.vault.miner.ata.getAccountInfo();
+  !doesExist &&
+    (await user.tokens.lpSaber.vault.miner.ata.initAta(
+      0,
+      user.wallet,
+      user.provider.connection
+    ));
   // assert(
-  //   depositAmount * LAMPORTS_PER_SOL * priceUsd + globalStateAcct.tvlUsd.toNumber() < globalStateAcct.tvlLimit.toNumber(),
-  //   "Amount attempting to deposit will exceed TVL limit. Please decrease depositAmount.\n" +
-  //   "Deposit Amount USD: " + (depositAmount * priceUsd * LAMPORTS_PER_SOL) + " TVL: " + globalStateAcct.tvlUsd.toNumber() +
+  //   amtToDeposit * LAMPORTS_PER_SOL * priceUsd + globalStateAcct.tvlUsd.toNumber() < globalStateAcct.tvlLimit.toNumber(),
+  //   "Amount attempting to deposit will exceed TVL limit. Please decrease amtToDeposit.\n" +
+  //   "Deposit Amount USD: " + (amtToDeposit * priceUsd * LAMPORTS_PER_SOL) + " TVL: " + globalStateAcct.tvlUsd.toNumber() +
   //   " TVL Limit: " + globalStateAcct.tvlLimit.toNumber());
 
   await depositCollateralCall(
     // deposit amount
-    depositAmount,
+    amtToDeposit,
     // user connection
     user.provider.connection,
     // user wallet
@@ -171,12 +174,13 @@ export const depositCollateralPASS = async (
     accounts.lpSaberUsdcUsdt.pool,
     // globalState
     accounts.global,
-    user
+    user,
+    user.tokens.lpSaber.vault.miner
   );
 
   const userBalPost = Number((await userlpSaber.ata.getBalance()).value.amount);
   const vaultBalPost = Number(
-    (await userlpSaber.vault.ata.getBalance()).value.amount
+    (await userlpSaber.vault.ataCollat.getBalance()).value.amount
   );
   const userDiff = userBalPost - userBalPre;
   const vaultDiff = vaultBalPost - vaultBalPre;
@@ -187,22 +191,22 @@ export const depositCollateralPASS = async (
 
   const differenceThreshold = 0.0001; // set arbitrarily
   assert(
-    Math.abs(depositAmount + userDiff) < differenceThreshold,
+    Math.abs(amtToDeposit + userDiff) < differenceThreshold,
     "Expected User ATA Diff: " +
-      -depositAmount +
+      -amtToDeposit +
       " Actual User ATA Diff: " +
       userDiff
   );
   assert(
-    Math.abs(vaultDiff - depositAmount) < differenceThreshold,
-    "Expected Vault Diff: " + depositAmount + " Actual Vault Diff: " + vaultDiff
+    Math.abs(vaultDiff - amtToDeposit) < differenceThreshold,
+    "Expected Vault Diff: " + amtToDeposit + " Actual Vault Diff: " + vaultDiff
   );
   // globalStateAcct = await accounts.global.getAccount();
   // const tvlPost = globalStateAcct.tvlUsd.toNumber();
   // // may need to change from == to <= some small delta value to account for price flucuations
-  // assert(tvlPost - tvlPre == depositAmount * LAMPORTS_PER_SOL* priceUsd,
+  // assert(tvlPost - tvlPre == amtToDeposit * LAMPORTS_PER_SOL* priceUsd,
   //   "TVL did not update correctly.\n" +
-  //   "Expected TVL Difference: " + depositAmount * LAMPORTS_PER_SOL* priceUsd +
+  //   "Expected TVL Difference: " + amtToDeposit * LAMPORTS_PER_SOL* priceUsd +
   //   " Actual TVL Difference: " + (tvlPost - tvlPre));
 };
 
@@ -233,7 +237,7 @@ export const depositCollateralFAIL_DepositExceedingTVL = async (
   assert(
     depositAmountPrecise * priceUsdPrecise + globalStateAcct.tvlUsd.toNumber() >
       globalStateAcct.tvlLimit.toNumber(),
-    "Amount attempting to deposit will not exceed TVL limit. Please increase depositAmount.\n" +
+    "Amount attempting to deposit will not exceed TVL limit. Please increase amtToDeposit.\n" +
       `Deposit Amount USD: ${depositAmountPrecise * priceUsdPrecise}\n` +
       `TVL: ${globalStateAcct.tvlUsd.toNumber()}   TVL Limit: ${globalStateAcct.tvlLimit.toNumber()}`
   );
@@ -261,7 +265,8 @@ export const depositCollateralFAIL_DepositExceedingTVL = async (
       accounts.lpSaberUsdcUsdt.pool,
       // globalState
       accounts.global,
-      user
+      user,
+      user.tokens.lpSaber.vault.miner
     )
   ).to.be.rejectedWith(
     "6016",

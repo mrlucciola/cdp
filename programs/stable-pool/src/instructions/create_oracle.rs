@@ -4,13 +4,13 @@ use anchor_spl::token::{self, Mint, Token};
 // local
 use crate::{constants::*, states::*};
 
-pub fn handle(ctx: Context<CreateOracle>, price: u64) -> Result<()> {
+pub fn handle(ctx: Context<CreateOracle>) -> Result<()> {
     let oracle = &mut ctx.accounts.oracle;
 
     oracle.mint = ctx.accounts.mint.key();
     oracle.decimals = ctx.accounts.mint.decimals;
     oracle.last_updated_time = ctx.accounts.clock.unix_timestamp as u64;
-    oracle.price = price;
+    oracle.price = 0;
     oracle.bump = *ctx.bumps.get("oracle").unwrap();
 
     Ok(())

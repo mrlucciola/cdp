@@ -24,8 +24,12 @@ import {
 import { translateError } from "./errors";
 import { TestTokens } from "./types";
 import { User } from "../interfaces/user";
-import { GeneralToken, MintPubKey, UserToken } from "./interfaces";
+import { MintPubKey } from "./interfaces";
 import { ATA } from "../interfaces/ata";
+import { TokenCollat } from "../interfaces/TokenCollat";
+import { QuarryClass } from "../interfaces/quarry";
+import { TokenCollatUser } from "../interfaces/TokenCollatUser";
+import { Pool } from "../interfaces/pool";
 
 /**
  * We use user provider and user wallet because
@@ -104,16 +108,16 @@ export const delay = async (ms: number) => {
  * but this function does this synchronously
  * and also returns a bump if needed
  *
- * @param ownerPubKey PublicKey
+ * @param authPubKey PublicKey
  * @param mintPubKey PublicKey
  * @returns [PublicKey, number]
  */
 export const getAssocTokenAcct = (
-  ownerPubKey: PublicKey,
+  authPubKey: PublicKey,
   mintPubKey: PublicKey
 ): [PublicKey, number] => {
   const seeds: Buffer[] = [
-    ownerPubKey.toBuffer(),
+    authPubKey.toBuffer(),
     TOKEN_PROGRAM_ID.toBuffer(),
     mintPubKey.toBuffer(),
   ];
@@ -167,25 +171,25 @@ export const mintToAta = async (
   mintTokenStr: TestTokens,
   mintPubKey: PublicKey,
   mintAuth: User,
-  dest: UserToken | GeneralToken,
+  dest: ATA,
   amount: number = 200_000_000 // 0.2 units of token
 ) => {
   // mint to newly created ata
-  const ataBalanceOrig = Number((await getAcctBalance(dest.ata.pubKey)).amount);
+  const ataBalanceOrig = Number((await getAcctBalance(dest.pubKey)).amount);
   console.log(`minting ${mintTokenStr} to ata, balance: ${ataBalanceOrig}`);
   try {
     await mintTo(
       mintAuth.provider.connection, // connection — Connection to use
       mintAuth.wallet.payer, // payer — Payer of the transaction fees
       mintPubKey, // mint — Mint for the account
-      dest.ata.pubKey, // destination — Address of the account to mint to
+      dest.pubKey, // destination — Address of the account to mint to
       mintAuth.wallet.publicKey, // authority — Minting authority
       amount // amount — Amount to mint
     );
   } catch (error) {
     throw error;
   }
-  const ataBalanceNew = Number((await getAcctBalance(dest.ata.pubKey)).amount);
+  const ataBalanceNew = Number((await getAcctBalance(dest.pubKey)).amount);
   const diff = ataBalanceNew - ataBalanceOrig;
   console.log(`ata balance: ${ataBalanceOrig} -> ${ataBalanceNew}  ∆=${diff}`);
 };
@@ -234,6 +238,10 @@ export const createAtaOnChain = async (
   auth?: PublicKey,
   userConnection: Connection = null
 ) => {
+  // check if the mint exists
+  if (!(await userConnection.getAccountInfo(mintPubKey)))
+    throw new Error("Mint account does not exist");
+
   const txn = new Transaction().add(
     createAssociatedTokenAccountInstruction(
       userWallet.publicKey, // payer: web3.PublicKey,
@@ -242,5 +250,20 @@ export const createAtaOnChain = async (
       mintPubKey // mint: web3.PublicKey,
     )
   );
-  userConnection && (await handleTxn(txn, userConnection, userWallet));
+  if (userConnection) {
+    await handleTxn(txn, userConnection, userWallet);
+  } else {
+    throw new Error("no connection provided");
+  }
+};
+
+/**
+ * inputNumber * 10 ** NUM_DECIMALS
+ * @param inputNumber - number
+ * @param numDecimals - number < 100
+ * @returns
+ */
+export const addZeros = (inputNumber: number, numDecimals: number) => {
+  if (numDecimals >= 100) throw new Error("Must be < 100 decimal places");
+  return inputNumber * 10 ** numDecimals;
 };

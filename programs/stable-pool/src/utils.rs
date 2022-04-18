@@ -21,7 +21,7 @@ pub fn is_global_state_paused(global_state: &Account<GlobalState>) -> Result<()>
 }
 
 // StableUsdcPair
-pub fn calc_lp_price(
+pub fn calc_stable_lp_price(
     lp_supply: u64,
     amount_a: u64,
     price_a: u64,

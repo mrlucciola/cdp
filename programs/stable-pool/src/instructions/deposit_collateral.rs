@@ -10,7 +10,7 @@ use crate::{
     constants::*,
     errors::StablePoolError,
     states::{GlobalState, Pool, Vault},
-    utils::{calc_lp_price, validate_market_accounts},
+    utils::{calc_stable_lp_price, validate_market_accounts},
 };
 
 pub fn calc_token_value(token_amount: u64, token_price: u64, token_price_decimals: u64) -> u64 {
@@ -21,6 +21,10 @@ pub fn calc_token_value(token_amount: u64, token_price: u64, token_price_decimal
         .unwrap()
 }
 
+/**
+ * User A.T.A. is debited collateral token
+ * Vault A.T.A. is credited collateral token
+ */
 pub fn handle(ctx: Context<DepositCollateral>, amt_collat_to_deposit: u64) -> Result<()> {
     let accts = ctx.accounts;
 
@@ -35,19 +39,23 @@ pub fn handle(ctx: Context<DepositCollateral>, amt_collat_to_deposit: u64) -> Re
 
     let amount_ata_a = amount(&accts.ata_market_a.to_account_info())?;
     let amount_ata_b = amount(&accts.ata_market_b.to_account_info())?;
-    let amount_ata_collat_user = amount(&accts.ata_collat_user.to_account_info())?;
+    // TODO: evaluate if we can delete amount_ata_collat_user
+    // let amount_ata_collat_user = amount(&accts.ata_collat_user.to_account_info())?;
     let amount_ata_collat_vault = amount(&accts.ata_collat_vault.to_account_info())?;
     let amount_ata_miner = amount(&accts.ata_collat_miner.to_account_info())?;
 
-    // validation
+    ////////////////////////////////////
+    //////////// validation ////////////
+
     // the tvl value in usd, estimated at time of deposit
-    let tvl_usd = &accts.global_state.tvl_usd;
+    let global_tvl_usd = &accts.global_state.tvl_usd;
 
     // user amount in the ata has to be greater than 0
     require!(
         accts.ata_collat_user.amount > 0,
         StablePoolError::InvalidTransferAmount,
     );
+    // user amount in the ata has to be greater than amount being deposited
     require!(
         accts.ata_collat_user.amount >= amt_collat_to_deposit,
         StablePoolError::InvalidTransferAmount,
@@ -55,7 +63,7 @@ pub fn handle(ctx: Context<DepositCollateral>, amt_collat_to_deposit: u64) -> Re
 
     // calculate the price of the collateral in usd then add that to the usd
     // calculate the entire pool amount plus the amount to be added, and set that as the new value
-    let collat_price = calc_lp_price(
+    let collat_price = calc_stable_lp_price(
         accts.mint_collat.supply.clone(),
         amount_ata_a,
         accts.oracle_a.price,
@@ -72,7 +80,7 @@ pub fn handle(ctx: Context<DepositCollateral>, amt_collat_to_deposit: u64) -> Re
 
     // global tvl limit has to be less than the next tvl if deposit were to go thru
     require!(
-        *tvl_usd + amt_collat_to_deposit <= global_tvl_ceiling_usd,
+        *global_tvl_usd + amt_collat_to_deposit <= global_tvl_ceiling_usd,
         StablePoolError::GlobalTVLExceeded
     );
     // send the transfer
@@ -85,6 +93,8 @@ pub fn handle(ctx: Context<DepositCollateral>, amt_collat_to_deposit: u64) -> Re
         },
     );
     token::transfer(transfer_ctx, amt_collat_to_deposit)?;
+    msg!("pre: {}", accts.ata_collat_user.amount);
+    msg!("deposited: {}", accts.ata_collat_vault.amount);
 
     // add the A.T.A.'s collat token balance in USD value to the pool
     // accts.user_state.deposited_collat_usd = accts
@@ -127,7 +137,7 @@ pub fn handle(ctx: Context<DepositCollateral>, amt_collat_to_deposit: u64) -> Re
     //     .unwrap();
     // calculate pool_tvl_usd
 
-    // TODO 018: dont sum usd - look at 017
+    // TODO 018: dont sum usd - look at 017. would prefer to do this calc without a crank, but might need to sum all pool usd values together
     accts.global_state.tvl_usd = accts
         .global_state
         .tvl_usd
@@ -144,16 +154,17 @@ pub struct DepositCollateral<'info> {
     pub authority: Signer<'info>,
     #[account[mut]]
     pub global_state: Box<Account<'info, GlobalState>>,
-    #[account[mut, seeds = [USER_STATE_SEED.as_ref(), authority.key().as_ref()], bump = user_state.bump]]
-    pub user_state: Box<Account<'info, UserState>>,
 
     #[account(
         mut,
         seeds=[POOL_SEED.as_ref(), pool.mint_collat.as_ref()],
         bump=pool.bump,
-        constraint = pool.mint_collat.as_ref() == vault.mint.as_ref(),
+        constraint = pool.mint_collat.as_ref() == vault.mint_collat.as_ref(),
     )]
     pub pool: Box<Account<'info, Pool>>,
+
+    #[account[mut, seeds = [USER_STATE_SEED.as_ref(), authority.key().as_ref()], bump = user_state.bump]]
+    pub user_state: Box<Account<'info, UserState>>,
 
     #[account(
         mut,
@@ -173,12 +184,6 @@ pub struct DepositCollateral<'info> {
     )]
     pub ata_collat_vault: Box<Account<'info, TokenAccount>>,
 
-    // #[account(
-    //     associated_token::mint = mint_collat.as_ref(),
-    //     associated_token::authority = vault.as_ref(),
-    // )]
-    pub ata_collat_miner: Box<Account<'info, TokenAccount>>,
-
     #[account(
         mut,
         associated_token::mint = mint_collat.as_ref(),
@@ -186,10 +191,26 @@ pub struct DepositCollateral<'info> {
     )]
     pub ata_collat_user: Box<Account<'info, TokenAccount>>,
 
-    #[account(constraint = mint_collat.key().as_ref() == pool.mint_collat.as_ref())]
+    // TODO: Find the authority, and/or seeds to safely pass this account in
+    // #[account(
+    //     associated_token::mint = mint_collat.as_ref(),
+    //     associated_token::authority = miner.as_ref(),
+    // )]
+    pub ata_collat_miner: Box<Account<'info, TokenAccount>>,
+
+    /// Mint account for collateral token
+    #[account(address = pool.mint_collat)]
     pub mint_collat: Box<Account<'info, Mint>>,
 
+    #[account(
+        seeds = [ORACLE_SEED.as_ref(), oracle_a.mint.as_ref()],
+        bump = oracle_a.bump,
+    )]
     pub oracle_a: Box<Account<'info, Oracle>>,
+    #[account(
+        seeds = [ORACLE_SEED.as_ref(), oracle_b.mint.as_ref()],
+        bump = oracle_b.bump,
+    )]
     pub oracle_b: Box<Account<'info, Oracle>>,
     pub ata_market_a: Box<Account<'info, TokenAccount>>,
     pub ata_market_b: Box<Account<'info, TokenAccount>>,

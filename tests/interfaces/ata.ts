@@ -1,16 +1,17 @@
 // anchor/solana
-import { Program, Wallet, workspace } from "@project-serum/anchor";
-import { AccountInfo, PublicKey } from "@solana/web3.js";
+import { Program, utils, Wallet, workspace } from "@project-serum/anchor";
+import { AccountInfo, Connection, PublicKey, Signer } from "@solana/web3.js";
 // TODO: figure out why linter throws error. It is because of quarry's package
 import {
   // @ts-ignore
   mintTo,
   // @ts-ignore
   burn,
+  TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import { User } from "../interfaces/user";
-import { getAssocTokenAcct } from "../utils/fxns";
-import { Acct, MintPubKey } from "../utils/interfaces";
+import { addZeros, createAtaOnChain, getAssocTokenAcct } from "../utils/fxns";
+import { MintPubKey } from "../utils/interfaces";
 import { StablePool } from "../../target/types/stable_pool";
 
 // init
@@ -22,28 +23,51 @@ const programStablePool = workspace.StablePool as Program<StablePool>;
  * @property bump? - u8: Bump/nonce for ATA
  */
 export class ATA {
+  pubKey: PublicKey;
   bump?: number;
   /**  The public key of the mint account */
   mint: MintPubKey;
   /** The name of the token */
   nameToken?: string;
   /** The identifier of this class instance */
+  nameInstance?: string;
+  /** (DEPRECATED) The identifier of this class instance */
   name?: string;
-  pubKey: PublicKey;
+  mintAuthPubKey?: PublicKey;
+  mintAuth: User;
+  decimals: number;
+  /** in some cases, the auth is a P.D.A., not a User */
+  authPubKey: PublicKey;
+  owner: User;
 
   constructor(
-    authorityPubKey: PublicKey,
+    authPubKey: PublicKey,
     mintPubKey: MintPubKey,
+    mintAuth: User,
+    decimals: number,
     nameToken?: string,
-    authName?: string
+    nameInstance?: string,
+    mintAuthPubKey?: PublicKey,
+    owner?: User
   ) {
-    const [ataPubKey, ataBump] = getAssocTokenAcct(authorityPubKey, mintPubKey);
+    this.mint = mintPubKey;
+    /** in some cases, the owner is a P.D.A., not a User */
+    this.authPubKey = authPubKey;
+    this.owner = owner;
+    this.decimals = decimals;
+    this.nameToken = nameToken;
+    // TODO: deprecated
+    this.name = nameInstance;
+    this.nameInstance = nameInstance;
+    this.mintAuth = mintAuth;
+    // this is for PDA-based mints
+    this.mintAuthPubKey = mintAuthPubKey
+      ? mintAuthPubKey
+      : this.mintAuth.wallet.publicKey;
 
+    const [ataPubKey, ataBump] = getAssocTokenAcct(this.authPubKey, this.mint);
     this.pubKey = ataPubKey;
     this.bump = ataBump;
-    this.mint = mintPubKey;
-    this.nameToken = nameToken;
-    // this.name = `${authName}-ata-${nameToken}`;
   }
 
   public async getBalance(
@@ -71,17 +95,17 @@ export class ATA {
    * @param mintAuth
    * @param mintPubKey
    */
-  public async mintToATA(
+  public async mintToAta(
     mintAmount: number,
-    mintAuth: User,
-    mintPubKey: MintPubKey
+    destination: PublicKey = this.pubKey,
+    user: User = this.mintAuth
   ) {
     await mintTo(
-      mintAuth.provider.connection, // connection — Connection to use
-      mintAuth.wallet.payer, // payer — Payer of the transaction fees
-      mintPubKey, // mint — Mint for the account
-      this.pubKey, // destination — Address of the account to mint to
-      mintAuth.wallet.publicKey, // authority — Minting authority
+      user.provider.connection, // connection — Connection to use
+      this.mintAuth.wallet.payer, // payer — Payer of the transaction fees
+      this.mint, // mint — Mint for the account
+      destination, // destination — Address of the account to mint to
+      this.mintAuthPubKey, // authority — Minting authority
       mintAmount // mintAmount — Amount to mint
     );
   }
@@ -95,7 +119,6 @@ export class ATA {
   public async burnTokens(
     burnAmount: number,
     mintAuth: User,
-    mintPubKey: MintPubKey,
     userWallet: Wallet
   ) {
     // check if -1, then get the total amount in account
@@ -109,9 +132,28 @@ export class ATA {
       mintAuth.provider.connection, // connection
       userWallet.payer, // payer
       this.pubKey, // account: acct to burn tokens from
-      mintPubKey, // mint: the token mint
+      this.mint, // mint: the token mint
       userWallet.publicKey, // owner: Account owner
       amtToBurn // amount: Amt of token to burn
     );
+  }
+
+  public async initAta(
+    amtToMint: number = 0,
+    userWallet: Wallet = this.owner.wallet,
+    userConnection: Connection = this.owner.provider.connection
+  ) {
+    await createAtaOnChain(
+      userWallet, // user wallet
+      this, // assoc token acct
+      this.mint, // mint pub key
+      userWallet.publicKey, // auth, can be different than payer
+      userConnection // connection
+    );
+    // mint tokens to this ata
+    if (amtToMint > 0) {
+      await this.mintToAta(addZeros(amtToMint, this.decimals));
+    }
+    return this;
   }
 }

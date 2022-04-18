@@ -17,14 +17,13 @@ export class UserState extends PDA {
   user: User;
 
   constructor(user: User, program: Program<any> = programStablePool) {
-    super();
-
     // derive account from seeds
     const [userStatePubKey, userStateBump] = getPda(
       [Buffer.from(USER_STATE_SEED), user.wallet.publicKey.toBuffer()],
       program.programId
     );
-    this.pubKey = userStatePubKey;
+    super(userStatePubKey);
+
     this.bump = userStateBump;
     this.user = user;
     this.type = "userState";

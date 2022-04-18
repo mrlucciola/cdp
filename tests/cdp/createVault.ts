@@ -18,7 +18,9 @@ import { assert, expect } from "chai";
 // local
 import { StablePool } from "../../target/types/stable_pool";
 import { handleTxn } from "../utils/fxns";
-import { MintPubKey, Vault, Pool } from "../utils/interfaces";
+import { MintPubKey } from "../utils/interfaces";
+import { Pool } from "../interfaces/pool";
+import { Vault } from "../interfaces/vault";
 
 // init
 const programStablePool = workspace.StablePool as Program<StablePool>;
@@ -35,7 +37,7 @@ const createVaultCall = async (
       // vault_bump
       vault.bump,
       // ata_vault_bump -> ata_collat_vault_bump
-      vault.ata.bump,
+      vault.ataCollat.bump,
       {
         accounts: {
           // account that owns the vault
@@ -45,9 +47,9 @@ const createVaultCall = async (
           // the user's vault is the authority for the collateral tokens within it
           vault: vault.pubKey,
           // this is the vault's ATA for the collateral's mint, previously named tokenColl
-          ataCollatVault: vault.ata.pubKey,
+          ataCollatVault: vault.ataCollat.pubKey,
           // the mint address for the specific collateral provided to this vault
-          mint: mintPubKey,
+          mintCollat: mintPubKey,
           tokenProgram: TOKEN_PROGRAM_ID,
           associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
           rent: SYSVAR_RENT_PUBKEY,

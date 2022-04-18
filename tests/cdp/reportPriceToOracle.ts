@@ -16,8 +16,8 @@ import { handleTxn } from "../utils/fxns";
 import { Accounts } from "../config/accounts";
 import { StablePool } from "../../target/types/stable_pool";
 // interfaces
-import { Oracle } from "../utils/interfaces";
 import { User } from "../interfaces/user";
+import { Oracle } from "../interfaces/oracle";
 
 // init
 const programStablePool = workspace.StablePool as Program<StablePool>;

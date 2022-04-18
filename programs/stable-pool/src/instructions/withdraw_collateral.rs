@@ -10,7 +10,7 @@ use crate::{
     errors::StablePoolError,
     instructions::calc_token_value,
     states::{GlobalState, Oracle, Pool, UserState, Vault},
-    utils::{calc_lp_price, validate_market_accounts},
+    utils::{calc_stable_lp_price, validate_market_accounts},
 };
 
 pub fn handle(ctx: Context<WithdrawCollateral>, amt_collat_to_withdraw: u64) -> Result<()> {
@@ -48,7 +48,7 @@ pub fn handle(ctx: Context<WithdrawCollateral>, amt_collat_to_withdraw: u64) -> 
 
     // calculate the price of the collateral in usd then add that to the usd
     // calculate the entire pool amount plus the amount to be added, and set that as the new value
-    let collat_price = calc_lp_price(
+    let collat_price = calc_stable_lp_price(
         accts.mint_collat.supply.clone(),
         amount_ata_a,
         accts.oracle_a.price,
@@ -147,6 +147,14 @@ pub struct WithdrawCollateral<'info> {
     #[account[mut]]
     pub global_state: Box<Account<'info, GlobalState>>,
 
+    #[account(
+        mut,
+        seeds=[POOL_SEED.as_ref(), pool.mint_collat.as_ref()],
+        bump=pool.bump,
+        constraint = pool.mint_collat.as_ref() == vault.mint_collat.as_ref(),
+    )]
+    pub pool: Box<Account<'info, Pool>>,
+
     // TODO 022: add in client
     // TODO 023: add in frontend
     #[account[mut, seeds = [USER_STATE_SEED.as_ref(), authority.key().as_ref()], bump = user_state.bump]]
@@ -154,35 +162,14 @@ pub struct WithdrawCollateral<'info> {
 
     #[account(
         mut,
-        seeds=[POOL_SEED.as_ref(), pool.mint_collat.as_ref()],
-        bump=pool.bump,
-        constraint = pool.mint_collat.as_ref() == vault.mint.as_ref(),
-    )]
-    pub pool: Box<Account<'info, Pool>>,
-
-    #[account(
-        mut,
-        seeds=[
+        seeds = [
             VAULT_SEED.as_ref(),
             mint_collat.key().as_ref(),
             authority.key().as_ref(),
         ],
-        bump=vault.bump
+        bump = vault.bump
     )]
     pub vault: Box<Account<'info, Vault>>,
-
-    #[account(
-        mut,
-        associated_token::mint = mint_collat.as_ref(),
-        associated_token::authority = vault.as_ref(),
-    )]
-    pub ata_collat_vault: Box<Account<'info, TokenAccount>>,
-
-    // #[account(
-    //     associated_token::mint = mint_collat.as_ref(),
-    //     associated_token::authority = vault.as_ref(),
-    // )]
-    pub ata_collat_miner: Box<Account<'info, TokenAccount>>,
 
     // TODO 019: rename in client
     // TODO 020: rename in frontend
@@ -193,22 +180,18 @@ pub struct WithdrawCollateral<'info> {
     )]
     pub ata_collat_user: Box<Account<'info, TokenAccount>>,
 
-    // TODO 022: add in client
-    // TODO 023: add in frontend
-    // TODO 021: add check for correct oracle
     #[account(
-        seeds = [ORACLE_SEED.as_ref(), mint_mkt_a.key().as_ref()],
-        bump = oracle_a.bump,
+        mut,
+        associated_token::mint = mint_collat.as_ref(),
+        associated_token::authority = vault.as_ref(),
     )]
-    pub oracle_a: Box<Account<'info, Oracle>>,
-    // TODO 019: rename in client
-    // TODO 020: rename in frontend
-    // TODO 021: add check for correct oracle
-    #[account(
-        seeds = [ORACLE_SEED.as_ref(), mint_mkt_b.key().as_ref()],
-        bump = oracle_b.bump,
-    )]
-    pub oracle_b: Box<Account<'info, Oracle>>,
+    pub ata_collat_vault: Box<Account<'info, TokenAccount>>,
+
+    // TODO: add and get miner a.t.a. info from vault
+    // #[account(
+    //     address = vault.ata_collat_miner
+    // )]
+    pub ata_collat_miner: Box<Account<'info, TokenAccount>>,
 
     // TODO 019: rename in client
     // TODO 020: rename in frontend
@@ -224,18 +207,40 @@ pub struct WithdrawCollateral<'info> {
 
     // TODO 022: add in client
     // TODO 023: add in frontend
-    #[account(constraint = mint_mkt_a.key().as_ref() == oracle_a.mint.as_ref())]
+    // TODO 021: add check for correct oracle
+
+    // TODO 022: add in client
+    // TODO 023: add in frontend
+    // TODO 025: remove, add in the params
+    // #[account(constraint = oracle_a.mint.as_ref() == mint_mkt_a.key().as_ref())]
+    #[account(address = pool.mint_token_a)]
     pub mint_mkt_a: Box<Account<'info, Mint>>,
 
     // TODO 022: add in client
     // TODO 023: add in frontend
-    #[account(constraint = mint_mkt_b.key().as_ref() == oracle_b.mint.as_ref())]
+    // TODO 025: remove, add in the params
+    #[account(address = pool.mint_token_b)]
     pub mint_mkt_b: Box<Account<'info, Mint>>,
 
     // TODO 019: rename in client
     // TODO 020: rename in frontend
-    #[account(constraint = mint_collat.key().as_ref() == pool.mint_collat.as_ref())]
+    // #[account(constraint = mint_collat.key().as_ref() == pool.mint_collat.as_ref())]
+    #[account(address = pool.mint_collat)]
     pub mint_collat: Box<Account<'info, Mint>>,
+
+    #[account(
+        seeds = [ORACLE_SEED.as_ref(), mint_mkt_a.key().as_ref()],
+        bump = oracle_a.bump,
+    )]
+    pub oracle_a: Box<Account<'info, Oracle>>,
+    // TODO 019: rename in client
+    // TODO 020: rename in frontend
+    // TODO 021: add check for correct oracle
+    #[account(
+        seeds = [ORACLE_SEED.as_ref(), mint_mkt_b.key().as_ref()],
+        bump = oracle_b.bump,
+    )]
+    pub oracle_b: Box<Account<'info, Oracle>>,
 
     // system accounts
     #[account(address = token::ID)]

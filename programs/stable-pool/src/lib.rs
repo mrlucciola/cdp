@@ -167,8 +167,8 @@ pub mod stable_pool {
      * aliases: create_oracle, CreateOracle, createOracle
      * previous aliases: create_price_feed, CreatePriceFeed, createPriceFeed
      */
-    pub fn create_oracle(ctx: Context<CreateOracle>, price: u64) -> Result<()> {
-        create_oracle::handle(ctx, price)
+    pub fn create_oracle(ctx: Context<CreateOracle>) -> Result<()> {
+        create_oracle::handle(ctx)
     }
 
     /**

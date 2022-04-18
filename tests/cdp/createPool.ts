@@ -21,8 +21,8 @@ import {
 } from "../utils/constants";
 import { handleTxn } from "../utils/fxns";
 import { Accounts } from "../config/accounts";
-import { Pool } from "../utils/interfaces";
 import { User } from "../interfaces/user";
+import { Pool } from "../interfaces/pool";
 
 // program
 const programStablePool = workspace.StablePool as Program<StablePool>;
@@ -239,8 +239,4 @@ export const createPoolPASS = async (
     );
     console.log("token pool created- confirmation: ", confirmation);
   } else console.log("token pool already created:");
-
-  const poolAcct: IdlAccounts<StablePool>["pool"] =
-    await accounts.lpSaberUsdcUsdt.pool.getAccount();
-  console.log("pool account:", poolAcct);
 };

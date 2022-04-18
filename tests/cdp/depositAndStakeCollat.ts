@@ -4,7 +4,7 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { Connection, PublicKey, Transaction } from "@solana/web3.js";
+import { Connection, Transaction } from "@solana/web3.js";
 // saber
 import { QUARRY_ADDRESSES } from "@quarryprotocol/quarry-sdk";
 // utils
@@ -13,15 +13,13 @@ import { StablePool } from "../../target/types/stable_pool";
 import { Miner } from "../interfaces/miner";
 import { QuarryClass } from "../interfaces/quarry";
 import { User } from "../interfaces/user";
-import {
-  GlobalStateAcct,
-  MintPubKey,
-  Pool,
-  UserToken,
-  Vault,
-} from "../utils/interfaces";
+import { MintPubKey } from "../utils/interfaces";
 import { handleTxn } from "../utils/fxns";
 import { Accounts } from "../config/accounts";
+import { Pool } from "../interfaces/pool";
+import { Vault } from "../interfaces/vault";
+import { TokenCollatUser } from "../interfaces/TokenCollatUser";
+import { GlobalState } from "../interfaces/GlobalState";
 
 // init
 const programStablePool = workspace.StablePool as Program<StablePool>;
@@ -30,15 +28,14 @@ export const depositAndStakeCollatCall = async (
   depositAmount: number,
   userWallet: Wallet,
   userConnection: Connection,
-  globalState: GlobalStateAcct,
+  globalState: GlobalState,
   pool: Pool,
   vault: Vault,
   user: User,
-  userToken: UserToken,
+  collatTokenUser: TokenCollatUser,
   mintPubKey: MintPubKey,
   quarry: QuarryClass,
-  miner: Miner,
-  rewarder: PublicKey
+  miner: Miner
 ) => {
   const txn = new Transaction().add(
     programStablePool.instruction.depositCollateral(new BN(depositAmount), {
@@ -46,10 +43,11 @@ export const depositAndStakeCollatCall = async (
         authority: userWallet.publicKey,
         globalState: globalState.pubKey,
         pool: pool.pubKey,
-        vault: vault.pubKey,
         userState: user.userState.pubKey,
-        ataCollatVault: vault.ata.pubKey,
-        ataCollatUser: userToken.ata.pubKey,
+        vault: vault.pubKey,
+        ataCollatVault: vault.ataCollat.pubKey,
+        ataCollatMiner: vault.miner.ata.pubKey,
+        ataCollatUser: collatTokenUser.ata.pubKey,
         mintCollat: mintPubKey,
         oracleA: pool.oracles.usdc.pubKey,
         oracleB: pool.oracles.usdt.pubKey,
@@ -67,16 +65,14 @@ export const depositAndStakeCollatCall = async (
         globalState: globalState.pubKey,
         pool: pool.pubKey,
         vault: vault.pubKey,
-        ataCollatVault: vault.ata.pubKey,
-        // TODO 028: Delete
-        ataUser: userToken.ata.pubKey,
-        mint: mintPubKey,
+        ataCollatVault: vault.ataCollat.pubKey,
+        ataCollatMiner: miner.ata.pubKey,
+        mintCollat: mintPubKey,
         tokenProgram: TOKEN_PROGRAM_ID,
         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
         quarry,
         miner: miner.pubkey,
-        minerVault: miner.ata.pubKey,
-        rewarder,
+        rewarder: quarry.rewarder,
         quarryProgram: QUARRY_ADDRESSES.Mine,
       },
     })
@@ -101,8 +97,7 @@ export const depositAndStakeCollatPASS = async (
     user,
     user.tokens.lpSaber,
     accounts.lpSaberUsdcUsdt.mint,
-    accounts.quarry,
-    user.miner,
-    accounts.quarry.rewarder
+    accounts.lpSaberUsdcUsdt.pool.quarry,
+    user.tokens.lpSaber.vault.miner
   );
 };

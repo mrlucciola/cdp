@@ -2,12 +2,12 @@
 import { Program, Provider, Wallet, workspace } from "@project-serum/anchor";
 import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 // local
-import { GeneralToken, MintPubKey, UserToken } from "../utils/interfaces";
-import { airdropSol, createAtaOnChain, mintToAta } from "../utils/fxns";
-import { TestTokens } from "../utils/types";
+import { airdropSol } from "../utils/fxns";
 import { StablePool } from "../../target/types/stable_pool";
 import { UserState } from "./userState";
-import { Miner } from "./miner";
+import { TokenCollatUser } from "./TokenCollatUser";
+import { TokenReward, TokenRewardUser } from "./TokenReward";
+import { TokenPDAUser } from "./TokenPDA";
 
 // init
 const programStablePool = workspace.StablePool as Program<StablePool>;
@@ -16,14 +16,14 @@ export class User {
   wallet: Wallet;
   provider: Provider;
   tokens?: {
-    usdx?: GeneralToken;
-    lpSaber?: UserToken; // this doesnt get created until the pass case for vault
-    sbr?: UserToken;
+    usdx?: TokenPDAUser;
+    lpSaber?: TokenCollatUser; // this doesnt get created until the pass case for vault
+    sbr?: TokenRewardUser;
   };
   userState: UserState;
-  miner?: Miner;
+  name: string;
 
-  constructor(keypair: Keypair) {
+  constructor(keypair: Keypair, nameUser: string) {
     this.wallet = new Wallet(keypair);
     this.provider = new Provider(
       programStablePool.provider.connection,
@@ -37,47 +37,22 @@ export class User {
     this.tokens = {};
 
     this.userState = new UserState(this);
+    this.name = nameUser;
   }
 
   /**
    * Initialize acct, airdrop
    */
-  public async init() {
+  public async initUser() {
     await airdropSol(
       this.provider,
       this.wallet.publicKey,
       99999 * LAMPORTS_PER_SOL
     );
-    // await this.addToken("base", mintPubKey, "lpSaber", 200_000_000);
   }
 
-  public async addToken(
-    mintPubKey: MintPubKey,
-    tokenStr: TestTokens,
-    amount: number,
-    mintAuth?: User
-  ) {
-    if (amount === 0) throw new Error("Please enter more than 0");
-    this.tokens[tokenStr] = new UserToken(this.wallet, mintPubKey);
-
-    // create ata
-    await createAtaOnChain(
-      this.wallet,
-      this.tokens[tokenStr].ata,
-      mintPubKey,
-      this.wallet.publicKey,
-      this.provider.connection
-    );
-
-    // mint
-    if (mintAuth) {
-      await mintToAta(
-        tokenStr,
-        mintPubKey,
-        mintAuth,
-        this.tokens[tokenStr],
-        amount
-      );
-    }
+  public async addTokenReward(tokenReward: TokenReward) {
+    this.tokens[tokenReward.nameToken] = tokenReward as TokenReward;
+    await (this.tokens[tokenReward.nameToken] as TokenReward).initTokenReward();
   }
 }

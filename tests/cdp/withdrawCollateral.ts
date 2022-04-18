@@ -14,13 +14,13 @@ import { DECIMALS_USDCUSDT } from "../utils/constants";
 import { handleTxn } from "../utils/fxns";
 // interfaces
 import { User } from "../interfaces/user";
-import {
-  GlobalStateAcct,
-  MintPubKey,
-  Vault,
-  UserToken,
-  Pool,
-} from "../utils/interfaces";
+import { MintPubKey } from "../utils/interfaces";
+import { Pool } from "../interfaces/pool";
+import { Vault } from "../interfaces/vault";
+import { GlobalState } from "../interfaces/GlobalState";
+import { TokenCollatUser } from "../interfaces/TokenCollatUser";
+import { UserState } from "../interfaces/userState";
+import { TokenMarket } from "../interfaces/TokenMarket";
 
 // init
 const programStablePool = workspace.StablePool as Program<StablePool>;
@@ -33,22 +33,39 @@ export const withdrawCollateralCall = async (
   withdrawAmount: number,
   userConnection: Connection,
   userWallet: Wallet,
-  userToken: UserToken,
+  tokenCollatUser: TokenCollatUser,
   vault: Vault,
-  mintPubKey: MintPubKey,
+  mintCollatPubKey: MintPubKey,
   pool: Pool,
-  globalState: GlobalStateAcct
+  globalState: GlobalState,
+  userState: UserState,
+  tokenMarketA: TokenMarket,
+  tokenMarketB: TokenMarket
 ) => {
   const txn = new Transaction().add(
     programStablePool.instruction.withdrawCollateral(new BN(withdrawAmount), {
       accounts: {
         authority: userWallet.publicKey,
+        // cdp-accounts
         globalState: globalState.pubKey,
         pool: pool.pubKey,
+        // user-authorized accounts
+        userState: userState.pubKey,
         vault: vault.pubKey,
-        ataCollatVault: vault.ata.pubKey,
-        ataUser: userToken.ata.pubKey,
-        mint: mintPubKey,
+        // A.T.A.s
+        ataCollatUser: tokenCollatUser.ata.pubKey,
+        ataCollatVault: vault.ataCollat.pubKey,
+        ataCollatMiner: vault.miner.ata.pubKey,
+        ataMarketA: tokenMarketA.ata.pubKey,
+        ataMarketB: tokenMarketB.ata.pubKey,
+        // mints
+        mintMktA: tokenMarketA.mint,
+        mintMktB: tokenMarketB.mint,
+        mintCollat: mintCollatPubKey,
+        // others
+        oracleA: tokenMarketA.oracle.pubKey,
+        oracleB: tokenMarketB.oracle.pubKey,
+        // system accounts
         tokenProgram: TOKEN_PROGRAM_ID,
         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
       },
@@ -67,7 +84,7 @@ export const withdrawCollateralFAIL_NotEnoughTokensInVault = async (
   const userlpSaber = user.tokens.lpSaber;
   // check balances before
   const vaultBalPre = Number(
-    (await userlpSaber.vault.ata.getBalance()).value.amount
+    (await userlpSaber.vault.ataCollat.getBalance()).value.amount
   );
   // const userBalPre = Number((await userlpSaber.ata.getBalance()).value.amount);
 
@@ -79,27 +96,33 @@ export const withdrawCollateralFAIL_NotEnoughTokensInVault = async (
 
   await expect(
     withdrawCollateralCall(
-      // withdraw amount
+      // withdrawAmount: number,
       withdrawAmountPrecise,
-      // user connection
+      // userConnection: Connection,
       user.provider.connection,
-      // user wallet
+      // userWallet: Wallet,
       user.wallet,
-      // user token
-      userlpSaber,
-      // vault
-      userlpSaber.vault,
-      // mint pubKey
+      // tokenCollatUser: TokenCollatUser,
+      user.tokens.lpSaber,
+      // vault: Vault,
+      user.tokens.lpSaber.vault,
+      // mintCollatPubKey: MintPubKey,
       accounts.lpSaberUsdcUsdt.mint,
-      // pool
+      // pool: Pool,
       accounts.lpSaberUsdcUsdt.pool,
-      // globalState
-      accounts.global
+      // globalState: GlobalState,
+      accounts.global,
+      // userState: UserState,
+      user.userState,
+      // tokenMarketA: TokenMarket,
+      accounts.lpSaberUsdcUsdt.mktTokenArr[0].tokenMarket,
+      // tokenMarketB: TokenMarket
+      accounts.lpSaberUsdcUsdt.mktTokenArr[1].tokenMarket
     )
   ).is.rejected;
 
   const vaultBalPost = Number(
-    (await userlpSaber.vault.ata.getBalance()).value.amount
+    (await userlpSaber.vault.ataCollat.getBalance()).value.amount
   );
   const diff = vaultBalPost - vaultBalPre;
 
@@ -120,11 +143,11 @@ export const withdrawCollateralFAIL_AttemptWithdrawFromOtherUser = async (
   const otherUserlpSaber = otherUser.tokens.lpSaber;
   // check balances before
   const userVaultBalPre = Number(
-    (await userlpSaber.vault.ata.getBalance()).value.amount
+    (await userlpSaber.vault.ataCollat.getBalance()).value.amount
   );
   const userBalPre = Number((await userlpSaber.ata.getBalance()).value.amount);
   const otherUserVaultBalPre = Number(
-    (await otherUserlpSaber.vault.ata.getBalance()).value.amount
+    (await otherUserlpSaber.vault.ataCollat.getBalance()).value.amount
   );
   const otherUserBalPre = Number(
     (await otherUserlpSaber.ata.getBalance()).value.amount
@@ -138,23 +161,28 @@ export const withdrawCollateralFAIL_AttemptWithdrawFromOtherUser = async (
 
   await expect(
     withdrawCollateralCall(
-      // withdraw amount
+      // withdrawAmount: number,
       withdrawAmountPrecise,
-      // other user connection
+      // userConnection: Connection,
       otherUser.provider.connection,
-      // other user wallet
+      // userWallet: Wallet,
       otherUser.wallet,
-      // other user token
-      otherUserlpSaber,
-      // user vault
-      // note: not other user vault since other user is trying to withdraw from user's vault
-      userlpSaber.vault,
-      // mint pubKey
+      // tokenCollatUser: TokenCollatUser,
+      otherUser.tokens.lpSaber,
+      // vault: Vault,
+      user.tokens.lpSaber.vault,
+      // mintCollatPubKey: MintPubKey,
       accounts.lpSaberUsdcUsdt.mint,
-      // pool
+      // pool: Pool,
       accounts.lpSaberUsdcUsdt.pool,
-      // globalState
-      accounts.global
+      // globalState: GlobalState,
+      accounts.global,
+      // userState: UserState, - do we use this or other-user
+      user.userState,
+      // tokenMarketA: TokenMarket,
+      accounts.lpSaberUsdcUsdt.mktTokenArr[0].tokenMarket,
+      // tokenMarketB: TokenMarket
+      accounts.lpSaberUsdcUsdt.mktTokenArr[1].tokenMarket
     )
   ).to.be.rejectedWith(
     "2006", // ConstraintSeeds: a seeds constraint was violated
@@ -162,11 +190,11 @@ export const withdrawCollateralFAIL_AttemptWithdrawFromOtherUser = async (
   );
 
   const userVaultBalPost = Number(
-    (await userlpSaber.vault.ata.getBalance()).value.amount
+    (await userlpSaber.vault.ataCollat.getBalance()).value.amount
   );
   const userBalPost = Number((await userlpSaber.ata.getBalance()).value.amount);
   const otherUserVaultBalPost = Number(
-    (await otherUserlpSaber.vault.ata.getBalance()).value.amount
+    (await otherUserlpSaber.vault.ataCollat.getBalance()).value.amount
   );
   const otherUserBalPost = Number(
     (await otherUserlpSaber.ata.getBalance()).value.amount
@@ -205,7 +233,7 @@ export const withdrawCollateralPASS = async (
   const userlpSaber = user.tokens.lpSaber;
   // check balances before
   const vaultBalPre = Number(
-    (await userlpSaber.vault.ata.getBalance()).value.amount
+    (await userlpSaber.vault.ataCollat.getBalance()).value.amount
   );
   const userBalPre = Number((await userlpSaber.ata.getBalance()).value.amount);
 
@@ -219,27 +247,33 @@ export const withdrawCollateralPASS = async (
   );
 
   await withdrawCollateralCall(
-    // withdraw amount
+    // withdrawAmount: number,
     withdrawAmountPrecise,
-    // user connection
+    // userConnection: Connection,
     user.provider.connection,
-    // user wallet
+    // userWallet: Wallet,
     user.wallet,
-    // user token
+    // tokenCollatUser: TokenCollatUser,
     userlpSaber,
-    // vault
+    // vault: Vault,
     userlpSaber.vault,
-    // mint pubKey
+    // mintCollatPubKey: MintPubKey,
     accounts.lpSaberUsdcUsdt.mint,
-    // pool
+    // pool: Pool,
     accounts.lpSaberUsdcUsdt.pool,
-    // globalState
-    accounts.global
+    // globalState: GlobalState,
+    accounts.global,
+    // userState: UserState, - do we use this or other-user
+    user.userState,
+    // tokenMarketA: TokenMarket,
+    accounts.usdc,
+    // tokenMarketB: TokenMarket
+    accounts.usdt
   );
 
   // check balances after
   const vaultBalPost = Number(
-    (await userlpSaber.vault.ata.getBalance()).value.amount
+    (await userlpSaber.vault.ataCollat.getBalance()).value.amount
   );
   const userBalPost = Number((await userlpSaber.ata.getBalance()).value.amount);
   const userDiff = userBalPost - userBalPre;

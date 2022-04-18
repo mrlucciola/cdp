@@ -11,7 +11,9 @@ import { assert } from "chai";
 // local
 import { StablePool } from "../../target/types/stable_pool";
 import { handleTxn } from "../utils/fxns";
-import { MintPubKey, Vault, Pool } from "../utils/interfaces";
+import { MintPubKey } from "../utils/interfaces";
+import { Pool } from "../interfaces/pool";
+import { Vault } from "../interfaces/vault";
 // program
 const programStablePool = workspace.StablePool as Program<StablePool>;
 
@@ -27,7 +29,6 @@ const createRewardVaultCall = async (
   pool: Pool,
   rewardMint: MintPubKey
 ) => {
-  console.log([rewardMint] + "");
   const txn = new web3.Transaction().add(
     programStablePool.instruction.createRewardVault({
       accounts: {
@@ -35,7 +36,7 @@ const createRewardVaultCall = async (
         pool: pool.pubKey,
         vault: vault.pubKey,
 
-        ataRewardVault: vault.ataRewards[0].pubKey,
+        ataRewardVault: vault.ataReward.pubKey,
         mintReward: rewardMint,
 
         // system accts
@@ -72,7 +73,7 @@ export const createVaultRewardVault = async (
   );
   console.log("created reward vault: ", confirmation);
 
-  const vaultReward = await vault.ataRewards[0].getBalance();
+  const vaultReward = await vault.ataReward.getBalance();
   assert(
     vaultReward.value.amount == "0",
     "vault ata of reward balance mismatch"

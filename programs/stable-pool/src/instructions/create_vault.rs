@@ -13,7 +13,7 @@ pub fn handle(
     vault_bump: u8,
     ata_collat_vault_bump: u8, // TODO: remove
 ) -> Result<()> {
-    ctx.accounts.vault.mint = ctx.accounts.mint.key();
+    ctx.accounts.vault.mint_collat = ctx.accounts.mint_collat.key();
     ctx.accounts.vault.deposited_collat_usd = 0;
     ctx.accounts.vault.debt = 0;
     ctx.accounts.vault.bump = vault_bump;
@@ -39,7 +39,7 @@ pub struct CreateVault<'info> {
         init,
         seeds = [
             VAULT_SEED.as_ref(),
-            mint.key().as_ref(),
+            mint_collat.key().as_ref(),
             authority.key().as_ref(),
         ],
         bump,
@@ -49,15 +49,15 @@ pub struct CreateVault<'info> {
 
     #[account(
         init,
-        associated_token::mint = mint.as_ref(),
+        associated_token::mint = mint_collat.as_ref(),
         associated_token::authority = vault.as_ref(),
         payer = authority,
     )]
     pub ata_collat_vault: Box<Account<'info, TokenAccount>>,
 
     // mint for the collateral that is being deposited into the vault
-    #[account(constraint = mint.key().as_ref() == pool.mint_collat.as_ref())]
-    pub mint: Box<Account<'info, Mint>>,
+    #[account(address = pool.mint_collat)]
+    pub mint_collat: Box<Account<'info, Mint>>,
 
     // system accounts
     #[account(address = token::ID)]

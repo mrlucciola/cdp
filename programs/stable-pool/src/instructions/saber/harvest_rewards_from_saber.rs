@@ -31,7 +31,7 @@ pub fn handle(ctx: Context<HarvestRewardsFromSaber>) -> Result<()> {
     ////////////// harvest from saber first///////////////
     let authority_seeds = &[
         VAULT_SEED.as_ref(),
-        accts.vault.mint.as_ref(),
+        accts.vault.mint_collat.as_ref(),
         auth.as_ref(),
         &[accts.vault.bump],
     ];
@@ -95,7 +95,7 @@ pub fn handle(ctx: Context<HarvestRewardsFromSaber>) -> Result<()> {
         accts.token_program.to_account_info(),
         Transfer {
             from: accts.ata_reward_vault.to_account_info(),
-            to: accts.ata_cdp_treasury.to_account_info(),
+            to: accts.ata_reward_cdp_treasury.to_account_info(),
             authority: accts.vault.to_account_info(),
         },
     );
@@ -116,7 +116,11 @@ pub fn handle(ctx: Context<HarvestRewardsFromSaber>) -> Result<()> {
 pub struct HarvestRewardsFromSaber<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
+    /// CHECK: address is checked
+    #[account(mut, address = global_state.treasury)]
+    pub treasury: AccountInfo<'info>,
 
+    // cdp-state accounts
     #[account(
         mut,
         seeds = [GLOBAL_STATE_SEED.as_ref()],
@@ -128,63 +132,77 @@ pub struct HarvestRewardsFromSaber<'info> {
         mut,
         seeds = [POOL_SEED.as_ref(), pool.mint_collat.as_ref()],
         bump = pool.bump,
-        // constraint = pool.mint_collat.as_ref() == vault.mint.as_ref(),
+        // constraint = pool.mint_collat.as_ref() == vault.mint_collat.as_ref(),
     )]
     pub pool: Box<Account<'info, Pool>>,
 
+    // user-authored accounts
+    /// The user's vault
     #[account(
         mut,
-        seeds=[
+        seeds = [
             VAULT_SEED.as_ref(),
-            vault.mint.as_ref(),
+            vault.mint_collat.as_ref(),
             authority.key().as_ref(),
         ],
         bump = vault.bump,
-        // constraint = pool.mint_collat.as_ref() == vault.mint.as_ref(),
+        constraint = vault.owner.as_ref() == authority.key.as_ref(),
     )]
     pub vault: Box<Account<'info, Vault>>,
 
-    #[account(mut, constraint = ata_reward_vault.key() == vault.mint_reward)]
-    pub ata_reward_vault: Box<Account<'info, TokenAccount>>,
-
-    #[account(
-        mut,
-        associated_token::mint = mint_reward,
-        associated_token::authority = authority,
-    )]
-    pub ata_reward_user: Box<Account<'info, TokenAccount>>,
-
-    #[account(
-        mut,
-        associated_token::mint = mint_reward,
-        associated_token::authority = treasury,
-    )]
-    pub ata_cdp_treasury: Box<Account<'info, TokenAccount>>,
-
-    #[account(mut, address = global_state.treasury)]
-    /// CHECK: address is checked
-    pub treasury: AccountInfo<'info>,
-
-    // the collateral mint account
-    #[account(constraint = mint_collat.key() == pool.mint_collat)]
-    pub mint_collat: Box<Account<'info, Mint>>,
-
-    /// saber farm to stake to
-    #[account(mut)]
-    pub quarry: Box<Account<'info, Quarry>>,
-
-    // the miner (auth is user)
+    /// The miner (auth is user)
     #[account(mut)]
     pub miner: Box<Account<'info, Miner>>,
 
+    // Quarry-specific accounts
+    // TODO: add quarry pub key to the pool acct
+    /// Saber farm to stake to
+    #[account(mut)]
+    pub quarry: Box<Account<'info, Quarry>>,
+    /// Saber farm reward account
+    pub rewarder: Box<Account<'info, Rewarder>>,
+    ///CHECK: It will be validated by the QuarryMine Contract
+    #[account(mut)]
+    pub mint_wrapper: AccountInfo<'info>,
+    ///CHECK: It will be validated by the QuarryMine Contract
+    pub mint_wrapper_program: AccountInfo<'info>,
+    ///CHECK: It will be validated by the QuarryMine Contract
+    #[account(mut)]
+    pub minter: AccountInfo<'info>,
+    /// Quarry: Token account in which the rewards token fees are collected.
+    #[account(mut)]
+    pub claim_fee_token_account: Account<'info, TokenAccount>,
+
+    // A.T.A.s
     /**
      * the miner (miner-vault's auth is miner, miner's auth is user), this is implemented as an ATA
-     * alias: miner_vault
      */
-    #[account(mut)]
+    #[account(
+        mut,
+        associated_token::mint = mint_reward.as_ref(),
+        associated_token::authority = treasury.as_ref(),
+    )]
+    pub ata_reward_cdp_treasury: Box<Account<'info, TokenAccount>>,
+    #[account(
+        mut,
+        associated_token::mint = mint_reward.as_ref(),
+        associated_token::authority = authority.as_ref(),
+    )]
+    pub ata_reward_user: Box<Account<'info, TokenAccount>>,
+    #[account(
+        mut,
+        associated_token::mint = mint_reward.as_ref(),
+        associated_token::authority = vault.as_ref(),
+    )]
+    pub ata_reward_vault: Box<Account<'info, TokenAccount>>,
+    // alias: miner_vault
+    #[account(
+        mut,
+        associated_token::mint = mint_collat,
+        associated_token::authority = miner,
+    )]
     pub ata_collat_miner: Box<Account<'info, TokenAccount>>,
-
-    /// associated collateral token account for vault
+    /// A.T.A. for collateral token for vault
     #[account(
         mut,
         associated_token::mint = mint_collat.as_ref(),
@@ -192,29 +210,18 @@ pub struct HarvestRewardsFromSaber<'info> {
     )]
     pub ata_collat_vault: Box<Account<'info, TokenAccount>>,
 
-    // saber farm common
-    pub rewarder: Box<Account<'info, Rewarder>>,
-
-    ///CHECK: It will be validated by the QuarryMine Contract
-    #[account(mut)]
-    pub mint_wrapper: AccountInfo<'info>,
-
-    ///CHECK: It will be validated by the QuarryMine Contract
-    pub mint_wrapper_program: AccountInfo<'info>,
-
-    ///CHECK: It will be validated by the QuarryMine Contract
-    #[account(mut)]
-    pub minter: AccountInfo<'info>,
-
+    // Mint accounts
+    /// The mint account for reward token
     #[account(mut, address = pool.mint_reward)]
     pub mint_reward: Box<Account<'info, Mint>>,
+    /// The mint account for collateral token
+    #[account(address = pool.mint_collat)]
+    pub mint_collat: Box<Account<'info, Mint>>,
 
-    /// Quarry: Token account in which the rewards token fees are collected.
-    #[account(mut)]
-    pub claim_fee_token_account: Account<'info, TokenAccount>,
     ///CHECK: It will be validated by the QuarryMine Contract
     pub quarry_program: AccountInfo<'info>,
 
+    // system accounts
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,

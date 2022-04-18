@@ -4,8 +4,9 @@ import keyArrBase from "./base.json";
 import keyArrTest from "./test.json";
 import keyArrOracleReporter from "./oracleReporter.json";
 import keyArrTreasury from "./treasury.json";
+import keyArrExternal from "./external.json";
 
-class Key {
+export class Key {
   name: string;
   keypairArr: Uint8Array;
   keypair: Keypair;
@@ -49,3 +50,5 @@ export const oracleReporter = new Key(
   keyArrOracleReporter,
   "sign bacon room symptom regular agree clean fever negative forward wine ball"
 );
+
+export const external = new Key("external", keyArrExternal);

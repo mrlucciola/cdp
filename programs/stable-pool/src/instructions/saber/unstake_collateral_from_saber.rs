@@ -61,7 +61,7 @@ pub fn handle(ctx: Context<UnstakeCollateralFromSaber>, amount_to_unstake: u64) 
         StablePoolError::InvalidSaberPlatform
     );
 
-    let mint_key = ctx.accounts.vault.mint;
+    let mint_key = ctx.accounts.vault.mint_collat;
     let owner_key = ctx.accounts.authority.key();
 
     let authority_seeds = &[
@@ -101,7 +101,7 @@ pub fn handle(ctx: Context<UnstakeCollateralFromSaber>, amount_to_unstake: u64) 
     //         ctx.accounts.token_program.to_account_info(),
     //         Transfer {
     //             from: ctx.accounts.ata_collat_vault.clone().to_account_info(),
-    //             to: ctx.accounts.ata_user.clone().to_account_info(),
+    //             to: ctx.accounts.ata_collat_user.clone().to_account_info(),
     //             authority: ctx.accounts.vault.clone().to_account_info(),
     //         },
     //         &[&authority_seeds[..]],
@@ -130,9 +130,9 @@ pub struct UnstakeCollateralFromSaber<'info> {
     // The CDP-owned pool account, represents a single collateral type
     #[account(
         mut,
-        seeds=[POOL_SEED.as_ref(), pool.mint_collat.as_ref()],
-        bump=pool.bump,
-        constraint = pool.mint_collat.as_ref() == vault.mint.as_ref(),
+        seeds = [POOL_SEED.as_ref(), pool.mint_collat.as_ref()],
+        bump = pool.bump,
+        constraint = pool.mint_collat.as_ref() == vault.mint_collat.as_ref(),
     )]
     pub pool: Box<Account<'info, Pool>>,
 
@@ -141,11 +141,11 @@ pub struct UnstakeCollateralFromSaber<'info> {
         mut,
         seeds=[
             VAULT_SEED.as_ref(),
-            vault.mint.as_ref(),
+            vault.mint_collat.as_ref(),
             authority.key().as_ref(),
         ],
         bump=vault.bump,
-        constraint = pool.mint_collat.as_ref() == vault.mint.as_ref(),
+        constraint = pool.mint_collat.as_ref() == vault.mint_collat.as_ref(),
     )]
     pub vault: Box<Account<'info, Vault>>,
 
@@ -157,12 +157,13 @@ pub struct UnstakeCollateralFromSaber<'info> {
     )]
     pub ata_collat_vault: Box<Account<'info, TokenAccount>>,
 
+    /// This is the collateral's A.T.A. for the user
     #[account(
         mut,
         associated_token::mint = mint.as_ref(),
         associated_token::authority = authority.as_ref(),
     )]
-    pub ata_user: Box<Account<'info, TokenAccount>>,
+    pub ata_collat_user: Box<Account<'info, TokenAccount>>,
 
     #[account(constraint = mint.key().as_ref() == pool.mint_collat.as_ref())]
     pub mint: Box<Account<'info, Mint>>,

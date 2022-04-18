@@ -14,5 +14,4 @@ export const createUserStatePASS = async (user: User) => {
     const confirmation = await userState.createUserState();
     console.log("created user state: ", confirmation);
   } else console.log("User state already created");
-  console.log("checking user state:", await userState.getAccountInfo());
 };

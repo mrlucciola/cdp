@@ -14,11 +14,14 @@ import { assert } from "chai";
 import { StablePool } from "../../target/types/stable_pool";
 // import { Periphery } from "../../target/types/periphery";
 import { handleTxn } from "../utils/fxns";
-import { MintPubKey, Vault, Pool, QuarryClass } from "../utils/interfaces";
+import { MintPubKey } from "../utils/interfaces";
 import { DECIMALS_USDCUSDT } from "../utils/constants";
 import { Accounts } from "../config/accounts";
 import { User } from "../interfaces/user";
 import { Miner } from "../interfaces/miner";
+import { QuarryClass } from "../interfaces/quarry";
+import { Pool } from "../interfaces/pool";
+import { Vault } from "../interfaces/vault";
 
 // init
 const programStablePool = workspace.StablePool as Program<StablePool>;
@@ -36,6 +39,42 @@ const createSaberQuarryMinerCall = async (
   miner: Miner,
   tokenMint: MintPubKey
 ) => {
+  console.log({
+    accounts: {
+      authority: userWallet.publicKey,
+      pool: pool.pubKey,
+      vault: vault.pubKey,
+      miner: miner.pubkey,
+      ataCollatMiner: miner.ata.pubKey,
+      // quarry
+      quarry: quarry.pubkey,
+      rewarder: quarry.rewarder,
+      mintCollat: tokenMint,
+      quarryProgram: QUARRY_ADDRESSES.Mine,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      systemProgram: SystemProgram.programId,
+      rent: SYSVAR_RENT_PUBKEY,
+      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+    },
+  })
+  console.log({
+    accounts: {
+      authority: await userConnection.getAccountInfo( userWallet.publicKey),
+      pool: await userConnection.getAccountInfo( pool.pubKey),
+      vault: await userConnection.getAccountInfo( vault.pubKey),
+      miner: await userConnection.getAccountInfo( miner.pubkey),
+      ataCollatMiner: await userConnection.getAccountInfo( miner.ata.pubKey),
+      // quarry
+      quarry: await userConnection.getAccountInfo(quarry.pubkey),
+      rewarder: await userConnection.getAccountInfo(quarry.rewarder),
+      mintCollat: await userConnection.getAccountInfo(tokenMint),
+      quarryProgram: QUARRY_ADDRESSES.Mine,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      systemProgram: SystemProgram.programId,
+      rent: SYSVAR_RENT_PUBKEY,
+      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+    },
+  })
   const txn = new web3.Transaction().add(
     // programPeriphery.instruction.createSaberQuarryMiner(miner.bump, {
     programStablePool.instruction.createSaberQuarryMiner(miner.bump, {
@@ -44,11 +83,11 @@ const createSaberQuarryMinerCall = async (
         pool: pool.pubKey,
         vault: vault.pubKey,
         miner: miner.pubkey,
-        minerVault: miner.ata.pubKey,
+        ataCollatMiner: miner.ata.pubKey,
         // quarry
         quarry: quarry.pubkey,
         rewarder: quarry.rewarder,
-        mint: tokenMint,
+        mintCollat: tokenMint,
         quarryProgram: QUARRY_ADDRESSES.Mine,
         tokenProgram: TOKEN_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
@@ -70,11 +109,12 @@ export const createSaberQuarryMinerPASS = async (
   user: User,
   accounts: Accounts
 ) => {
+  const minerUser = user.tokens.lpSaber.vault.miner;
   console.log(
     "miner account",
-    user.miner,
+    minerUser.pubkey,
     "\n pub key",
-    user.miner.pubkey.toString()
+    minerUser.pubkey.toString()
   );
   const confirmation = await createSaberQuarryMinerCall(
     user.provider.connection, // userConnection,
@@ -82,9 +122,8 @@ export const createSaberQuarryMinerPASS = async (
     user.tokens.lpSaber.vault, // vault,
     accounts.lpSaberUsdcUsdt.pool, // pool,
     // accounts.rewarderKey, // rewarderKey,
-    // TODO 002: move quarry into pool class
-    accounts.quarry, // quarryKey,
-    user.miner, // minerKeys,
+    accounts.lpSaberUsdcUsdt.pool.quarry, // quarryKey,
+    minerUser, // minerKeys,
     accounts.lpSaberUsdcUsdt.mint // mintPubKey
   );
   console.log("created miner: ", confirmation);
@@ -101,10 +140,10 @@ export const createSaberQuarryMinerPASS = async (
   );
 
   // get the miner. param is the authority
-  // TODO 002: move quarry into pool class
-  const miner = await accounts.quarry.quarryWrapper.getMiner(
-    user.tokens.lpSaber.vault.pubKey
-  );
+  const miner =
+    await accounts.lpSaberUsdcUsdt.pool.quarry.quarryWrapper.getMiner(
+      user.tokens.lpSaber.vault.pubKey
+    );
   assert(
     miner.authority.equals(user.tokens.lpSaber.vault.pubKey),
     "Miner'authority mismatch"

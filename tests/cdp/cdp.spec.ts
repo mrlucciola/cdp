@@ -1,74 +1,71 @@
 // anchor/solana
 import { Program, workspace, setProvider } from "@project-serum/anchor";
+import { Keypair } from "@solana/web3.js";
 // utils
 import { use as chaiUse } from "chai";
 import chaiAsPromised from "chai-as-promised";
 // local imports
 import { StablePool } from "../../target/types/stable_pool";
 import { Accounts } from "../config/accounts";
+import stablePoolKeypair from "../../target/deploy/stable_pool-keypair.json";
 import {
-  createGlobalStateFAIL_auth,
-  createGlobalStateFAIL_duplicate,
+  // createGlobalStateFAIL_auth,
+  // createGlobalStateFAIL_duplicate,
   createGlobalStatePASS,
 } from "./createGlobalState";
 import {
-  createPoolFAIL_dup,
+  // createPoolFAIL_dup,
   createPoolFAIL_noGlobalState,
-  createPoolFAIL_auth,
+  // createPoolFAIL_auth,
   createPoolPASS,
 } from "./createPool";
 import {
-  setPoolDebtCeilingFAIL_auth,
+  // setPoolDebtCeilingFAIL_auth,
   setPoolDebtCeilingPASS,
 } from "../admin-panel/setPoolDebtCeiling";
 import { createVaultFAIL_Duplicate, createVaultPASS } from "./createVault";
-import { Vault } from "../utils/interfaces";
 import {
-  depositCollateralFAIL_NotEnoughTokens,
   depositCollateralPASS,
-  depositCollateralFAIL_DepositExceedingTVL,
+  // depositCollateralFAIL_NotEnoughTokens,
+  // depositCollateralFAIL_DepositExceedingTVL,
 } from "./depositCollateral";
 import {
-  withdrawCollateralFAIL_NotEnoughTokensInVault,
-  withdrawCollateralFAIL_AttemptWithdrawFromOtherUser,
+  // withdrawCollateralFAIL_NotEnoughTokensInVault,
+  // withdrawCollateralFAIL_AttemptWithdrawFromOtherUser,
   withdrawCollateralPASS,
 } from "./withdrawCollateral";
 import { borrowUsdxPASS } from "./borrowUsdx";
-import { harvestRewardsPASS } from "./harvestReward";
-import { DECIMALS_USDCUSDT } from "../utils/constants";
+// import { harvestRewardsPASS } from "./harvestReward";
+// import { DECIMALS_USDCUSDT } from "../utils/constants";
 import {
-  reportPriceToOracleFAIL_NotUpdater,
+  // reportPriceToOracleFAIL_NotUpdater,
   reportPriceToOraclePASS,
 } from "./reportPriceToOracle";
 import { createOracleFAIL_Duplicate, createOraclePASS } from "./createOracle";
-import { createVaultRewardVault } from "./createRewardVault";
 import { createSaberQuarryMinerPASS } from "../saber/createSaberQuarryMiner";
-import { stakeCollateralToSaberPASS } from "../saber/stakeCollateralToSaber";
-import {
-  unstakeColalteralFromSaberFAIL_AttemptToUnstakeMoreThanWasStaked,
-  unstakeColalteralFromSaberFAIL_AttemptToUnstakeFromAnotherUser,
-  unstakeColalteralFromSaberPASS,
-} from "../saber/unstakeCollateralFromSaber";
-import { harvestRewardsFromSaberPASS } from "../saber/harvestRewardFromSaber";
-import {
-  repayUsdxFAIL_RepayMoreThanBorrowed,
-  repayUsdxPASS_RepayFullAmountBorrowed,
-  repayUsdxPASS_RepayLessThanBorrowed,
-  repayUsdxFAIL_ZeroUsdx,
-  repayUsdxFAIL_RepayAnotherUsersDebt,
-} from "../cdp/repayUsdx";
-import {
-  emergencyStatePASS_DepositDisabled,
-  emergencyStatePASS_BorrowDisabled,
-  emergencyStatePASS_WithdrawDisabled,
-} from "../cdp/emergencyState";
-import { Users } from "../interfaces/users";
-import { Miner } from "../interfaces/miner";
+// import { stakeCollateralToSaberPASS } from "../saber/stakeCollateralToSaber";
+// import {
+//   unstakeColalteralFromSaberFAIL_AttemptToUnstakeMoreThanWasStaked,
+//   unstakeColalteralFromSaberFAIL_AttemptToUnstakeFromAnotherUser,
+//   unstakeColalteralFromSaberPASS,
+// } from "../saber/unstakeCollateralFromSaber";
+// import { harvestRewardsFromSaberPASS } from "../saber/harvestRewardFromSaber";
+// import {
+//   repayUsdxFAIL_RepayMoreThanBorrowed,
+//   repayUsdxPASS_RepayFullAmountBorrowed,
+//   repayUsdxPASS_RepayLessThanBorrowed,
+//   repayUsdxFAIL_ZeroUsdx,
+//   repayUsdxFAIL_RepayAnotherUsersDebt,
+// } from "../cdp/repayUsdx";
+// import {
+//   emergencyStatePASS_DepositDisabled,
+//   emergencyStatePASS_BorrowDisabled,
+//   emergencyStatePASS_WithdrawDisabled,
+// } from "../cdp/emergencyState";
 import { createUserStatePASS } from "./createUserState";
-// import x from "../..//target/deploy/stable_pool-keypair.json";
-import stablePoolKeypair from "../../target/deploy/stable_pool-keypair.json";
-import { Keypair } from "@solana/web3.js";
-import { depositAndStakeCollatPASS } from "./depositAndStakeCollat";
+// import { depositAndStakeCollatPASS } from "./depositAndStakeCollat";
+// interfaces
+import { Users } from "../interfaces/users";
 
 const programKp = Keypair.fromSecretKey(
   new Uint8Array(stablePoolKeypair as any[])
@@ -80,33 +77,21 @@ chaiUse(chaiAsPromised);
 const programStablePool = workspace.StablePool as Program<StablePool>;
 // init variables
 let accounts: Accounts;
-let users: Users;
+const users = new Users();
 console.log("program keys id: ", programKp.publicKey.toString());
 
 describe("cdp core test suite", async () => {
   // Configure the client to use the local cluster.
   const provider = programStablePool.provider;
   setProvider(provider);
+
   before(async () => {
-    accounts = new Accounts();
-    await accounts.init();
-    // await accounts.initQuarry();
+    await users.initAirdrops();
+    accounts = new Accounts(users.external, users.oracleReporter);
+    await accounts.initAccounts(users.super, [users.base, users.test]);
 
-    users = new Users();
-    await users.init(
-      accounts.usdx.pubKey,
-      accounts.lpSaberUsdcUsdt.mint,
-      accounts.sbr.mint
-    );
-
-    // create miner
-    // TODO 001: move this into the user-init method
-    users.base.miner = new Miner(
-      users.base.tokens.lpSaber.vault,
-      // TODO 002: move quarry into pool class
-      accounts.quarry,
-      accounts.lpSaberUsdcUsdt.mint
-    );
+    console.log("init here 3");
+    await users.initUsers(accounts);
   });
 
   // pre-global state tests
@@ -118,56 +103,56 @@ describe("cdp core test suite", async () => {
     );
   });
 
-  // global state tests
-  it("FAIL: Create Global State - User is not super", async () => {
-    await createGlobalStateFAIL_auth(
-      users.base,
-      users.oracleReporter,
-      accounts
-    );
-  });
+  // // global state tests
+  // it("FAIL: Create Global State - User is not super", async () => {
+  //   await createGlobalStateFAIL_auth(
+  //     users.base,
+  //     users.oracleReporter,
+  //     accounts
+  //   );
+  // });
 
   it("PASS: Create Global State", async () => {
     await createGlobalStatePASS(users.super, users.oracleReporter, accounts);
   });
 
-  it("FAIL: Create Global State - duplicate", async () => {
-    await createGlobalStateFAIL_duplicate(
-      users.oracleReporter,
-      users.super,
-      accounts
-    );
-  });
+  // it("FAIL: Create Global State - duplicate", async () => {
+  //   await createGlobalStateFAIL_duplicate(
+  //     users.oracleReporter,
+  //     users.super,
+  //     accounts
+  //   );
+  // });
 
-  // pool tests
-  it("FAIL: Create Pool - User is not super", async () => {
-    await createPoolFAIL_auth(
-      users.base,
-      accounts,
-      accounts.lpSaberUsdcUsdt.pool
-    );
-  });
+  // // pool tests
+  // it("FAIL: Create Pool - User is not super", async () => {
+  //   await createPoolFAIL_auth(
+  //     users.base,
+  //     accounts,
+  //     accounts.lpSaberUsdcUsdt.pool
+  //   );
+  // });
 
   it("PASS: Create Pool - lpSaberUsdcUsdt", async () => {
     await createPoolPASS(users.super, accounts, accounts.lpSaberUsdcUsdt.pool);
   });
 
-  it("FAIL: Create Pool - duplicate", async () => {
-    await createPoolFAIL_dup(
-      users.super,
-      accounts,
-      accounts.lpSaberUsdcUsdt.pool
-    );
-  });
+  // it("FAIL: Create Pool - duplicate", async () => {
+  //   await createPoolFAIL_dup(
+  //     users.super,
+  //     accounts,
+  //     accounts.lpSaberUsdcUsdt.pool
+  //   );
+  // });
 
-  // set pool debt ceiling
-  it("FAIL: Set Pool Debt Ceiling - User is not super", async () => {
-    await setPoolDebtCeilingFAIL_auth(
-      users.base,
-      accounts.lpSaberUsdcUsdt.pool,
-      accounts
-    );
-  });
+  // // set pool debt ceiling
+  // it("FAIL: Set Pool Debt Ceiling - User is not super", async () => {
+  //   await setPoolDebtCeilingFAIL_auth(
+  //     users.base,
+  //     accounts.lpSaberUsdcUsdt.pool,
+  //     accounts
+  //   );
+  // });
 
   it("PASS: Set Pool Debt Ceiling", async () => {
     await setPoolDebtCeilingPASS(
@@ -177,17 +162,17 @@ describe("cdp core test suite", async () => {
     );
   });
 
-  // oracle tests - usdc oracle
+  // // oracle tests - usdc oracle
   it("PASS: Create Oracle - USDC", async () => {
     await createOraclePASS(users.oracleReporter, accounts, "usdc");
   });
 
-  // oracle tests - duplicated usdc oracle
-  it("FAIL: Create Oracle - Duplicate", async () => {
-    await createOracleFAIL_Duplicate(users.oracleReporter, accounts, "usdc");
-  });
+  // // oracle tests - duplicated usdc oracle
+  // it("FAIL: Create Oracle - Duplicate", async () => {
+  //   await createOracleFAIL_Duplicate(users.oracleReporter, accounts, "usdc");
+  // });
 
-  // oracle tests - usdt oracle
+  // // oracle tests - usdt oracle
   it("PASS: Create Oracle - USDT", async () => {
     await createOraclePASS(users.oracleReporter, accounts, "usdt");
   });
@@ -199,12 +184,12 @@ describe("cdp core test suite", async () => {
     await reportPriceToOraclePASS(users.oracleReporter, accounts, newPrice);
   });
 
-  it("FAIL: Update Price Feed - Not Updater", async () => {
-    // TODO: refactor to include just the high level classes
-    const newPrice = 134000000;
+  // it("FAIL: Update Price Feed - Not Updater", async () => {
+  //   // TODO: refactor to include just the high level classes
+  //   const newPrice = 134000000;
 
-    await reportPriceToOracleFAIL_NotUpdater(users.base, accounts, newPrice);
-  });
+  //   await reportPriceToOracleFAIL_NotUpdater(users.base, accounts, newPrice);
+  // });
 
   it("PASS: Create User State", async () => {
     await createUserStatePASS(users.base);
@@ -212,7 +197,7 @@ describe("cdp core test suite", async () => {
   });
 
   // vault tests
-  it("PASS: Create Vault", async () => {
+  it("PASS: Create Vault for base user", async () => {
     // TODO: refactor to include just the high level classes
     await createVaultPASS(
       users.base.wallet,
@@ -223,18 +208,18 @@ describe("cdp core test suite", async () => {
     );
   });
 
-  it("FAIL: Create Vault - Duplicate", async () => {
-    // TODO: refactor to include just the high level classes
-    await createVaultFAIL_Duplicate(
-      users.base.wallet,
-      users.base.provider.connection,
-      users.base.tokens.lpSaber.vault, // TODO: vault -> pool
-      accounts.lpSaberUsdcUsdt.pool,
-      accounts.lpSaberUsdcUsdt.mint
-    );
-  });
+  // it("FAIL: Create Vault - Duplicate", async () => {
+  //   // TODO: refactor to include just the high level classes
+  //   await createVaultFAIL_Duplicate(
+  //     users.base.wallet,
+  //     users.base.provider.connection,
+  //     users.base.tokens.lpSaber.vault, // TODO: vault -> pool
+  //     accounts.lpSaberUsdcUsdt.pool,
+  //     accounts.lpSaberUsdcUsdt.mint
+  //   );
+  // });
 
-  it("PASS: Create Vault from another account", async () => {
+  it("PASS: Create Vault for test user", async () => {
     // TODO: refactor to include just the high level classes
     await createVaultPASS(
       users.test.wallet,
@@ -245,34 +230,34 @@ describe("cdp core test suite", async () => {
     );
   });
 
-  it("FAIL: Create Vault - Duplicate from another account", async () => {
-    // TODO: refactor to include just the high level classes
-    await createVaultFAIL_Duplicate(
-      users.test.wallet,
-      users.test.provider.connection,
-      users.test.tokens.lpSaber.vault, // TODO: vault -> pool
-      accounts.lpSaberUsdcUsdt.pool,
-      accounts.lpSaberUsdcUsdt.mint
-    );
-  });
+  // it("FAIL: Create Vault - Duplicate from another account", async () => {
+  //   // TODO: refactor to include just the high level classes
+  //   await createVaultFAIL_Duplicate(
+  //     users.test.wallet,
+  //     users.test.provider.connection,
+  //     users.test.tokens.lpSaber.vault, // TODO: vault -> pool
+  //     accounts.lpSaberUsdcUsdt.pool,
+  //     accounts.lpSaberUsdcUsdt.mint
+  //   );
+  // });
 
   // depositing collateral
-  it("FAIL: Deposit Collateral - Not Enough Tokens", async () => {
-    await depositCollateralFAIL_NotEnoughTokens(users.test, accounts);
-  });
+  // it("FAIL: Deposit Collateral - Not Enough Tokens", async () => {
+  //   await depositCollateralFAIL_NotEnoughTokens(users.test, accounts);
+  // });
 
   it("PASS: Deposit Collateral - first time for base", async () => {
-    await depositCollateralPASS(users.base, users.super, accounts);
+    await depositCollateralPASS(users.base, accounts);
   });
 
-  it("PASS: Deposit Collateral from another user", async () => {
-    await depositCollateralPASS(users.test, users.super, accounts);
+  it("PASS: Deposit Collateral - first time for test", async () => {
+    await depositCollateralPASS(users.test, accounts);
   });
 
-  it("FAIL: Deposit Collateral - Deposit Exceeding TVL", async () => {
-    // mint tokens to the user's account first
-    await depositCollateralFAIL_DepositExceedingTVL(users.base, accounts);
-  });
+  // it("FAIL: Deposit Collateral - Deposit Exceeding TVL", async () => {
+  //   // mint tokens to the user's account first
+  //   await depositCollateralFAIL_DepositExceedingTVL(users.base, accounts);
+  // });
 
   // withrawing collateral
   // it("FAIL: Withdraw Collateral - Not Enough Tokens in Vault", async () => {
@@ -287,14 +272,22 @@ describe("cdp core test suite", async () => {
   //   );
   // });
 
-  // it("PASS: Withdraw Collateral", async () => {
+  // it("PASS: Withdraw collateral", async () => {
   //   await withdrawCollateralPASS(users.base, accounts);
+  //   await withdrawCollateralPASS(users.test, accounts);
   // });
 
+  it("PASS: Create Quarry Miner", async () => {
+    await createSaberQuarryMinerPASS(users.base, accounts);
+    await createSaberQuarryMinerPASS(users.test, accounts);
+  });
   // THIS IS NOT COMPLETE, please see note on the contract fxn (search `BorrowUsdx<'info>`)
-  // it("PASS: Borrow/mint USDx", async () => {
-  //   // await borrowUsdxPASS(users.base, accounts);
-  // });
+  it("PASS: Borrow/mint USDx for base", async () => {
+    await borrowUsdxPASS(users.base, accounts);
+  });
+  it("PASS: Borrow/mint USDx for test", async () => {
+    await borrowUsdxPASS(users.test, accounts);
+  });
 
   // repay
   // it("FAIL: Repay USDx - Repaying More Than Originally Borrowed", async () => {
@@ -363,19 +356,17 @@ describe("cdp core test suite", async () => {
   // });
 
   // // This works
-  // it("PASS: Create Quarry Miner", async () => {
-  //   await createSaberQuarryMinerPASS(users.base, accounts);
-  // });
-  it("PASS: Harvest rewards from the User Vault", async () => {
-    await harvestRewardsPASS(users.base, users.super, accounts);
-  });
 
-  it("FAIL: Unstake From Saber - Try To Unstake More Than Was Staked", async () => {
-    await unstakeColalteralFromSaberFAIL_AttemptToUnstakeMoreThanWasStaked(
-      users.base,
-      accounts
-    );
-  });
+  // it("PASS: Harvest rewards from the User Vault", async () => {
+  //   await harvestRewardsPASS(users.base, users.super, accounts);
+  // });
+
+  // it("FAIL: Unstake From Saber - Try To Unstake More Than Was Staked", async () => {
+  //   await unstakeColalteralFromSaberFAIL_AttemptToUnstakeMoreThanWasStaked(
+  //     users.base,
+  //     accounts
+  //   );
+  // });
 
   // it("PASS: Stake to saber", async () => {
   //   await stakeCollateralToSaberPASS(users.base, accounts);
@@ -404,8 +395,8 @@ describe("cdp core test suite", async () => {
   //   await unstakeColalteralFromSaberPASS(users.base, accounts);
   // });
 
-  it("PASS: Deposit and stake to Saber miner", async () => {
-    const amtToStake = 100 * 10 ** DECIMALS_USDCUSDT;
-    await depositAndStakeCollatPASS(users.base, accounts, amtToStake);
-  });
+  // it("PASS: Deposit and stake to Saber miner", async () => {
+  //   const amtToStake = 100 * 10 ** DECIMALS_USDCUSDT;
+  //   await depositAndStakeCollatPASS(users.base, accounts, amtToStake);
+  // });
 });

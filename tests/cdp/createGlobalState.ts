@@ -91,7 +91,6 @@ export const createGlobalStatePASS = async (
   // check if global state exists
   const globalState: IdlAccounts<StablePool>["globalState"] =
     await accounts.global.getAccount();
-  console.log("global state account: ", globalState);
 
   // testing if each of the global state's parameters exists
   assert(

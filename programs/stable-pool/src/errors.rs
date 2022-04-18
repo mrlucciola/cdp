@@ -62,7 +62,7 @@ pub enum StablePoolError {
 
     #[msg("Attempting to repay more than the amount originally borrowed")]
     RepayingMoreThanBorrowed,
-    
+
     #[msg("Reward mint account mismatch")]
     RewardMintMismatch,
 }
