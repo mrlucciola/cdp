@@ -3,7 +3,7 @@ use crate::states::{Oracle, UserState};
 use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::{self, AssociatedToken},
-    token::{self, accessor::amount, Mint, Token, TokenAccount, Transfer},
+    token::{self, Mint, Token, TokenAccount, Transfer},
 };
 // local
 use crate::{
@@ -14,12 +14,6 @@ use crate::{
 };
 
 pub fn calc_token_value(token_amount: u64, token_price: u64, token_price_decimals: u64) -> u64 {
-    // msg!(
-    //     "token amt: {}    token_price: {}    token_price_decimals: {}",
-    //     token_amount,
-    //     token_price,
-    //     token_price_decimals
-    // );
     (token_price as u128)
         .checked_mul(token_amount as u128)
         .unwrap()
@@ -48,13 +42,6 @@ pub fn handle(ctx: Context<DepositCollateral>, amt_collat_to_deposit: u64) -> Re
     let amt_ata_collat_user = accts.ata_collat_user.amount;
     let amt_ata_collat_vault = accts.ata_collat_vault.amount;
     let amt_ata_collat_miner = accts.ata_collat_miner.amount;
-
-    let amount_ata_a = amount(&accts.ata_market_a.to_account_info())?;
-    let amount_ata_b = amount(&accts.ata_market_b.to_account_info())?;
-    // TODO: evaluate if we can delete amount_ata_collat_user
-    // let amount_ata_collat_user = amount(&accts.ata_collat_user.to_account_info())?;
-    let amount_ata_collat_vault = amount(&accts.ata_collat_vault.to_account_info())?;
-    let amount_ata_miner = amount(&accts.ata_collat_miner.to_account_info())?;
 
     ////////////////////////////////////
     //////////// validation ////////////

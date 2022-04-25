@@ -186,8 +186,8 @@ pub mod stable_pool {
      * Update the global state variable "global_tvl_limit"
      * Should only be called by the program deployer
      */
-    pub fn set_global_tvl_limit(ctx: Context<SetGlobalTvlLimit>, limit: u64) -> Result<()> {
-        set_global_tvl_limit::handle(ctx, limit)
+    pub fn set_global_tvl_limit(ctx: Context<SetGlobalTvlLimit>, limit_precise: u64) -> Result<()> {
+        set_global_tvl_limit::handle(ctx, limit_precise)
     }
 
     /**

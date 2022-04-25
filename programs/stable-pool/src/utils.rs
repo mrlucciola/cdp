@@ -1,7 +1,7 @@
 // modules
 use anchor_lang::prelude::*;
 // local
-use crate::{errors::StablePoolError, states::*};
+use crate::{errors::StablePoolError, states::*, constants::DECIMALS_PRICE};
 
 pub fn assert_tvl_allowed(tvl_limit: u64, tvl: u64, amount: u64) -> Result<()> {
     let new_tvl = tvl.checked_add(amount).unwrap();
@@ -48,6 +48,7 @@ pub fn calc_stable_lp_price(
     let prod = numer.checked_div(lp_supply as u128).unwrap();
     // = 2 * prod
     let lp_price = (prod as u128).checked_mul(2).unwrap();
+    let lp_price = lp_price.checked_div(10_u128.checked_pow(DECIMALS_PRICE as u32).unwrap()).unwrap();
 
     Ok(lp_price as u64)
 }

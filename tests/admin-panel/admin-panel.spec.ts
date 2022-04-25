@@ -51,8 +51,8 @@ describe("Admin Panel Test Suite", async () => {
   setProvider(provider);
 
   before(async () => {
-    accounts = new Accounts();
-    await accounts.init();
+    accounts = new Accounts(users.external, users.oracleReporter);
+    await accounts.initAccounts(users.super, [users.base, users.test]);
 
     users = new Users();
   });
@@ -117,10 +117,6 @@ describe("Admin Panel Test Suite", async () => {
     await changeAuthorityFAIL_auth(users.base, accounts);
   });
   it("PASS: Change Authority", async () => {
-    await changeAuthorityPASS(
-      users.super,
-      users.test,
-      accounts
-    );
+    await changeAuthorityPASS(users.super, users.test, accounts);
   });
 });

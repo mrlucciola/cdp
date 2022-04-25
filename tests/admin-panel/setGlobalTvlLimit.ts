@@ -10,8 +10,8 @@ import {
 import { assert, expect } from "chai";
 // local
 import { StablePool } from "../../target/types/stable_pool";
-import { handleTxn } from "../utils/fxns";
-import { TVL_LIMIT_USD } from "../utils/constants";
+import { addZeros, handleTxn } from "../utils/fxns";
+import { DECIMALS_USD, TVL_LIMIT_USD } from "../utils/constants";
 import { Accounts } from "../config/accounts";
 import { User } from "../interfaces/user";
 
@@ -116,20 +116,20 @@ export const setGlobalTvlLimitPASS = async (
     await accounts.global.getAccount();
 
   assert(
-    globalState.tvlCollatCeilingUsd.toNumber() == newTvlLimitUsd,
+    globalState.tvlCollatCeilingUsd.toNumber() === newTvlLimitUsd,
     "TVL Limit was not updated even though transaction succeeded."
   );
 
   confirmation = await setGlobalTvlLimitCall(
     accounts,
     superUser,
-    TVL_LIMIT_USD
+    addZeros(TVL_LIMIT_USD, DECIMALS_USD)
   );
   assert(confirmation, "Failed to set TVL Limit back to original value");
 
   globalState = await accounts.global.getAccount();
   assert(
-    globalState.tvlCollatCeilingUsd.toNumber() == TVL_LIMIT_USD,
+    globalState.tvlCollatCeilingUsd.toNumber() === addZeros(TVL_LIMIT_USD, DECIMALS_USD),
     "TVL Limit was not updated even though transaction succeeded."
   );
 };

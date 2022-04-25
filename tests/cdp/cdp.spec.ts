@@ -66,6 +66,7 @@ import { createUserStatePASS } from "./createUserState";
 // import { depositAndStakeCollatPASS } from "./depositAndStakeCollat";
 // interfaces
 import { Users } from "../interfaces/users";
+import { setGlobalTvlLimitPASS } from "../admin-panel/setGlobalTvlLimit";
 
 const programKp = Keypair.fromSecretKey(
   new Uint8Array(stablePoolKeypair as any[])
@@ -114,6 +115,7 @@ describe("cdp core test suite", async () => {
 
   it("PASS: Create Global State", async () => {
     await createGlobalStatePASS(users.super, accounts);
+    await setGlobalTvlLimitPASS(users.super, accounts);
   });
 
   // it("FAIL: Create Global State - duplicate", async () => {

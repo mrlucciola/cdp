@@ -114,7 +114,7 @@ export const depositCollateralFAIL_NotEnoughTokens = async (
   const diff = ataBalPost - ataBalPre;
 
   assert(
-    diff == 0,
+    diff === 0,
     "Deposit did not fail when trying to deposit more tokens than in the user's ATA"
   );
 };
@@ -128,8 +128,9 @@ export const depositCollateralPASS = async (user: User, accounts: Accounts) => {
 
   // price, with precision
   // const priceUsd = 1.02 * 10 ** DECIMALS_PRICE; // TODO: fix price feed
-  // const globalStateAcct: IdlAccounts<StablePool>["globalState"] =
-  //   await accounts.global.getAccount();
+  const globalStateAcct: IdlAccounts<StablePool>["globalState"] =
+    await accounts.global.getAccount();
+  console.log('tvl', globalStateAcct.tvlCollatCeilingUsd.toNumber())
 
   const userlpSaber = user.tokens.lpSaber;
 

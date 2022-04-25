@@ -3,8 +3,8 @@ use anchor_lang::prelude::*;
 // local
 use crate::{constants::*, states::global_state::GlobalState};
 
-pub fn handle(ctx: Context<SetGlobalTvlLimit>, limit: u64) -> Result<()> {
-    ctx.accounts.global_state.tvl_collat_ceiling_usd = limit;
+pub fn handle(ctx: Context<SetGlobalTvlLimit>, limit_precise: u64) -> Result<()> {
+    ctx.accounts.global_state.tvl_collat_ceiling_usd = limit_precise;
 
     Ok(())
 }

@@ -32,7 +32,6 @@ pub fn create_miner_pda<'info>(
     authority_seeds: &[&[u8]],
     miner_bump: u8,
 ) -> Result<()> {
-    msg!("miner-vault: {}", miner_vault.owner);
     let create_miner_ctx_accounts = CreateMiner {
         authority,
         miner,
@@ -44,6 +43,7 @@ pub fn create_miner_pda<'info>(
         token_program,
         system_program,
     };
+
     create_miner(
         CpiContext::new(quarry_program, create_miner_ctx_accounts)
             .with_signer(&[&authority_seeds[..]]),
@@ -64,10 +64,8 @@ pub fn handle(ctx: Context<CreateSaberQuarryMiner>, miner_bump: u8) -> Result<()
         StablePoolError::InvalidOwner
     );
 
-    let ata_collat_miner_check = get_associated_token_address(
-        &ctx.accounts.miner.key(),
-        &ctx.accounts.mint_collat.key(),
-    );
+    let ata_collat_miner_check =
+        get_associated_token_address(&ctx.accounts.miner.key(), &ctx.accounts.mint_collat.key());
     require!(
         ctx.accounts.ata_collat_miner.key() == ata_collat_miner_check,
         StateInvalidAddress
@@ -86,8 +84,6 @@ pub fn handle(ctx: Context<CreateSaberQuarryMiner>, miner_bump: u8) -> Result<()
     // associated_token::create(cpi_context)?;
     // add the ata to the vault
     ctx.accounts.vault.ata_collat_miner = ctx.accounts.ata_collat_miner.as_ref().key();
-
-    msg!("i made it");
 
     let vault_owner_key = ctx.accounts.authority.as_ref().key();
     let vault_authority_seeds: &[&[u8]] = &[
