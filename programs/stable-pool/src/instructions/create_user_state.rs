@@ -4,8 +4,8 @@ use anchor_lang::prelude::*;
 use crate::{constants::*, states::UserState};
 
 pub fn handle(ctx: Context<CreateUserState>) -> Result<()> {
-    ctx.accounts.user_state.deposited_collat_usd = 0;
-    ctx.accounts.user_state.debt = 0;
+    ctx.accounts.user_state.tvl_collat_usd = 0;
+    ctx.accounts.user_state.total_debt_usdx = 0;
     ctx.accounts.user_state.owner = ctx.accounts.authority.as_ref().key();
     ctx.accounts.user_state.bump = *ctx.bumps.get("user_state").unwrap();
 

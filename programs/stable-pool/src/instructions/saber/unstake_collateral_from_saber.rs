@@ -53,12 +53,11 @@ pub fn unstake_from_saber_pda<'info>(
 
 /// Claims rewards from saber farm
 pub fn handle(ctx: Context<UnstakeCollateralFromSaber>, amount_to_unstake: u64) -> Result<()> {
-    ///////////////////unlock token from the miner vault in quarry////////
+    /////////////////// unlock token from the miner vault in quarry ///////////////////
     let pool = &mut ctx.accounts.pool;
     require!(
         pool.platform_type == PlatformType::Saber as u8,
-        // TODO 008: reword or delete
-        StablePoolError::InvalidSaberPlatform
+        StablePoolError::InvalidPlatformNotSaber
     );
 
     let mint_key = ctx.accounts.vault.mint_collat;

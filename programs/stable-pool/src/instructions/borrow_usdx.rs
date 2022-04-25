@@ -68,11 +68,14 @@ pub fn handle(ctx: Context<BorrowUsdx>, usdx_borrow_amt_requested: u64) -> Resul
     )?;
     msg!("user_collat_amt: {}", user_collat_amt);
     msg!("amt requested: {}", usdx_borrow_amt_requested);
-    msg!("limit global : {}", ctx.accounts.global_state.tvl_limit);
+    msg!(
+        "limit global : {}",
+        ctx.accounts.global_state.tvl_collat_ceiling_usd
+    );
     msg!("limit pool   : {}", ctx.accounts.pool.debt_ceiling);
     msg!(
         "limit user   : {}",
-        ctx.accounts.global_state.user_debt_ceiling
+        ctx.accounts.global_state.debt_ceiling_user
     );
     // msg!("limit user   : {}", ctx.accounts.user.debt_ceiling);
 
@@ -91,7 +94,7 @@ pub fn handle(ctx: Context<BorrowUsdx>, usdx_borrow_amt_requested: u64) -> Resul
     let future_total_debt_global_state = ctx
         .accounts
         .global_state
-        .total_debt
+        .total_debt_usdx
         .checked_add(usdx_borrow_amt_requested)
         .unwrap();
 
@@ -114,7 +117,7 @@ pub fn handle(ctx: Context<BorrowUsdx>, usdx_borrow_amt_requested: u64) -> Resul
 
     // the future debt has to be less than the ceilings
     require!(
-        future_total_debt_global_state < ctx.accounts.global_state.global_debt_ceiling,
+        future_total_debt_global_state < ctx.accounts.global_state.debt_ceiling_global,
         StablePoolError::GlobalDebtCeilingExceeded,
     );
 
@@ -123,7 +126,7 @@ pub fn handle(ctx: Context<BorrowUsdx>, usdx_borrow_amt_requested: u64) -> Resul
         StablePoolError::PoolDebtCeilingExceeded,
     );
     require!(
-        future_total_debt_user < ctx.accounts.global_state.user_debt_ceiling,
+        future_total_debt_user < ctx.accounts.global_state.debt_ceiling_user,
         StablePoolError::UserDebtCeilingExceeded,
     );
 
@@ -179,10 +182,10 @@ pub fn handle(ctx: Context<BorrowUsdx>, usdx_borrow_amt_requested: u64) -> Resul
     // mint
     mint_to(mint_ctx, usdx_borrow_amt_requested)?;
 
-    ctx.accounts.global_state.total_debt = ctx
+    ctx.accounts.global_state.total_debt_usdx = ctx
         .accounts
         .global_state
-        .total_debt
+        .total_debt_usdx
         .checked_add(usdx_borrow_amt_requested)
         .unwrap();
 

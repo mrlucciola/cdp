@@ -86,7 +86,7 @@ pub fn handle(ctx: Context<WithdrawCollateral>, amt_collat_to_withdraw: u64) -> 
     token::transfer(transfer_ctx, amt_collat_to_withdraw)?;
 
     // update the vault usd NOT collat (its in the miner and vault A.T.A.s)
-    accts.user_state.deposited_collat_usd = accts
+    accts.user_state.tvl_collat_usd = accts
         .vault
         .deposited_collat_usd
         .checked_add(amt_to_withdraw_value_usd)

@@ -82,7 +82,7 @@ export const setGlobalDebtCeilingFAIL_auth = async (
   const globalState: IdlAccounts<StablePool>["globalState"] =
     await accounts.global.getAccount();
   assert(
-    globalState.globalDebtCeiling.toNumber() != newGlobalDebtCeilingUsd,
+    globalState.debtCeilingGlobal.toNumber() != newGlobalDebtCeilingUsd,
     "Global Debt Ceiling updated even though transaction was rejected."
   );
 };
@@ -122,7 +122,7 @@ export const setGlobalDebtCeilingPASS = async (
     await accounts.global.getAccount();
 
   assert(
-    globalState.globalDebtCeiling.toNumber() == newGlobalDebtCeilingUsd,
+    globalState.debtCeilingGlobal.toNumber() == newGlobalDebtCeilingUsd,
     "Global Debt Ceiling was not updated even though transaction succeeded."
   );
 
@@ -138,7 +138,7 @@ export const setGlobalDebtCeilingPASS = async (
 
   globalState = await accounts.global.getAccount();
   assert(
-    globalState.globalDebtCeiling.toNumber() == DEBT_CEILING_GLOBAL_USDX,
+    globalState.debtCeilingGlobal.toNumber() == DEBT_CEILING_GLOBAL_USDX,
     "Global Debt Ceiling was not updated even though transaction succeeded."
   );
 };

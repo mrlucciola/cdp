@@ -113,7 +113,7 @@ describe("cdp core test suite", async () => {
   // });
 
   it("PASS: Create Global State", async () => {
-    await createGlobalStatePASS(users.super, users.oracleReporter, accounts);
+    await createGlobalStatePASS(users.super, accounts);
   });
 
   // it("FAIL: Create Global State - duplicate", async () => {
@@ -178,10 +178,7 @@ describe("cdp core test suite", async () => {
   });
 
   it("PASS: Report Price - USDC", async () => {
-    // TODO: refactor to include just the high level classes
-    const newPrice = 102000000;
-
-    await reportPriceToOraclePASS(users.oracleReporter, accounts, newPrice);
+    await reportPriceToOraclePASS(users.oracleReporter, accounts);
   });
 
   // it("FAIL: Update Price Feed - Not Updater", async () => {
@@ -246,6 +243,10 @@ describe("cdp core test suite", async () => {
   //   await depositCollateralFAIL_NotEnoughTokens(users.test, accounts);
   // });
 
+  it("PASS: Create Quarry Miner", async () => {
+    await createSaberQuarryMinerPASS(users.base, accounts);
+    await createSaberQuarryMinerPASS(users.test, accounts);
+  });
   it("PASS: Deposit Collateral - first time for base", async () => {
     await depositCollateralPASS(users.base, accounts);
   });
@@ -277,17 +278,13 @@ describe("cdp core test suite", async () => {
   //   await withdrawCollateralPASS(users.test, accounts);
   // });
 
-  it("PASS: Create Quarry Miner", async () => {
-    await createSaberQuarryMinerPASS(users.base, accounts);
-    await createSaberQuarryMinerPASS(users.test, accounts);
-  });
   // THIS IS NOT COMPLETE, please see note on the contract fxn (search `BorrowUsdx<'info>`)
-  it("PASS: Borrow/mint USDx for base", async () => {
-    await borrowUsdxPASS(users.base, accounts);
-  });
-  it("PASS: Borrow/mint USDx for test", async () => {
-    await borrowUsdxPASS(users.test, accounts);
-  });
+  // it("PASS: Borrow/mint USDx for base", async () => {
+  //   await borrowUsdxPASS(users.base, accounts);
+  // });
+  // it("PASS: Borrow/mint USDx for test", async () => {
+  //   await borrowUsdxPASS(users.test, accounts);
+  // });
 
   // repay
   // it("FAIL: Repay USDx - Repaying More Than Originally Borrowed", async () => {

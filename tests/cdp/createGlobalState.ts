@@ -11,7 +11,7 @@ import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 // utils
 import { assert, expect } from "chai";
 // local
-import { handleTxn } from "../utils/fxns";
+import { addZeros, handleTxn } from "../utils/fxns";
 import {
   DEBT_CEILING_GLOBAL_USDX,
   DEBT_CEILING_USER_USDX,
@@ -35,15 +35,11 @@ const createGlobalStateCall = async (
   // add instruction
   txn.add(
     programStablePool.instruction.createGlobalState(
-      // TODO: remove
-      accounts.global.bump,
-      // TODO: remove
-      accounts.usdx.bump,
-      new BN(TVL_LIMIT_USD * 10 ** DECIMALS_USD),
-      new BN(DEBT_CEILING_GLOBAL_USDX * 10 ** DECIMALS_USDX),
-      new BN(DEBT_CEILING_USER_USDX * 10 ** DECIMALS_USDX),
-      // for verifying
-      oracleReporter.wallet.publicKey,
+      new BN(addZeros(TVL_LIMIT_USD, DECIMALS_USD)), // tvl_limit
+      new BN(addZeros(DEBT_CEILING_GLOBAL_USDX, DECIMALS_USDX)), // global_debt_ceiling
+      new BN(addZeros(DEBT_CEILING_USER_USDX, DECIMALS_USDX)), // debt_ceiling_user prev: user_debt_ceiling
+      // for verifying oracle reporter
+      oracleReporter.wallet.publicKey, // oracle_reporter
       {
         accounts: {
           authority: user.wallet.publicKey,
@@ -68,7 +64,6 @@ const createGlobalStateCall = async (
  */
 export const createGlobalStatePASS = async (
   superUser: User,
-  oracleReporter: User,
   accounts: Accounts
 ) => {
   assert(
@@ -85,44 +80,45 @@ export const createGlobalStatePASS = async (
   const globalStateAccttInfo: web3.AccountInfo<Buffer> =
     await accounts.global.getAccountInfo();
   if (!globalStateAccttInfo)
-    await createGlobalStateCall(accounts, superUser, oracleReporter);
+    await accounts.global.initGlobalState(superUser);
+    // await createGlobalStateCall(accounts, superUser, oracleReporter);
   else console.log("GLOBAL STATE ALREADY CREATED", globalStateAccttInfo);
 
   // check if global state exists
   const globalState: IdlAccounts<StablePool>["globalState"] =
     await accounts.global.getAccount();
-
   // testing if each of the global state's parameters exists
   assert(
-    globalState.authority.toBase58() == superUser.wallet.publicKey.toBase58(),
+    globalState.authority.toBase58() === superUser.wallet.publicKey.toBase58(),
     "\n global state auth is not super user"
   );
   assert(
-    globalState.mintUsdx.toBase58() == accounts.usdx.pubKey.toBase58(),
+    globalState.mintUsdx.toBase58() === accounts.usdx.pubKey.toBase58(),
     "\n USDx mint is not correct"
   );
   assert(
-    globalState.tvlLimit.toNumber() == TVL_LIMIT_USD * 10 ** DECIMALS_USD,
-    `Global-state TVL Limit: ${globalState.tvlLimit} \nTVL Limit: ${TVL_LIMIT_USD}`
+    globalState.tvlCollatCeilingUsd.toNumber() ===
+      addZeros(TVL_LIMIT_USD, DECIMALS_USD),
+    `Global-state TVL Limit: ${globalState.tvlCollatCeilingUsd} \nTVL Limit: ${TVL_LIMIT_USD}`
   );
-  assert(globalState.tvlUsd.toNumber() == 0, "Err: Global-state.tvl != 0");
+  assert(globalState.tvlUsd.toNumber() === 0, "Err: Global-state.tvl != 0");
   assert(
-    globalState.totalDebt.toNumber() == 0,
+    globalState.totalDebtUsdx.toNumber() === 0,
     "Err: Global-state-total-debt != 0"
   );
   assert(
-    globalState.globalDebtCeiling.toNumber() ==
-      DEBT_CEILING_GLOBAL_USDX * 10 ** DECIMALS_USDX,
+    globalState.debtCeilingGlobal.toNumber() ===
+      addZeros(DEBT_CEILING_GLOBAL_USDX, DECIMALS_USDX),
     `GlobalState Global Debt Ceiling: ${
-      globalState.globalDebtCeiling
-    } Global Debt Ceiling: ${DEBT_CEILING_GLOBAL_USDX * 10 ** DECIMALS_USDX}`
+      globalState.debtCeilingGlobal
+    } Global Debt Ceiling: ${addZeros(DEBT_CEILING_GLOBAL_USDX, DECIMALS_USDX)}`
   );
   assert(
-    globalState.userDebtCeiling.toNumber() ===
-      DEBT_CEILING_USER_USDX * 10 ** DECIMALS_USDX,
+    globalState.debtCeilingUser.toNumber() ===
+      addZeros(DEBT_CEILING_USER_USDX, DECIMALS_USDX),
     `GlobalState User Debt Ceiling: ${
-      globalState.userDebtCeiling
-    } User Debt Ceiling: ${DEBT_CEILING_USER_USDX * 10 ** DECIMALS_USDX}`
+      globalState.debtCeilingUser
+    } User Debt Ceiling: ${addZeros(DEBT_CEILING_USER_USDX, DECIMALS_USDX)}`
   );
 };
 

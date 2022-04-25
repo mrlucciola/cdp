@@ -12,12 +12,13 @@ import { Connection, SYSVAR_CLOCK_PUBKEY } from "@solana/web3.js";
 // utils
 import { assert, expect } from "chai";
 // local
-import { handleTxn } from "../utils/fxns";
+import { addZeros, handleTxn } from "../utils/fxns";
 import { Accounts } from "../config/accounts";
 import { StablePool } from "../../target/types/stable_pool";
 // interfaces
 import { User } from "../interfaces/user";
 import { Oracle } from "../interfaces/oracle";
+import { DECIMALS_PRICE } from "../utils/constants";
 
 // init
 const programStablePool = workspace.StablePool as Program<StablePool>;
@@ -63,33 +64,49 @@ export const reportPriceToOraclePASS = async (
   oracleReporter: User,
   // oracleReporterConnection: Connection, // userConnection
   // oracleReporterWallet: Wallet, // userWallet
-  accounts: Accounts,
-  newPrice: number = 1.01
+  accounts: Accounts
 ) => {
+  const newPriceUsdc = addZeros(1.02, DECIMALS_PRICE);
+  const newPriceUsdt = addZeros(0.98, DECIMALS_PRICE);
   // derive price feed account
   console.log("getting price feed acct");
 
   // get price feed info
-  const priceFeedInfo: web3.AccountInfo<Buffer> =
-    await accounts.usdc.oracle.getAccountInfo();
+  const priceFeedUsdc = await accounts.usdc.oracle.getAccountInfo();
+  const priceFeedUsdt = await accounts.usdt.oracle.getAccountInfo();
 
   // if not created, create price feed
-  if (priceFeedInfo) {
+  if (priceFeedUsdc) {
     const confirmation = await reportPriceToOracleCall(
       oracleReporter.provider.connection,
       oracleReporter.wallet,
       accounts,
       accounts.usdc.oracle,
-      newPrice
+      newPriceUsdc
+    );
+    console.log("updated price feed: ", confirmation);
+  } else console.log("this price feed was not created");
+  if (priceFeedUsdt) {
+    const confirmation = await reportPriceToOracleCall(
+      oracleReporter.provider.connection,
+      oracleReporter.wallet,
+      accounts,
+      accounts.usdt.oracle,
+      newPriceUsdt
     );
     console.log("updated price feed: ", confirmation);
   } else console.log("this price feed was not created");
 
   // get the price feed state
-  const priceFeedAcc: IdlAccounts<StablePool>["oracle"] =
-    await accounts.usdc.oracle.getAccount();
   // asserts
-  assert(priceFeedAcc.price.toNumber() == newPrice, "price mismatch");
+  assert(
+    (await accounts.usdc.oracle.getAccount()).price.toNumber() == newPriceUsdc,
+    "price mismatch with usdc"
+  );
+  assert(
+    (await accounts.usdt.oracle.getAccount()).price.toNumber() == newPriceUsdt,
+    "price mismatch with usdt"
+  );
 };
 
 /**

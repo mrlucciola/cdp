@@ -26,7 +26,7 @@ pub fn handle(ctx: Context<HarvestRewardsFromSaber>) -> Result<()> {
     require!(
         accts.pool.platform_type == PlatformType::Saber as u8,
         // TODO 008: reword or delete
-        StablePoolError::InvalidSaberPlatform
+        StablePoolError::InvalidPlatformNotSaber
     );
     ////////////// harvest from saber first///////////////
     let authority_seeds = &[

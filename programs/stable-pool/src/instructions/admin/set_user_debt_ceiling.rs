@@ -3,14 +3,14 @@ use anchor_lang::prelude::*;
 // local
 use crate::{constants::*, states::global_state::GlobalState};
 
-pub fn handle(ctx: Context<SetGlobalDebtCeiling>, ceiling: u64) -> Result<()> {
-    ctx.accounts.global_state.global_debt_ceiling = ceiling;
+pub fn handle(ctx: Context<SetUserDebtCeiling>, ceiling: u64) -> Result<()> {
+    ctx.accounts.global_state.debt_ceiling_user = ceiling;
 
     Ok(())
 }
 
 #[derive(Accounts)]
-pub struct SetGlobalDebtCeiling<'info> {
+pub struct SetUserDebtCeiling<'info> {
     #[account(constraint = authority.as_ref().key().to_string() == global_state.authority.to_string().as_ref())]
     pub authority: Signer<'info>,
 

@@ -78,7 +78,7 @@ export const setGlobalTvlLimitFAIL_auth = async (
   const globalState: IdlAccounts<StablePool>["globalState"] =
     await accounts.global.getAccount();
   assert(
-    globalState.tvlLimit.toNumber() != newTvlLimitUSD,
+    globalState.tvlCollatCeilingUsd.toNumber() != newTvlLimitUSD,
     "TVL Limit updated even though transaction was rejected."
   );
 };
@@ -116,7 +116,7 @@ export const setGlobalTvlLimitPASS = async (
     await accounts.global.getAccount();
 
   assert(
-    globalState.tvlLimit.toNumber() == newTvlLimitUsd,
+    globalState.tvlCollatCeilingUsd.toNumber() == newTvlLimitUsd,
     "TVL Limit was not updated even though transaction succeeded."
   );
 
@@ -129,7 +129,7 @@ export const setGlobalTvlLimitPASS = async (
 
   globalState = await accounts.global.getAccount();
   assert(
-    globalState.tvlLimit.toNumber() == TVL_LIMIT_USD,
+    globalState.tvlCollatCeilingUsd.toNumber() == TVL_LIMIT_USD,
     "TVL Limit was not updated even though transaction succeeded."
   );
 };

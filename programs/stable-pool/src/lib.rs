@@ -28,20 +28,16 @@ pub mod stable_pool {
      */
     pub fn create_global_state(
         ctx: Context<CreateGlobalState>,
-        global_state_bump: u8,
-        mint_usdx_bump: u8,
         tvl_limit: u64,
         global_debt_ceiling: u64,
-        user_debt_ceiling: u64,
+        debt_ceiling_user: u64,
         oracle_reporter: Pubkey,
     ) -> Result<()> {
         create_global_state::handle(
             ctx,
-            global_state_bump,
-            mint_usdx_bump,
             tvl_limit,
             global_debt_ceiling,
-            user_debt_ceiling,
+            debt_ceiling_user,
             oracle_reporter,
         )
     }
@@ -203,7 +199,7 @@ pub mod stable_pool {
     }
 
     /**
-     * Update the global state variable "user_debt_ceiling"
+     * Update the global state variable "debt_ceiling_user" prev: "user_debt_ceiling"
      * Should only be called by the program deployer
      */
     pub fn set_user_debt_ceiling(ctx: Context<SetUserDebtCeiling>, ceiling: u64) -> Result<()> {

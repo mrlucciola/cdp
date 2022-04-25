@@ -44,10 +44,10 @@ pub fn handle(ctx: Context<RepayUsdx>, repay_amount: u64) -> Result<()> {
         .total_debt
         .checked_sub(repay_amount)
         .unwrap();
-    ctx.accounts.global_state.total_debt = ctx
+    ctx.accounts.global_state.total_debt_usdx = ctx
         .accounts
         .global_state
-        .total_debt
+        .total_debt_usdx
         .checked_sub(repay_amount)
         .unwrap();
     ctx.accounts.vault.debt = ctx.accounts.vault.debt.checked_sub(repay_amount).unwrap();

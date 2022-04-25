@@ -1,10 +1,12 @@
-// @ts-ignore
-import { mintTo, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+// anchor/solana
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { Wallet } from "@project-serum/anchor";
-import { SPLToken } from "@saberhq/token-utils";
 import { Signer } from "@solana/web3.js";
-import { ATA } from "./ata";
+// saber
+import { SPLToken } from "@saberhq/token-utils";
+//
 import { MintPubKey } from "../utils/interfaces";
+import { ATA } from "./ata";
 import { User } from "./user";
 
 /**

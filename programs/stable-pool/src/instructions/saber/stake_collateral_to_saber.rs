@@ -88,7 +88,7 @@ pub fn handle(
     require!(
         pool.platform_type == PlatformType::Saber as u8,
         // TODO 008: reword or delete
-        StablePoolError::InvalidSaberPlatform
+        StablePoolError::InvalidPlatformNotSaber
     );
 
     let mint_key = ctx.accounts.vault.mint_collat;

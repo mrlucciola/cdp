@@ -101,11 +101,13 @@ export const stakeCollateralToSaberPASS = async (
   assert(
     amountToStakePrecise * priceUsd +
       globalStateAcct.tvlUsd.toNumber() / 10 ** DECIMALS_USD <
-      globalStateAcct.tvlLimit.toNumber() / 10 ** DECIMALS_USD,
+      globalStateAcct.tvlCollatCeilingUsd.toNumber() / 10 ** DECIMALS_USD,
     "Amount attempting to deposit will exceed TVL limit. Please decrease amountToStakePrecise.\n" +
       `\nDeposit Amount USD: ${amountToStakePrecise * priceUsd}` +
       `\nTVL: ${globalStateAcct.tvlUsd.toNumber() / 10 ** DECIMALS_USD}` +
-      `\nTVL Limit: ${globalStateAcct.tvlLimit.toNumber() / 10 ** DECIMALS_USD}`
+      `\nTVL Limit: ${
+        globalStateAcct.tvlCollatCeilingUsd.toNumber() / 10 ** DECIMALS_USD
+      }`
   );
 
   await stakeToSaberCall(

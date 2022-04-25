@@ -1,15 +1,31 @@
 // anchor/solana
-import { PublicKey } from "@solana/web3.js";
+import { Program, web3, workspace } from "@project-serum/anchor";
+import {
+  PublicKey,
+  SystemProgram,
+  SYSVAR_RENT_PUBKEY,
+  Transaction,
+} from "@solana/web3.js";
 // saber
 import { QUARRY_ADDRESSES } from "@quarryprotocol/quarry-sdk";
 // utils
-import { getPda } from "../utils/fxns";
+import { getPda, handleTxn } from "../utils/fxns";
+import { StablePool } from "../../target/types/stable_pool";
 // interfaces
 import { ATA } from "./ata";
 import { Pool } from "./pool";
 import { Vault } from "./vault";
 import { TokenReward } from "./TokenReward";
 import { TokenCollatUser } from "./TokenCollatUser";
+import {
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  TOKEN_PROGRAM_ID,
+  // @ts-ignore
+  createAssociatedTokenAccountInstruction,
+} from "@solana/spl-token";
+
+// init
+const programStablePool = workspace.StablePool as Program<StablePool>;
 
 /**
  * owned by a user
@@ -34,6 +50,8 @@ export class Miner {
     this.vault = vault;
     this.tokenCollatUser = tokenCollatUser;
     this.pool = pool;
+    console.log(this.pool.quarry.pubkey);
+    console.log(this.vault.pubKey);
 
     const [pubkey, bump] = getPda(
       [
@@ -54,8 +72,39 @@ export class Miner {
       this.tokenCollatUser.tokenCollat.decimals, // decimals
       this.tokenCollatUser.tokenCollat.nameToken, // nameToken
       `miner-${this.tokenCollatUser.tokenCollat.nameToken}-${this.tokenReward.nameToken}`, // nameInstance
-      null, // mintAuthPubKey
+      null // mintAuthPubKey
       // this.tokenCollatUser.authority // owner
     );
+  }
+  async initMiner() {
+
+    const txn = new web3.Transaction().add(
+      // programPeriphery.instruction.createSaberQuarryMiner(miner.bump, {
+      programStablePool.instruction.createSaberQuarryMiner(this.bump, {
+        accounts: {
+          authority: this.tokenCollatUser.authority.wallet.publicKey,
+          pool: this.pool.pubKey,
+          vault: this.vault.pubKey,
+          miner: this.pubkey,
+          ataCollatMiner: this.ata.pubKey,
+          // quarry
+          quarry: this.pool.quarry.pubkey,
+          rewarder: this.pool.quarry.rewarder,
+          mintCollat: this.tokenCollatUser.tokenCollat.mint,
+          quarryProgram: QUARRY_ADDRESSES.Mine,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+          rent: SYSVAR_RENT_PUBKEY,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        },
+      })
+    );
+    // send transaction
+    const receipt = await handleTxn(
+      txn,
+      this.tokenCollatUser.authority.provider.connection,
+      this.tokenCollatUser.authority.wallet
+    );
+    return receipt;
   }
 }

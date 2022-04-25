@@ -56,9 +56,8 @@ pub enum StablePoolError {
     #[msg("Invalid platform type")]
     InvalidPlatformType,
 
-    // TODO 008: reword or delete
-    #[msg("Invalid saber platform")]
-    InvalidSaberPlatform,
+    #[msg("Invalid platform, needs to be Saber")]
+    InvalidPlatformNotSaber,
 
     #[msg("Attempting to repay more than the amount originally borrowed")]
     RepayingMoreThanBorrowed,

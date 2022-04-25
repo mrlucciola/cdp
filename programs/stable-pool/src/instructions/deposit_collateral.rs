@@ -14,11 +14,17 @@ use crate::{
 };
 
 pub fn calc_token_value(token_amount: u64, token_price: u64, token_price_decimals: u64) -> u64 {
-    token_price
-        .checked_mul(token_amount)
+    // msg!(
+    //     "token amt: {}    token_price: {}    token_price_decimals: {}",
+    //     token_amount,
+    //     token_price,
+    //     token_price_decimals
+    // );
+    (token_price as u128)
+        .checked_mul(token_amount as u128)
         .unwrap()
-        .checked_div(10u64.checked_pow(token_price_decimals as u32).unwrap())
-        .unwrap()
+        .checked_div(10u128.checked_pow(token_price_decimals as u32).unwrap())
+        .unwrap() as u64
 }
 
 /**
@@ -37,6 +43,12 @@ pub fn handle(ctx: Context<DepositCollateral>, amt_collat_to_deposit: u64) -> Re
         accts.oracle_b.mint,
     )?;
 
+    let amt_ata_mkt_a = accts.ata_market_a.amount;
+    let amt_ata_mkt_b = accts.ata_market_b.amount;
+    let amt_ata_collat_user = accts.ata_collat_user.amount;
+    let amt_ata_collat_vault = accts.ata_collat_vault.amount;
+    let amt_ata_collat_miner = accts.ata_collat_miner.amount;
+
     let amount_ata_a = amount(&accts.ata_market_a.to_account_info())?;
     let amount_ata_b = amount(&accts.ata_market_b.to_account_info())?;
     // TODO: evaluate if we can delete amount_ata_collat_user
@@ -52,12 +64,12 @@ pub fn handle(ctx: Context<DepositCollateral>, amt_collat_to_deposit: u64) -> Re
 
     // user amount in the ata has to be greater than 0
     require!(
-        accts.ata_collat_user.amount > 0,
+        amt_ata_collat_user > 0,
         StablePoolError::InvalidTransferAmount,
     );
     // user amount in the ata has to be greater than amount being deposited
     require!(
-        accts.ata_collat_user.amount >= amt_collat_to_deposit,
+        amt_ata_collat_user >= amt_collat_to_deposit,
         StablePoolError::InvalidTransferAmount,
     );
 
@@ -65,9 +77,9 @@ pub fn handle(ctx: Context<DepositCollateral>, amt_collat_to_deposit: u64) -> Re
     // calculate the entire pool amount plus the amount to be added, and set that as the new value
     let collat_price = calc_stable_lp_price(
         accts.mint_collat.supply.clone(),
-        amount_ata_a,
+        amt_ata_mkt_a,
         accts.oracle_a.price,
-        amount_ata_b,
+        amt_ata_mkt_b,
         accts.oracle_b.price,
     )?;
 
@@ -75,12 +87,9 @@ pub fn handle(ctx: Context<DepositCollateral>, amt_collat_to_deposit: u64) -> Re
     let amt_to_deposit_value_usd =
         calc_token_value(amt_collat_to_deposit, collat_price, DECIMALS_PRICE);
 
-    // TODO: rename tvl_limit -> tvl_ceiling_usd
-    let global_tvl_ceiling_usd = accts.global_state.tvl_limit;
-
     // global tvl limit has to be less than the next tvl if deposit were to go thru
     require!(
-        *global_tvl_usd + amt_collat_to_deposit <= global_tvl_ceiling_usd,
+        *global_tvl_usd + amt_to_deposit_value_usd <= accts.global_state.tvl_collat_ceiling_usd,
         StablePoolError::GlobalTVLExceeded
     );
     // send the transfer
@@ -93,8 +102,6 @@ pub fn handle(ctx: Context<DepositCollateral>, amt_collat_to_deposit: u64) -> Re
         },
     );
     token::transfer(transfer_ctx, amt_collat_to_deposit)?;
-    msg!("pre: {}", accts.ata_collat_user.amount);
-    msg!("deposited: {}", accts.ata_collat_vault.amount);
 
     // add the A.T.A.'s collat token balance in USD value to the pool
     // accts.user_state.deposited_collat_usd = accts
@@ -102,15 +109,15 @@ pub fn handle(ctx: Context<DepositCollateral>, amt_collat_to_deposit: u64) -> Re
     //     .deposited_collat_usd
     //     .checked_add(amt_to_deposit_value_usd)
     //     .unwrap();
-    accts.user_state.deposited_collat_usd = accts
+    accts.user_state.tvl_collat_usd = accts
         .user_state
-        .deposited_collat_usd
+        .tvl_collat_usd
         .checked_add(amt_collat_to_deposit)
         .unwrap();
 
     // vault A.T.A. already has the amount property, so we skip that
-    let vault_tvl_collat = amount_ata_miner
-        .checked_add(amount_ata_collat_vault)
+    let vault_tvl_collat = amt_ata_collat_miner
+        .checked_add(amt_ata_collat_vault)
         .unwrap();
     let vault_tvl_usd = calc_token_value(vault_tvl_collat, collat_price, DECIMALS_PRICE);
     accts.vault.deposited_collat_usd = vault_tvl_usd.checked_add(amt_to_deposit_value_usd).unwrap();

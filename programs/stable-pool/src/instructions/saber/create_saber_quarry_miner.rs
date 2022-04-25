@@ -56,7 +56,7 @@ pub fn handle(ctx: Context<CreateSaberQuarryMiner>, miner_bump: u8) -> Result<()
     require!(
         ctx.accounts.pool.as_ref().platform_type == PlatformType::Saber as u8,
         // TODO 008: reword or delete
-        StablePoolError::InvalidSaberPlatform
+        StablePoolError::InvalidPlatformNotSaber
     );
     require!(
         ctx.accounts.vault.owner.to_bytes().as_ref()
@@ -65,7 +65,7 @@ pub fn handle(ctx: Context<CreateSaberQuarryMiner>, miner_bump: u8) -> Result<()
     );
 
     let ata_collat_miner_check = get_associated_token_address(
-        &ctx.accounts.authority.key(),
+        &ctx.accounts.miner.key(),
         &ctx.accounts.mint_collat.key(),
     );
     require!(
@@ -151,7 +151,12 @@ pub struct CreateSaberQuarryMiner<'info> {
     pub mint_collat: Box<Account<'info, Mint>>,
 
     // alias: miner_vault
-    #[account(mut)]
+    #[account(
+        init,
+        payer = authority,
+        associated_token::mint = mint_collat,
+        associated_token::authority = miner,
+    )]
     pub ata_collat_miner: Box<Account<'info, TokenAccount>>,
 
     /// CHECK: It will be validated by the QuarryMine Contract

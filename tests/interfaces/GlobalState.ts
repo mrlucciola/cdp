@@ -13,7 +13,7 @@ import {
   GLOBAL_STATE_SEED,
   TVL_LIMIT_USD,
 } from "../utils/constants";
-import { handleTxn } from "../utils/fxns";
+import { addZeros, handleTxn } from "../utils/fxns";
 // interfaces
 import { BaseAcct } from "../utils/interfaces";
 import { TokenPda } from "./TokenPDA";
@@ -43,13 +43,9 @@ export class GlobalState extends BaseAcct {
     // add instruction
     txn.add(
       programStablePool.instruction.createGlobalState(
-        // TODO: remove
-        this.bump,
-        // TODO: remove
-        this.usdx.bump,
-        new BN(TVL_LIMIT_USD * 10 ** DECIMALS_USD),
-        new BN(DEBT_CEILING_GLOBAL_USDX * 10 ** DECIMALS_USDX),
-        new BN(DEBT_CEILING_USER_USDX * 10 ** DECIMALS_USDX),
+        new BN(addZeros(TVL_LIMIT_USD, DECIMALS_USD)),
+        new BN(addZeros(DEBT_CEILING_GLOBAL_USDX, DECIMALS_USDX)),
+        new BN(addZeros(DEBT_CEILING_USER_USDX, DECIMALS_USDX)),
         // for verifying
         this.oracleReporter.wallet.publicKey,
         {
