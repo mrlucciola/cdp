@@ -1,7 +1,7 @@
 // modules
 use anchor_lang::prelude::*;
 use anchor_spl::{
-    associated_token::AssociatedToken,
+    associated_token::{self, AssociatedToken},
     token::{self, Mint, Token, TokenAccount, Transfer},
 };
 use quarry_mine::{
@@ -222,7 +222,9 @@ pub struct HarvestRewardsFromSaber<'info> {
     pub quarry_program: AccountInfo<'info>,
 
     // system accounts
+    #[account(address = token::ID)]
     pub token_program: Program<'info, Token>,
+    #[account(address = associated_token::ID)]
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
     pub rent: Sysvar<'info, Rent>,

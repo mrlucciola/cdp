@@ -106,32 +106,28 @@ export class Users {
     //   this.base.tokens.sbr.tokenReward.mintAuth.provider.connection
     // );
 
-    // console.log("here 3.10");
     // await this.test.tokens.sbr.tokenReward.mintToAta(
     //   addZeros(111.1111, DECIMALS_SBR),
     //   this.test.tokens.sbr.ata,
     //   this.test
     // );
 
-    console.log("here 3.11");
     this.base.tokens.lpSaber = new TokenCollatUser(
       this.base,
       accounts.lpSaberUsdcUsdt,
       accounts.lpSaberUsdcUsdt.pool
     );
-    console.log("here 3.12");
     this.test.tokens.lpSaber = new TokenCollatUser(
       this.test,
       accounts.lpSaberUsdcUsdt,
       accounts.lpSaberUsdcUsdt.pool
     );
-    console.log("here 3.13");
+
     await this.base.tokens.lpSaber.tokenCollat.mintToAta(
       addZeros(10000, DECIMALS_USDCUSDT),
       this.base.tokens.lpSaber.ata,
       this.base
     );
-    console.log("here 3.14");
     await this.test.tokens.lpSaber.tokenCollat.mintToAta(
       addZeros(99999, DECIMALS_USDCUSDT),
       this.test.tokens.lpSaber.ata,

@@ -2,7 +2,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::{self, get_associated_token_address, AssociatedToken},
-    token::{Mint, Token, TokenAccount},
+    token::{self, Mint, Token, TokenAccount},
 };
 use quarry_mine::{
     cpi::{accounts::CreateMiner, create_miner},
@@ -159,7 +159,9 @@ pub struct CreateSaberQuarryMiner<'info> {
     pub quarry_program: AccountInfo<'info>,
 
     // system
+    #[account(address = token::ID)]
     pub token_program: Program<'info, Token>,
+    #[account(address = associated_token::ID)]
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
     pub rent: Sysvar<'info, Rent>,

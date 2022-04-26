@@ -285,10 +285,8 @@ pub struct BorrowUsdx<'info> {
     )]
     pub oracle_b: Box<Account<'info, Oracle>>,
     // system accounts
-    #[account(address = associated_token::ID)]
-    pub associated_token_program: Program<'info, AssociatedToken>,
     #[account(address = token::ID)]
     pub token_program: Program<'info, Token>,
-    pub system_program: Program<'info, System>,
-    pub rent: Sysvar<'info, Rent>,
+    #[account(address = associated_token::ID)]
+    pub associated_token_program: Program<'info, AssociatedToken>,
 }

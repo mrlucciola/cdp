@@ -50,8 +50,6 @@ export class Miner {
     this.vault = vault;
     this.tokenCollatUser = tokenCollatUser;
     this.pool = pool;
-    console.log(this.pool.quarry.pubkey);
-    console.log(this.vault.pubKey);
 
     const [pubkey, bump] = getPda(
       [
@@ -77,7 +75,6 @@ export class Miner {
     );
   }
   async initMiner() {
-
     const txn = new web3.Transaction().add(
       // programPeriphery.instruction.createSaberQuarryMiner(miner.bump, {
       programStablePool.instruction.createSaberQuarryMiner(this.bump, {

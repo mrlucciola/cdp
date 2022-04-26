@@ -130,7 +130,6 @@ export const depositCollateralPASS = async (user: User, accounts: Accounts) => {
   // const priceUsd = 1.02 * 10 ** DECIMALS_PRICE; // TODO: fix price feed
   const globalStateAcct: IdlAccounts<StablePool>["globalState"] =
     await accounts.global.getAccount();
-  console.log('tvl', globalStateAcct.tvlCollatCeilingUsd.toNumber())
 
   const userlpSaber = user.tokens.lpSaber;
 
@@ -145,16 +144,13 @@ export const depositCollateralPASS = async (user: User, accounts: Accounts) => {
     "Test requires ATA balance to be >= deposit amount. Please increase deposit amount" +
       `\nATA bal.: ${userBalPre}   deposit amt: ${amtToDepositPrecise}`
   );
-  console.log("asdf 4");
   const doesExist = await user.tokens.lpSaber.vault.miner.ata.getAccountInfo();
-  console.log("asdf 5");
   !doesExist &&
     (await user.tokens.lpSaber.vault.miner.ata.initAta(
       0,
       user.wallet,
       user.provider.connection
     ));
-  console.log("asdf 6");
   // assert(
   //   amtToDepositPrecise * LAMPORTS_PER_SOL * priceUsd + globalStateAcct.tvlUsd.toNumber() < globalStateAcct.tvlCollatCeilingUsd.toNumber(),
   //   "Amount attempting to deposit will exceed TVL limit. Please decrease amtToDepositPrecise.\n" +
@@ -181,7 +177,6 @@ export const depositCollateralPASS = async (user: User, accounts: Accounts) => {
     user,
     user.tokens.lpSaber.vault.miner
   );
-  console.log("asdf 7");
 
   const userBalPost = Number((await userlpSaber.ata.getBalance()).value.amount);
   const vaultBalPost = Number(
@@ -194,28 +189,15 @@ export const depositCollateralPASS = async (user: User, accounts: Accounts) => {
     `vault balance: ${vaultBalPre} -> ${vaultBalPost} ∆=${vaultDiff}`
   );
 
-  console.log("asdf 8");
   const differenceThreshold = 0.0001; // set arbitrarily
   assert(
     Math.abs(amtToDepositPrecise + userDiff) < differenceThreshold,
     `Expected User ATA Diff: ${-amtToDepositPrecise}  Actual User ATA Diff: ${userDiff}`
   );
-  console.log("asdf 9");
   assert(
     Math.abs(vaultDiff - amtToDepositPrecise) < differenceThreshold,
-    "Expected Vault Diff: " +
-      amtToDepositPrecise +
-      " Actual Vault Diff: " +
-      vaultDiff
+    `Expected Vault Diff: ${amtToDepositPrecise}   Actual Vault Diff: ${vaultDiff}`
   );
-  console.log("asdf 10");
-  // globalStateAcct = await accounts.global.getAccount();
-  // const tvlPost = globalStateAcct.tvlUsd.toNumber();
-  // // may need to change from == to <= some small delta value to account for price flucuations
-  // assert(tvlPost - tvlPre == amtToDeposit * LAMPORTS_PER_SOL* priceUsd,
-  //   "TVL did not update correctly.\n" +
-  //   "Expected TVL Difference: " + amtToDeposit * LAMPORTS_PER_SOL* priceUsd +
-  //   " Actual TVL Difference: " + (tvlPost - tvlPre));
 };
 
 // TODO: unit test doesn't work (although passing) because TVL prices aren't implemented
@@ -247,11 +229,6 @@ export const depositCollateralFAIL_DepositExceedingTVL = async (
       `TVL: ${globalStateAcct.tvlUsd.toNumber()}   TVL Limit: ${globalStateAcct.tvlCollatCeilingUsd.toNumber()}`
   );
 
-  // console.log(`tvlCollatCeilingUsd: ${globalStateAcct.tvlCollatCeilingUsd.toNumber()}`);
-  // console.log(`tvlUsd: ${globalStateAcct.tvlUsd.toNumber()}`);
-  // console.log(
-  //   `depositAmountPrecise * 100000: ${depositAmountPrecise * 100000}`
-  // );
   await expect(
     depositCollateralCall(
       // deposit amount

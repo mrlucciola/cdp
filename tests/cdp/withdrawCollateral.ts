@@ -200,7 +200,6 @@ export const withdrawCollateralFAIL_AttemptWithdrawFromOtherUser = async (
     (await otherUserlpSaber.ata.getBalance()).value.amount
   );
 
-  console.log("heliere\n\n\n\n", userVaultBalPre - userVaultBalPost);
   const userVaultDiff = userVaultBalPre - userVaultBalPost;
   const userBalDiff = userBalPost - userBalPre;
   const otherUserVaultDiff = otherUserVaultBalPre - otherUserVaultBalPost;

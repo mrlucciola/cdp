@@ -48,7 +48,7 @@ export const borrowUsdxCall = async (
         authority: userWallet.publicKey,
         globalState: globalState.pubKey,
         pool: pool.pubKey,
-        
+
         vault: tokenCollatUser.vault.pubKey,
         userState: userState.pubKey,
 
@@ -67,14 +67,15 @@ export const borrowUsdxCall = async (
         // system accts
         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
         tokenProgram: TOKEN_PROGRAM_ID,
-        systemProgram: SystemProgram.programId,
-        rent: SYSVAR_RENT_PUBKEY,
       },
     })
   );
 
   await handleTxn(txn, userConnection, userWallet);
-  console.log(await tokenCollatUser.ata.getBalance());
+  console.log(
+    "tokenCollatUser ata balance",
+    await tokenCollatUser.ata.getBalance()
+  );
 };
 // THIS IS NOT COMPLETE, please see note on the contract fxn (search `BorrowUsdx<'info>`)
 export const borrowUsdxPASS = async (user: User, accounts: Accounts) => {

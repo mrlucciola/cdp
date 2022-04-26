@@ -50,13 +50,13 @@ import { createSaberQuarryMinerPASS } from "../saber/createSaberQuarryMiner";
 //   unstakeColalteralFromSaberPASS,
 // } from "../saber/unstakeCollateralFromSaber";
 // import { harvestRewardsFromSaberPASS } from "../saber/harvestRewardFromSaber";
-// import {
-//   repayUsdxFAIL_RepayMoreThanBorrowed,
-//   repayUsdxPASS_RepayFullAmountBorrowed,
-//   repayUsdxPASS_RepayLessThanBorrowed,
-//   repayUsdxFAIL_ZeroUsdx,
-//   repayUsdxFAIL_RepayAnotherUsersDebt,
-// } from "../cdp/repayUsdx";
+import {
+  // repayUsdxFAIL_RepayMoreThanBorrowed,
+  repayUsdxPASS_RepayFullAmountBorrowed,
+  // repayUsdxPASS_RepayLessThanBorrowed,
+  // repayUsdxFAIL_ZeroUsdx,
+  // repayUsdxFAIL_RepayAnotherUsersDebt,
+} from "../cdp/repayUsdx";
 // import {
 //   emergencyStatePASS_DepositDisabled,
 //   emergencyStatePASS_BorrowDisabled,
@@ -91,7 +91,6 @@ describe("cdp core test suite", async () => {
     accounts = new Accounts(users.external, users.oracleReporter);
     await accounts.initAccounts(users.super, [users.base, users.test]);
 
-    console.log("init here 3");
     await users.initUsers(accounts);
   });
 
@@ -275,18 +274,18 @@ describe("cdp core test suite", async () => {
   //   );
   // });
 
-  // it("PASS: Withdraw collateral", async () => {
-  //   await withdrawCollateralPASS(users.base, accounts);
-  //   await withdrawCollateralPASS(users.test, accounts);
-  // });
+  it("PASS: Withdraw collateral", async () => {
+    await withdrawCollateralPASS(users.base, accounts);
+    await withdrawCollateralPASS(users.test, accounts);
+  });
 
   // THIS IS NOT COMPLETE, please see note on the contract fxn (search `BorrowUsdx<'info>`)
-  // it("PASS: Borrow/mint USDx for base", async () => {
-  //   await borrowUsdxPASS(users.base, accounts);
-  // });
-  // it("PASS: Borrow/mint USDx for test", async () => {
-  //   await borrowUsdxPASS(users.test, accounts);
-  // });
+  it("PASS: Borrow/mint USDx for base", async () => {
+    await borrowUsdxPASS(users.base, accounts);
+  });
+  it("PASS: Borrow/mint USDx for test", async () => {
+    await borrowUsdxPASS(users.test, accounts);
+  });
 
   // repay
   // it("FAIL: Repay USDx - Repaying More Than Originally Borrowed", async () => {
@@ -295,12 +294,9 @@ describe("cdp core test suite", async () => {
   //     users.base.tokens.lpSaber.vault,
   //     accounts);
   // });
-  // it("PASS: Repay USDx - Repaying Exact Amount Originally Borrowed", async () => {
-  //   await repayUsdxPASS_RepayFullAmountBorrowed(
-  //     users.base,
-  //     users.base.tokens.lpSaber.vault,
-  //     accounts);
-  // });
+  it("PASS: Repay USDx - Repaying Exact Amount Originally Borrowed", async () => {
+    await repayUsdxPASS_RepayFullAmountBorrowed(users.base, accounts);
+  });
   // it("PASS: Repay USDx - Repaying Less Than Amount Originally Borrowed", async () => {
   //   await repayUsdxPASS_RepayLessThanBorrowed(
   //     users.base,

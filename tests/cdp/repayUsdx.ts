@@ -1,12 +1,5 @@
 // anchor imports
-import {
-  BN,
-  IdlAccounts,
-  Program,
-  Wallet,
-  web3,
-  workspace,
-} from "@project-serum/anchor";
+import { BN, Program, Wallet, web3, workspace } from "@project-serum/anchor";
 // solana imports
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -51,15 +44,13 @@ const repayUsdxCall = async (
         authority: userWallet.publicKey,
         globalState: globalState.pubKey,
         pool: pool.pubKey,
-        vault: vault.pubKey, // TODO: vault -> vault
+        vault: vault.pubKey,
         mintUsdx: mintUsdx.pubKey,
         ataUsdx: tokenUsdxUser.ata.pubKey,
 
         // system accts
         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
         tokenProgram: TOKEN_PROGRAM_ID,
-        systemProgram: SystemProgram.programId,
-        rent: SYSVAR_RENT_PUBKEY,
       },
     })
   );
@@ -69,11 +60,11 @@ const repayUsdxCall = async (
 
 export const repayUsdxFAIL_RepayMoreThanBorrowed = async (
   user: User,
-  vault: Vault,
   accounts: Accounts
 ) => {
-  const repayAmountUi = 1;
-  const repayAmountPrecise = addZeros(repayAmountUi, DECIMALS_USDX);
+  const vault: Vault = user.tokens.lpSaber.vault;
+  const repayAmountExcessUi = 1 * LAMPORTS_PER_SOL;
+  const repayAmountExcessPrecise = addZeros(repayAmountExcessUi, DECIMALS_USDX);
 
   // get global state info
   const globalStateAccttInfo: web3.AccountInfo<Buffer> =
@@ -92,20 +83,20 @@ export const repayUsdxFAIL_RepayMoreThanBorrowed = async (
   const vaultDebtPre = (await vault.getAccount()).debt.toNumber();
 
   assert(
-    repayAmountPrecise >= vaultDebtPre,
+    repayAmountExcessPrecise >= vaultDebtPre,
     "Test requires repay amount >= vault balance. Please increase repay amount." +
-      `Repay Amount: ${repayAmountPrecise}  ||  Vault Balance: ${vaultDebtPre}`
+      `Repay Amount: ${repayAmountExcessPrecise}  ||  Vault Balance: ${vaultDebtPre}`
   );
   assert(
-    repayAmountPrecise <= ataUsdxBalPre,
+    repayAmountExcessPrecise <= ataUsdxBalPre,
     "Test requires that ATA balance be >= repay amount. Please increase ATA balance." +
-      `Repay Amount: ${repayAmountPrecise}  ||  ATA Balance: ${ataUsdxBalPre}`
+      `Repay Amount: ${repayAmountExcessPrecise}  ||  ATA Balance: ${ataUsdxBalPre}`
   );
 
   await expect(
     repayUsdxCall(
       // amtToRepay
-      repayAmountPrecise * LAMPORTS_PER_SOL,
+      repayAmountExcessPrecise,
       // userConnection
       user.provider.connection,
       // userWallet
@@ -140,12 +131,14 @@ export const repayUsdxFAIL_RepayMoreThanBorrowed = async (
 
 export const repayUsdxPASS_RepayFullAmountBorrowed = async (
   user: User,
-  vault: Vault,
   accounts: Accounts
 ) => {
+  const vault: Vault = user.tokens.lpSaber.vault;
   // get global state info
   const globalStateAccttInfo: web3.AccountInfo<Buffer> =
     await accounts.global.getAccountInfo();
+
+  // check if global state exists
   assert(
     globalStateAccttInfo,
     "Test requires global state to already be created"
@@ -156,22 +149,22 @@ export const repayUsdxPASS_RepayFullAmountBorrowed = async (
   assert(vaultInfo, "Test requires vault to already be created");
 
   const userUsdx = user.tokens.usdx;
-  const ataUsdxBalPre = (await userUsdx.ata.getBalance()).value.uiAmount;
+  const ataUsdxBalPre = addZeros(
+    (await userUsdx.ata.getBalance()).value.uiAmount,
+    DECIMALS_USDX
+  );
   const vaultDebtPre = (await vault.getAccount()).debt.toNumber();
   const repayAmountPrecise = ataUsdxBalPre;
 
   assert(
-    ataUsdxBalPre == vaultDebtPre,
+    ataUsdxBalPre === vaultDebtPre,
     "Test requires ataUsdxBal == vaultDebt. Please make these values equal." +
-      "ATA Usdx Bal: " +
-      ataUsdxBalPre +
-      " Vault Balance :" +
-      vaultDebtPre
+      `ATA Usdx Bal: ${ataUsdxBalPre}     Vault Debt : ${vaultDebtPre}`
   );
 
   await repayUsdxCall(
     // amtToRepay
-    repayAmountPrecise * LAMPORTS_PER_SOL,
+    repayAmountPrecise,
     // userConnection
     user.provider.connection,
     // userWallet
@@ -192,18 +185,12 @@ export const repayUsdxPASS_RepayFullAmountBorrowed = async (
   const vaultDebtPost = (await vault.getAccount()).debt.toNumber();
 
   assert(
-    ataUsdxBalPost == 0,
-    "ATA Bal not what expected" +
-      "ATA Bal: " +
-      ataUsdxBalPost +
-      " Expected Bal: 0"
+    ataUsdxBalPost === 0,
+    `ATA Bal not what expected \nATA Bal: ${ataUsdxBalPost} - Expected Bal: 0`
   );
   assert(
-    vaultDebtPost == 0,
-    "Vault Debt not what expected" +
-      "Vault Debt: " +
-      vaultDebtPost +
-      " Expected Debt: 0"
+    vaultDebtPost === 0,
+    `Vault Debt not what expected \nVault Debt: ${vaultDebtPost} - Expected Debt: 0`
   );
 };
 
@@ -232,19 +219,13 @@ export const repayUsdxPASS_RepayLessThanBorrowed = async (
 
   assert(
     repayAmount <= vaultDebtPre,
-    "Test requires repay amount <= vault balance. Please decrease repay amount." +
-      "Repay Amount: " +
-      repayAmount +
-      " Vault Balance :" +
-      vaultDebtPre
+    "Test requires repay amount <= vault balance. Please decrease repay amount. \n" +
+      `Repay Amount: ${repayAmount}   Vault Balance: ${vaultDebtPre}`
   );
   assert(
     repayAmount <= ataUsdxBalPre,
-    "Test requires that ATA balance be >= repay amount. Please increase ATA balance." +
-      "Repay Amount: " +
-      repayAmount +
-      " ATA Balance: " +
-      ataUsdxBalPre
+    "Test requires that ATA balance be >= repay amount. Please increase ATA balance. \n" +
+      `Repay Amount: ${repayAmount}    ATA Balance: ${ataUsdxBalPre}`
   );
 
   await repayUsdxCall(
